@@ -2,28 +2,41 @@
 # $< = first dependency
 # $^ = all dependencies
 
+CPP_SOURCES = $(wildcard *.cc)
+HEADERS = $(wildcard *.hh)
+OBJ = ${CPP_SOURCES:.cc=.o}
+
+CC = i686-elf-g++
+CFLAGS = -g
+GDB = gdb
+
 all: run
 
-obj/kernel.bin: obj/kernel_entry.o obj/kernel.o
-		i686-elf-ld -o $@ -Ttext 0x1000 $^ --oformat binary
-
-obj/kernel_entry.o: boot/kernel_entry.asm
-		nasm $< -f elf -o $@
-
-obj/kernel.o: kernel.cc
-		i686-elf-g++ -ffreestanding -c $< -o $@
-
-obj/kernel.dis: obj/kernel.bin
-		ndisasm -b 32 $< > $@
-
-obj/boot.bin: boot/boot.asm boot/vga.asm boot/boot_utils.asm
-		nasm $< -f bin -o $@
-
-obj/os-image.bin: obj/boot.bin obj/kernel.bin
+os-image.bin: boot/boot.bin kernel.bin
 		cat $^ > $@
 
-run: obj/os-image.bin
+kernel.bin: boot/kernel_entry.o ${OBJ}
+		i686-elf-ld -o $@ -Ttext 0x1000 $^ --oformat binary
+
+kernel.elf: boot/kernel_entry.o ${OBJ}
+		i686-elf-ld -o $@ -Ttext 0x1000 $^ 
+
+run: os-image.bin
 		qemu-system-i386 -hda $<
 
+gdb: os-image.bin kernel.elf
+		qemu-system-i386 -hda $< -S -s & \
+		${GDB}
+
+%.o: %.cc ${HEADERS}
+		${CC} ${CFLAGS} -ffreestanding -c $< -o $@
+
+%.o: %.asm
+		nasm $< -f elf -o $@
+
+%.bin: %.asm
+		nasm $< -f bin -o $@
+
 clean:
-		rm obj/*
+	rm -rf *.bin *.dis *.o os-image.bin *.elf
+	rm -rf *.o boot/*.bin boot/*.o

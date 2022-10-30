@@ -1,6 +1,10 @@
+#include "strings.hh"
+#include "console.hh"
 void nothing() {}
 
 extern "C" void kernel_main() {
-    char* video_memory = (char*)(0xb8000);
-    *video_memory = 'X';
+    using namespace console;
+    Console console;
+    console.clear();
+    console.print("Hello, World!");
 }
