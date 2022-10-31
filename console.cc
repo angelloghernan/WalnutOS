@@ -1,8 +1,5 @@
 #include "console.hh"
 
-static u16 const ENABLE_CURSOR   = 0x0A;
-static u16 const CURSOR_LOCATION = 0x3D5;
-
 namespace console {
     void Console::print_char(char ch, Color fg, Color bg) {
         auto const full_ch = Console::create_char(ch, fg, bg);

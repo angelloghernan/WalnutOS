@@ -8,8 +8,6 @@ KERNEL_OFFSET equ 0x1000
 
     call load_kernel
 
-    mov si, MSG_REAL_MODE
-    call bios_print
     call switch_to_pm
     jmp $ ; this will actually never be executed
 
@@ -21,7 +19,7 @@ KERNEL_OFFSET equ 0x1000
 load_kernel:
     ; Read 3 sectors from kernel offset
     mov bx, KERNEL_OFFSET
-    mov al, 4
+    mov al, 5
     call disk_load
     ret
 

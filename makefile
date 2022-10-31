@@ -6,20 +6,29 @@ CPP_SOURCES = $(wildcard *.cc)
 HEADERS = $(wildcard *.hh)
 OBJ = ${CPP_SOURCES:.cc=.o}
 
-CC = i686-elf-g++
-CFLAGS = -g -std=c++20 -O3
+
+
+CC = i686-elf-g++ 
+CFLAGS = -g -std=c++20 -ffreestanding -nostdlib -lgcc
 GDB = gdb
+
+CRTI_OBJ = boot/crti.o
+CRTN_OBJ = boot/crtn.o
+CRT0_OBJ = boot/crt0.o
+CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
+CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
+OBJ_LINK_LIST:= $(CRT0_OBJ) $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJ) $(CRTEND_OBJ) $(CRTN_OBJ)
 
 all: run
 
 os-image.bin: boot/boot.bin kernel.bin
 		cat $^ > $@
 
-kernel.bin: boot/kernel_entry.o ${OBJ}
-		i686-elf-ld -o $@ -Ttext 0x1000 $^ --oformat binary
+kernel.bin: ${OBJ_LINK_LIST}
+		i686-elf-ld -o $@ --script=ldconfig.ld $^ --oformat binary
 
-kernel.elf: boot/kernel_entry.o ${OBJ}
-		i686-elf-ld -o $@ -Ttext 0x1000 $^ 
+kernel.elf: ${OBJ_LINK_LIST}
+		i686-elf-ld -o $@ --script=ldconfig.ld $^ 
 
 run: os-image.bin
 		qemu-system-i386 -hda $<
@@ -32,7 +41,7 @@ gdb: os-image.bin kernel.elf
 		${GDB}
 
 %.o: %.cc ${HEADERS}
-		${CC} ${CFLAGS} -ffreestanding -c $< -o $@
+		${CC} ${CFLAGS} -c $< -o $@
 
 %.o: %.asm
 		nasm $< -f elf -o $@

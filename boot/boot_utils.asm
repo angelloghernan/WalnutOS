@@ -13,7 +13,7 @@ disk_load:
   mov dh, 0x00 ; Read from head 0
   int BIOS_SERVICES_DISK
   jc disk_error
-  cmp al, 4
+  cmp al, 5
   jne sector_error
   ret
 

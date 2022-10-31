@@ -1,9 +1,15 @@
 [bits 32]
 [extern kernel_main]
+[extern _init]
+[extern _fini]
 ; mov bx, HELLO_STRING
 ; call print_string_pm
-call kernel_main
-jmp $
+global _start
+_start:
+    call _init
+    call kernel_main
+    call _fini
+    jmp $
 
 ; HELLO_STRING db "Hello, there", 0
 
