@@ -21,7 +21,7 @@ class Option {
 
     bool operator!() const { return !present; }
 
-    void assign(T value) {
+    void assign(T const value) {
         val = value;
         present = true;
     }

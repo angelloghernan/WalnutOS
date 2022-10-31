@@ -23,7 +23,7 @@ struct str {
     };
     
     template<usize S>
-    str(char const (&string)[S]) : string(string), size(S) {}
+    str(char const (&string)[S]) : string(string), size(S - 1) {}
 
     usize len() const { return size; }
 
@@ -39,8 +39,8 @@ struct str {
         return string[idx];
     }
 
-    iterator begin() { return iterator(string); }
-    iterator end() { return iterator(string + size); }
+    iterator begin() const { return iterator(string); }
+    iterator end() const { return iterator(string + size); }
 
   private:
         char const* string;

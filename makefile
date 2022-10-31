@@ -7,7 +7,7 @@ HEADERS = $(wildcard *.hh)
 OBJ = ${CPP_SOURCES:.cc=.o}
 
 CC = i686-elf-g++
-CFLAGS = -g
+CFLAGS = -g -std=c++20 -O3
 GDB = gdb
 
 all: run
@@ -23,6 +23,9 @@ kernel.elf: boot/kernel_entry.o ${OBJ}
 
 run: os-image.bin
 		qemu-system-i386 -hda $<
+
+run-console: os-image.bin
+		qemu-system-i386 -hda $< -display curses
 
 gdb: os-image.bin kernel.elf
 		qemu-system-i386 -hda $< -S -s & \

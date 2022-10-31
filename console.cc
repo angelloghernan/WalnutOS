@@ -1,37 +1,38 @@
 #include "console.hh"
 
+static u16 const ENABLE_CURSOR   = 0x0A;
+static u16 const CURSOR_LOCATION = 0x3D5;
+
 namespace console {
     void Console::print_char(char ch, Color fg, Color bg) {
-        auto const color = Console::combine_colors(fg, bg);
-        u16 test = u16(color) << 1;
-        u16 const full_ch = (u16(color) << 8) | u16(ch);
-
+        auto const full_ch = Console::create_char(ch, fg, bg);
         console_page[col + row * Console::MAX_COLS] = full_ch;
 
         col += 1;
         if (col == Console::MAX_COLS) {
-            col = 0;
-            row += 1;
+            new_line();
         }
     }
 
-    void Console::print(str s, Color fg, Color bg) {
+    void Console::print(str const s, Color const fg, Color const bg) {
         for (auto const ch : s) {
             print_char(ch, fg, bg);
         }
+        move_cursor(row, col);
     }
 
-    void Console::print_line(str s, Color fg, Color bg) {
+    void Console::print_line(str const s, Color const fg, Color const bg) {
         print(s, fg, bg);
-        col = 0;
-        row += 1;
+        new_line();
+        move_cursor(row, 0);
     }
 
     void Console::clear() {
         for (auto i = 0; i < MAX_ROWS * MAX_COLS; ++i) {
-            console_page[i] = 0;
+            console_page[i] = Console::create_char(' ', Color::White, Color::Black);
         }
 
         col = row = 0;
+        move_cursor(row, col);
     }
 }
