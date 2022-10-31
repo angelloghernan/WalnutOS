@@ -27,6 +27,7 @@ namespace console {
       public:
         void print(str const s, Color const fg = Color::White, Color const bg = Color::Black);
         void print_line(str const s, Color const fg = Color::White, Color const bg = Color::Black);
+        void print_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
         void clear();
 
         Console() : col(0), row(0), console_page(reinterpret_cast<u16 *const>(0xb8000)) {
@@ -58,7 +59,7 @@ namespace console {
         static u16 const CURSOR_LOCATION_HIGH = 0xE;
         static u16 const CURSOR_LOCATION_LOW = 0xF;
 
-        void print_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
+        void put_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
 
         auto static create_char(char const ch, Color const fg, Color const bg) -> u16 {
             auto const upper = static_cast<u8>(bg);

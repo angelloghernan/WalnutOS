@@ -1,16 +1,15 @@
 #include "../klib/strings.hh"
 #include "../klib/console.hh"
-void nothing() {}
+#include "../klib/array.hh"
 console::Console terminal;
 
 extern "C" void kernel_main() {
     terminal.clear();
     terminal.print_line("Hello, World!");
-    for (auto i = 0; i < 10; ++i) {
-        terminal.print_line("What's up");
-    }
-
-    for (auto j = 0; j < 20; ++j) {
-        terminal.print_line("The end");
+    Array<int, 10> arr {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    for (auto const ele : arr) {
+        char const ch = ele + '0';
+        terminal.print_char(ch);
+        terminal.print_char('\n');
     }
 }

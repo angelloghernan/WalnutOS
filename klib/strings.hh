@@ -12,14 +12,14 @@ struct str {
         iterator(pointer ptr) : ptr(ptr) {}
 
         reference operator*() const { return *ptr; }
-        pointer operator->() { return ptr; }
+        pointer operator->() const { return ptr; }
         iterator& operator++() { ++ptr; return *this; }
         iterator operator++(int) { iterator tmp = *this; ++(*this); return tmp; }
         friend bool operator==(iterator const& a, iterator const& b) { return a.ptr == b.ptr; };
         friend bool operator!=(iterator const& a, iterator const& b) { return a.ptr != b.ptr; };
 
       private:
-        char const* ptr;
+        pointer ptr;
     };
     
     template<usize S>
@@ -27,7 +27,7 @@ struct str {
 
     usize len() const { return size; }
 
-    Option<char> get(usize idx) const {
+    Option<char> get(usize const idx) const {
         if (idx < size) {
             return Option<char>(string[idx]);
         } else {
@@ -35,7 +35,7 @@ struct str {
         }
     }
 
-    char operator[](usize idx) const {
+    char const& operator[](usize const idx) const {
         return string[idx];
     }
 

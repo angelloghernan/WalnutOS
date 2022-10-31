@@ -1,7 +1,12 @@
 #include "console.hh"
 
 namespace console {
-    void Console::print_char(char ch, Color fg, Color bg) {
+    void Console::put_char(char ch, Color fg, Color bg) {
+        if (ch == '\n') {
+            new_line();
+            return;
+        }
+
         auto const full_ch = Console::create_char(ch, fg, bg);
         console_page[col + row * Console::MAX_COLS] = full_ch;
 
@@ -11,9 +16,14 @@ namespace console {
         }
     }
 
+    void Console::print_char(char const ch, Color const fg, Color const bg) {
+        put_char(ch, fg, bg);
+        move_cursor(row, col);
+    }
+
     void Console::print(str const s, Color const fg, Color const bg) {
         for (auto const ch : s) {
-            print_char(ch, fg, bg);
+            put_char(ch, fg, bg);
         }
         move_cursor(row, col);
     }
