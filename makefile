@@ -2,10 +2,9 @@
 # $< = first dependency
 # $^ = all dependencies
 
-CPP_SOURCES = $(wildcard *.cc)
-HEADERS = $(wildcard *.hh)
+CPP_SOURCES = $(wildcard kernel/*.cc klib/*.cc)
+HEADERS = $(wildcard kernel/*.hh klib/*.hh)
 OBJ = ${CPP_SOURCES:.cc=.o}
-
 
 
 CC = i686-elf-g++ 

@@ -1,5 +1,5 @@
-#include "strings.hh"
-#include "console.hh"
+#include "../klib/strings.hh"
+#include "../klib/console.hh"
 void nothing() {}
 console::Console terminal;
 
