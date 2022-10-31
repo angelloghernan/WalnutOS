@@ -1,5 +1,6 @@
 #pragma once
 #include "int.hh"
+#include "array.hh"
 
 class IdtEntry {
   public:
@@ -13,3 +14,6 @@ class IdtEntry {
     u16 isr_high;
 
 } __attribute__((packed));
+
+__attribute__((aligned(0x10)))
+extern Array<IdtEntry, 256> idt;

@@ -1,36 +1,26 @@
 #pragma once
 #include "int.hh"
 #include "option.hh"
+#include "iterator.hh"
 template<typename T, usize S>
 class Array {
   public:
-    struct iterator {
-        using value_type = T;
-        using pointer    = T*;
-        using reference  = T&;
 
-        iterator(pointer ptr) : ptr(ptr) {}
-
-        reference operator*() const { return *ptr; }
-        pointer operator->() const { return ptr; }
-        iterator& operator++() { ++ptr; return *this; }
-        iterator operator++(int) { iterator tmp = *this; ++(*this); return tmp; }
-        friend bool operator==(iterator const& a, iterator const& b) { return a.ptr == b.ptr; };
-        friend bool operator!=(iterator const& a, iterator const& b) { return a.ptr != b.ptr; };
-
-      private:
-        pointer ptr;
-    };
-    usize len() const { return S; }
-    Option<T> get(usize idx) const {
+    constexpr Option<T> get(usize idx) const {
         if (idx < S) {
             return Option<T>(_arr[idx]); 
         } else {
             return Option<T>();
         }
     }
-    T& operator[](usize idx) const { return _arr[idx]; }
-    iterator begin() { return iterator(&_arr[0]); }
-    iterator end() { return iterator(&_arr[S]); }
+    
+    constexpr usize len() const { return S; }
+    constexpr T* data() { return &_arr[0]; }
+    constexpr T const* data() const { return &_arr[0]; }
+    constexpr T& operator[](usize idx) { return _arr[idx]; }
+    constexpr T const& operator[](usize idx) const { return _arr[idx]; }
+
+    constexpr iterator<T> begin() { return iterator<T>(&_arr[0]); }
+    constexpr iterator<T> end() { return iterator<T>(&_arr[S]); }
     T _arr[S];
 };
