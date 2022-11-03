@@ -19,7 +19,7 @@ gdt_data:
     dw 0xffff
     dw 0x0
     db 0x0
-    db 10010010b
+    db 10010010b ; removing write permissions
     db 11001111b
     db 0x0
 

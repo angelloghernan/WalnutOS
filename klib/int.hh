@@ -12,3 +12,5 @@ typedef int32_t i32;
 
 typedef size_t usize;
 typedef int32_t isize; // Assuming we'll be i386/i686 forever.
+
+typedef uintptr_t uptr;

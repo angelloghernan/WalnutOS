@@ -105,3 +105,5 @@ namespace console {
         }
     };
 }
+
+extern console::Console terminal;

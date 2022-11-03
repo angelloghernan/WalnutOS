@@ -2,6 +2,9 @@
 #include "int.hh"
 #include "option.hh"
 
+// str: A primitive type wrapping around string literals, allowing
+// for easier iteration and slicing.
+// Do not construct a str with a custom const char array.
 struct str {
   public:
     struct iterator {
