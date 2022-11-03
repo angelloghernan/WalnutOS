@@ -1,6 +1,8 @@
 ; Macro for interrupts (exceptions) with error codes
 %macro isr_err_stub 1
 isr_stub_%+%1:
+    push dword %1
+    push esp
     call exception_handler
     iret
 %endmacro
@@ -8,6 +10,9 @@ isr_stub_%+%1:
 ; Macro for interrupts without error codes
 %macro isr_no_err_stub 1
 isr_stub_%+%1:
+    push dword 0
+    push dword %1
+    push esp
     call exception_handler
     iret
 %endmacro

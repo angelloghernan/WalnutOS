@@ -5,8 +5,11 @@ Idt idt;
 static Idtr idtr;
 extern void* isr_stub_table[];
 
-extern "C" [[noreturn]] void exception_handler() {
-    terminal.print_line("Unhandled exception!");
+extern "C" [[noreturn]] void exception_handler(regstate* regs) {
+    terminal.print_line("Unhandled exception: ");
+    terminal.print_char(char(regs->vector_code + '0'));
+    terminal.print_char('\n');
+    terminal.print_char(char(regs->error_code + '0'));
     __asm__ volatile("cli; hlt");
     while (true) {}
 }
