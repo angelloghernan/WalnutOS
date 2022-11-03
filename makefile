@@ -4,11 +4,11 @@
 
 CPP_SOURCES = $(wildcard kernel/*.cc klib/*.cc)
 HEADERS = $(wildcard kernel/*.hh klib/*.hh)
-OBJ = ${CPP_SOURCES:.cc=.o}
+OBJ = ${CPP_SOURCES:.cc=.o} klib/idt.o
 
 
 CC = i686-elf-g++ 
-CFLAGS = -g -std=c++20 -ffreestanding -nostdlib -lgcc
+CFLAGS = -g -std=c++20 -ffreestanding -nostdlib -lgcc -O3
 GDB = gdb
 
 CRTI_OBJ = boot/crti.o
@@ -50,7 +50,7 @@ gdb: os-image.bin kernel.elf
 
 clean:
 	rm -rf *.bin *.dis *.o os-image.bin *.elf
-	rm -rf *.o boot/*.bin boot/*.o
+	rm -rf *.o boot/*.bin boot/*.o klib/*.o
 
 line_count:
 	find . -name '*.asm' | xargs wc -l && \
