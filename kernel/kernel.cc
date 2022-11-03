@@ -1,9 +1,11 @@
 #include "../klib/strings.hh"
 #include "../klib/console.hh"
 #include "../klib/array.hh"
+#include "../klib/idt.hh"
 console::Console terminal;
 
 extern "C" void kernel_main() {
+    idt.init();
     terminal.clear();
     terminal.print_line("Hello, World!");
     Array<int, 10> arr {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};

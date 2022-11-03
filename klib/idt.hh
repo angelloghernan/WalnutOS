@@ -7,9 +7,9 @@ class IdtEntry {
     void set(void* handler, u8 flags) {
         auto handler_address = reinterpret_cast<uptr>(handler);
         _isr_low = handler_address & 0xFFFF;
+        // Kernel code selector is 0x08 offset (first after null)
+        _kernel_cs = 0x08;
         _reserved = 0;
-        // Kernel code selector is 2
-        _kernel_cs = 0x2;
         _attributes = flags;
         _isr_high = (handler_address >> 16) & 0xFFFF;
     }
@@ -17,7 +17,7 @@ class IdtEntry {
   private:
     u16 _isr_low;
     u16 _kernel_cs;
-    u8 _reserved = 0;
+    u8 _reserved;
     u8 _attributes;
     u16 _isr_high;
 
@@ -36,11 +36,12 @@ public:
 private:
     u16 _limit;
     usize _base;
-};
+} __attribute__((packed));
 
 class Idt {
   public:
     static usize const MAX_NUM_DESCRIPTORS = 256;
+    static usize const NUM_RESERVED        = 32;
 
     void idt_set_descriptor(u8 vector, void* handler, u8 flags) {
         _idt[vector].set(handler, flags);
@@ -52,3 +53,15 @@ class Idt {
   private:
     Array<IdtEntry, 256> _idt;
 } __attribute__((aligned(0x10)));
+
+extern Idt idt;
+
+struct regstate {
+public:
+    usize vector_code;
+    usize error_code;
+    usize reg_eip;
+    usize reg_cs;
+    usize reg_eflags;
+private:
+} __attribute__((packed));

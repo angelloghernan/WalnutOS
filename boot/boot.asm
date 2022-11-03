@@ -17,9 +17,8 @@ KERNEL_OFFSET equ 0x1000
 
 [bits 16]
 load_kernel:
-    ; Read 8 sectors from kernel offset
     mov bx, KERNEL_OFFSET
-    ; mov al, 8
+    mov al, 8
     call disk_load
     ret
 
