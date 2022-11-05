@@ -97,6 +97,10 @@ class alignas(PAGESIZE) PageDirectory {
     auto get_entry(usize idx)       -> PageDirectoryEntry& { return _entries[idx]; }
     auto get_entry(usize idx) const -> PageDirectoryEntry const& { return _entries[idx]; }
 
+    auto map() -> i8;
+
+    void set_page_directory() const;
+
     auto va_to_pa(uptr address) const -> uptr {
         // PD entry indexed by top 10 bits in address
         usize const pd_idx = address & 0xFFC00000;
@@ -111,6 +115,4 @@ class alignas(PAGESIZE) PageDirectory {
   private:
     Array<PageDirectoryEntry, NUM_ENTRIES> _entries;
 }__attribute__((packed));
-
-
 
