@@ -25,11 +25,11 @@ class IdtEntry {
 
 class Idtr {
 public:
-    void set_base(usize base) {
+    constexpr void set_base(usize base) {
         _base = base;
     }
 
-    void set_limit(u16 limit) {
+    constexpr void set_limit(u16 limit) {
         _limit = limit;
     }
 

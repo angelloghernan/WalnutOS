@@ -18,7 +18,7 @@ extern "C" [[noreturn]] void exception_handler(regstate* regs) {
 void Idt::init() {
     idtr.set_base(reinterpret_cast<usize>(&_idt[0]));
     idtr.set_limit(sizeof(IdtEntry) * MAX_NUM_DESCRIPTORS - 1);
-    for (usize i = 0; i < 32; ++i) {
+    for (usize i = 0; i < MAX_NUM_DESCRIPTORS; ++i) {
         _idt[i].set(isr_stub_table[i], 0x8E);
     }
 

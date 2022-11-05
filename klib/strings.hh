@@ -1,30 +1,13 @@
 #pragma once
 #include "int.hh"
 #include "option.hh"
+#include "iterator.hh"
 
 // str: A primitive type wrapping around string literals, allowing
 // for easier iteration and slicing.
 // Do not construct a str with a custom const char array.
 struct str {
   public:
-    struct iterator {
-        using value_type = char;
-        using pointer    = char const*;
-        using reference  = char const&;
-
-        iterator(pointer ptr) : ptr(ptr) {}
-
-        reference operator*() const { return *ptr; }
-        pointer operator->() const { return ptr; }
-        iterator& operator++() { ++ptr; return *this; }
-        iterator operator++(int) { iterator tmp = *this; ++(*this); return tmp; }
-        friend bool operator==(iterator const& a, iterator const& b) { return a.ptr == b.ptr; };
-        friend bool operator!=(iterator const& a, iterator const& b) { return a.ptr != b.ptr; };
-
-      private:
-        pointer ptr;
-    };
-    
     template<usize S>
     str(char const (&string)[S]) : string(string), size(S - 1) {}
 
@@ -42,8 +25,8 @@ struct str {
         return string[idx];
     }
 
-    iterator begin() const { return iterator(string); }
-    iterator end() const { return iterator(string + size); }
+    iterator<char const> begin() const { return iterator<char const>(string); }
+    iterator<char const> end() const { return iterator<char const>(string + size); }
 
   private:
         char const* string;

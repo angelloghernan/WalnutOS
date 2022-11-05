@@ -1,4 +1,10 @@
 KERNEL_OFFSET equ 0x1000
+PIC1_COMMAND  equ 0x20
+PIC1_DATA     equ 0x21
+PIC2_COMMAND  equ 0xA0
+PIC2_DATA     equ 0xA1
+IO_WAIT       equ 0x80
+ICW_8086      equ 0x01
 
 [org 0x7c00] ; bootloader offset
     xor ax, ax
@@ -6,6 +12,8 @@ KERNEL_OFFSET equ 0x1000
     mov bp, 0x9000 ; set the stack
     mov sp, bp
 
+    call pic_disable
+    
     call load_kernel
 
     call switch_to_pm
@@ -15,10 +23,22 @@ KERNEL_OFFSET equ 0x1000
 %include "boot/gdt.asm"
 %include "boot/vga.asm"
 
+; Disable the PIC so we can initialize the APIC later
+pic_disable:
+    mov al, 0xff
+    out PIC2_DATA, al
+    out PIC1_DATA, al
+    ret
+
+io_wait:
+    mov al, 0
+    out 0x80, al
+    ret
+
 [bits 16]
 load_kernel:
     mov bx, KERNEL_OFFSET
-    mov al, 8
+    mov al, 9
     call disk_load
     ret
 

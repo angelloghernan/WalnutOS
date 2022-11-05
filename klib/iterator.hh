@@ -2,7 +2,6 @@
 template<typename T>
 struct iterator {
   public:
-    using value_type = T;
     using pointer    = T*;
     using reference  = T&;
 
