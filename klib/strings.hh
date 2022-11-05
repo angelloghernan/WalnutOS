@@ -11,9 +11,16 @@ struct str {
     template<usize S>
     str(char const (&string)[S]) : string(string), size(S - 1) {}
 
-    usize len() const { return size; }
+    auto len() const -> usize { return size; }
 
-    Option<char> get(usize const idx) const {
+
+
+    iterator<char const> begin() const { return iterator<char const>(string); }
+    iterator<char const> end() const { return iterator<char const>(string + size); }
+
+    auto operator[](usize const idx) const -> char const& { return string[idx]; }
+
+    auto get(usize const idx) const -> Option<char> {
         if (idx < size) {
             return Option<char>(string[idx]);
         } else {
@@ -21,14 +28,7 @@ struct str {
         }
     }
 
-    char const& operator[](usize const idx) const {
-        return string[idx];
-    }
-
-    iterator<char const> begin() const { return iterator<char const>(string); }
-    iterator<char const> end() const { return iterator<char const>(string + size); }
-
   private:
-        char const* string;
-        usize const size;
+    char const* string;
+    usize const size;
 };

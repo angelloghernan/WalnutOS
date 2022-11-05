@@ -7,14 +7,16 @@
 template<typename T, usize S>
 class Array {
   public:
-    [[nodiscard]] constexpr usize len() const { return S; }
-    [[nodiscard]] constexpr T* data() { return &_arr[0]; }
-    [[nodiscard]] constexpr T const* data() const { return &_arr[0]; }
-    [[nodiscard]] constexpr T& operator[](usize idx) { return _arr[idx]; }
-    [[nodiscard]] constexpr T const& operator[](usize idx) const { return _arr[idx]; }
+    [[nodiscard]] auto constexpr len() const -> usize { return S; }
 
-    [[nodiscard]] constexpr iterator<T> begin() { return iterator<T>(&_arr[0]); }
-    [[nodiscard]] constexpr iterator<T> end() { return iterator<T>(&_arr[S]); }
+    [[nodiscard]] auto constexpr data()       -> T* { return &_arr[0]; }
+    [[nodiscard]] auto constexpr data() const -> T const* { return &_arr[0]; }
+
+    [[nodiscard]] auto constexpr operator[](usize idx)       -> T& { return _arr[idx]; }
+    [[nodiscard]] auto constexpr operator[](usize idx) const -> T const& { return _arr[idx]; }
+
+    [[nodiscard]] auto constexpr begin() -> iterator<T> { return iterator<T>(&_arr[0]); }
+    [[nodiscard]] auto constexpr end()   -> iterator<T> { return iterator<T>(&_arr[S]); }
 
     [[nodiscard]] constexpr Option<T> get(usize idx) const {
         if (idx < S) {
