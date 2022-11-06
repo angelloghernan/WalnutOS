@@ -8,7 +8,7 @@ OBJ = ${CPP_SOURCES:.cc=.o} klib/idt.o
 
 
 CC = i686-elf-g++ 
-CFLAGS = -g -std=c++20 -ffreestanding -nostdlib -lgcc -O3
+CFLAGS = -g -std=c++20 -ffreestanding -nostdlib -lgcc -O3 -Wall
 GDB = gdb
 
 CRTI_OBJ = boot/crti.o

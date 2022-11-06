@@ -27,6 +27,6 @@ class Option {
     }
 
   private:
-    bool present;
     T val;
+    bool present;
 };
