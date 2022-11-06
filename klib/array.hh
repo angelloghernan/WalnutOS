@@ -18,7 +18,7 @@ class Array {
     [[nodiscard]] auto constexpr begin() -> iterator<T> { return iterator<T>(&_arr[0]); }
     [[nodiscard]] auto constexpr end()   -> iterator<T> { return iterator<T>(&_arr[S]); }
 
-    [[nodiscard]] constexpr Option<T> get(usize idx) const {
+    [[nodiscard]] auto constexpr get(usize idx) const -> Option<T> {
         if (idx < S) {
             return Option<T>(_arr[idx]); 
         } else {

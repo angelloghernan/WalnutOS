@@ -9,18 +9,18 @@
 struct str {
   public:
     template<usize S>
-    str(char const (&string)[S]) : string(string), size(S - 1) {}
+    constexpr str(char const (&string)[S]) : string(string), size(S - 1) {}
 
-    auto len() const -> usize { return size; }
+    auto constexpr len() const -> usize { return size; }
 
 
 
-    iterator<char const> begin() const { return iterator<char const>(string); }
-    iterator<char const> end() const { return iterator<char const>(string + size); }
+    auto constexpr begin() const -> iterator<char const> { return iterator<char const>(string); }
+    auto constexpr end() const -> iterator<char const> { return iterator<char const>(string + size); }
 
-    auto operator[](usize const idx) const -> char const& { return string[idx]; }
+    auto constexpr operator[](usize const idx) const -> char const& { return string[idx]; }
 
-    auto get(usize const idx) const -> Option<char> {
+    auto constexpr get(usize const idx) const -> Option<char> {
         if (idx < size) {
             return Option<char>(string[idx]);
         } else {

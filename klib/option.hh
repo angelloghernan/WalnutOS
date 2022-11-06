@@ -4,14 +4,14 @@
 template <typename T>
 class Option {
   public:
-    Option(T value) : val(value), present(true) {}
+    constexpr Option(T value) : val(value), present(true) {}
 
-    Option() : present(false) {}
+    constexpr Option() : present(false) {}
 
-    bool none() const { return !present; }
-    bool some() const { return present; }
+    auto constexpr none() const -> bool { return !present; }
+    auto constexpr some() const -> bool { return present; }
 
-    T unwrap() const {
+    auto constexpr unwrap() const -> T {
         if (present) {
             return val;
         } else {
@@ -19,9 +19,9 @@ class Option {
         }
     }
 
-    bool operator!() const { return !present; }
+    auto constexpr operator!() const -> bool { return !present; }
 
-    void assign(T const value) {
+    void constexpr assign(T const value) {
         val = value;
         present = true;
     }
