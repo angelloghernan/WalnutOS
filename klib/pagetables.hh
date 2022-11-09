@@ -12,6 +12,8 @@ static auto constexpr const PTE_PW  = PTE_P | PTE_W;
 static auto constexpr const PTE_PU  = PTE_P | PTE_U;
 
 namespace pagetables {
+    void enable_paging();
+
     class PageTableEntry {
       public:
         PageTableEntry() : _internal(0) {}
@@ -42,10 +44,14 @@ namespace pagetables {
         }
 
         /// Make this pagetable entry map to physical address [addr].
-        [[nodiscard]] auto map(uptr addr, u8 perm) -> i8 {
+        auto map(uptr addr, u8 perm) -> i8 {
             _internal = addr;
             _internal |= perm;
             return 0;
+        }
+        
+        [[nodiscard]] auto try_map(uptr addr, u8 perm) -> i8 {
+            return map(addr, perm);
         }
 
 
@@ -111,12 +117,16 @@ namespace pagetables {
             return *pt_addr;
         }
 
-        [[nodiscard]] auto map(uptr const virtual_addr, uptr const physical_addr, u8 const perm) -> i8 {
+        auto map(uptr const virtual_addr, uptr const physical_addr, u8 const perm) -> i8 {
             auto& pagetable = get_pt();
             auto pt_idx = pagetable.pt_idx(virtual_addr);
 
             auto& pt_entry = pagetable[pt_idx];
             return pt_entry.map(physical_addr, perm);
+        }
+
+        [[nodiscard]] auto try_map(uptr const virtual_addr, uptr const physical_addr, u8 const perm) -> i8 {
+            return map(virtual_addr, physical_addr, perm);
         }
 
 
