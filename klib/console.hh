@@ -28,6 +28,7 @@ namespace console {
         void print(str const s, Color const fg = Color::White, Color const bg = Color::Black);
         void print_line(str const s, Color const fg = Color::White, Color const bg = Color::Black);
         void print_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
+        void print_addr(uptr const addr, Color const fg = Color::White, Color const bg = Color::Black);
         void clear();
 
         Console() : col(0), row(0), console_page(reinterpret_cast<u16 *const>(0xb8000)) {

@@ -21,6 +21,15 @@ namespace console {
         move_cursor(row, col);
     }
 
+    void Console::print_addr(uptr addr, Color const fg, Color const bg) {
+        do {
+            auto const digit = char(addr % 10 + '0');
+            put_char(digit, fg, bg);
+            addr /= 10;
+        } while (addr > 0);
+        move_cursor(row, col);
+    }
+
     void Console::print(str const s, Color const fg, Color const bg) {
         for (auto const ch : s) {
             put_char(ch, fg, bg);

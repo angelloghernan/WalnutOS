@@ -1,53 +1,79 @@
 #pragma once
 #include "int.hh"
 #include "array.hh"
+#include "console.hh"
 
 static auto constexpr const PAGESIZE = 4096;
+static auto constexpr const PTE_P   = 0b001;
+static auto constexpr const PTE_W   = 0b010;
+static auto constexpr const PTE_U   = 0b100;
+static auto constexpr const PTE_PWU = PTE_P | PTE_W | PTE_U;
+static auto constexpr const PTE_PW  = PTE_P | PTE_W;
+static auto constexpr const PTE_PU  = PTE_P | PTE_U;
+
 namespace pagetables {
     class PageTableEntry {
       public:
-        PageTableEntry() : _flags(0), _avl_addr_lower(0), _addr_higher(0) {}
+        PageTableEntry() : _internal(0) {}
+        PageTableEntry(PageTableEntry const& pte) = delete;
 
         /// Return whether this page table entry is [P]resent.
-        [[nodiscard]] auto constexpr present()       const -> bool { return _flags & 0b1; }
+        [[nodiscard]] auto constexpr present()       const -> bool { return _internal & 0b1; }
         /// Return whether this page table entry is [W]ritable.
-        [[nodiscard]] auto constexpr writable()      const -> bool { return _flags & 0b10; }
+        [[nodiscard]] auto constexpr writable()      const -> bool { return _internal & 0b10; }
         /// Return whether this page table entry is [U]ser-accessible.
-        [[nodiscard]] auto constexpr user()          const -> bool { return _flags & 0b100; }
+        [[nodiscard]] auto constexpr user()          const -> bool { return _internal & 0b100; }
         /// Return whether this page table entry uses write-through caching.
-        [[nodiscard]] auto constexpr write_through() const -> bool { return _flags & 0b1000; }
+        [[nodiscard]] auto constexpr write_through() const -> bool { return _internal & 0b1000; }
         /// Return whether this page table entry has disabled caching.
-        [[nodiscard]] auto constexpr cache_disable() const -> bool { return _flags & 0b10000; }
+        [[nodiscard]] auto constexpr cache_disable() const -> bool { return _internal & 0b10000; }
         /// Return whether this page table entry was read during virtual address translation.
-        [[nodiscard]] auto constexpr accessed()      const -> bool { return _flags & 0b100000; }
+        [[nodiscard]] auto constexpr accessed()      const -> bool { return _internal & 0b100000; }
         /// Return whether this page was written.
-        [[nodiscard]] auto constexpr dirty()         const -> bool { return _flags & 0b1000000; }
+        [[nodiscard]] auto constexpr dirty()         const -> bool { return _internal & 0b1000000; }
         /// Return whether Page Attribute Table (PAT) is supported.
-        [[nodiscard]] auto constexpr using_pat()     const -> bool { return _flags & 0b10000000; }
+        [[nodiscard]] auto constexpr using_pat()     const -> bool { return _internal & 0b10000000; }
         /// Return whether or not to invalidate the TLB entry for this page when CR3 is changed.
-        [[nodiscard]] auto constexpr global()        const -> bool { return _flags & 0b100000000; }
+        [[nodiscard]] auto constexpr global()        const -> bool { return _internal & 0b100000000; }
 
         /// Return the address of the page pointed by this PT Entry.
         [[nodiscard]] auto constexpr page_address() const -> uptr { 
-            return (usize(_addr_higher) << 16) | (_avl_addr_lower & 0xF0);
+            return _internal & 0xFFFFFF00;
         }
 
+        /// Make this pagetable entry map to physical address [addr].
+        [[nodiscard]] auto map(uptr addr, u8 perm) -> i8 {
+            _internal = addr;
+            _internal |= perm;
+            return 0;
+        }
+
+
       private:
-        u8 _flags;
-        u8 _avl_addr_lower;
-        u16 _addr_higher;
+        u32 _internal;
     }__attribute__((packed));
 
     class alignas(PAGESIZE) PageTable {
       public:
+        PageTable(PageTable const& pt) = delete;
+        PageTable() {};
         static usize constexpr const NUM_ENTRIES = 1024;
 
-        PageTableEntry const& operator[](usize idx) const { return _entries[idx]; }
-        PageTableEntry& operator[](usize idx) { return _entries[idx]; }
+        constexpr PageTableEntry const& operator[](usize idx) const { 
+            return _entries[idx]; 
+        }
+        constexpr PageTableEntry& operator[](usize idx) {
+            return _entries[idx]; 
+        }
 
-        auto va_to_pa(uptr address) const -> uptr {
+        [[nodiscard]] auto constexpr pt_idx(uptr address) const -> usize {
+            // Indexed by bits 12-21 of the address
+            return (address & 0x3FF000) >> 12;
+        }
+
+        [[nodiscard]] auto va_to_pa(uptr address) const -> uptr {
             // Page table indexed by bits 12-21 of the address
-            usize const entry_idx = address & 0x3FF000;
+            auto const entry_idx = pt_idx(address);
             auto const& pte = _entries[entry_idx];
             return pte.page_address();
         }
@@ -59,24 +85,25 @@ namespace pagetables {
 
     class PageDirectoryEntry {
       public:
-        PageDirectoryEntry() : _flags(0), _avl_addr_lower(0), _addr_higher(0) {}
+        PageDirectoryEntry() : _internal(0) {}
+        PageDirectoryEntry(PageDirectoryEntry const& pde) = delete;
 
         /// Return whether this directory is [P]resent.
-        [[nodiscard]] auto constexpr present()       const -> bool  { return _flags & 0b1; }
+        [[nodiscard]] auto constexpr present()       const -> bool  { return _internal & 0b1; }
         /// Return whether this directory is [W]ritable.
-        [[nodiscard]] auto constexpr writable()      const -> bool  { return _flags & 0b10; }
+        [[nodiscard]] auto constexpr writable()      const -> bool  { return _internal & 0b10; }
         /// Return whether this directory is [U]ser-accessible.
-        [[nodiscard]] auto constexpr user()          const -> bool  { return _flags & 0b100; }
+        [[nodiscard]] auto constexpr user()          const -> bool  { return _internal & 0b100; }
         /// Return whether this directory uses write-through caching.
-        [[nodiscard]] auto constexpr write_through() const -> bool  { return _flags & 0b1000; }
+        [[nodiscard]] auto constexpr write_through() const -> bool  { return _internal & 0b1000; }
         /// Return whether this directory has disabled caching.
-        [[nodiscard]] auto constexpr cache_disable() const -> bool  { return _flags & 0b10000; }
+        [[nodiscard]] auto constexpr cache_disable() const -> bool  { return _internal & 0b10000; }
         /// Return whether this directory was read during virtual address translation.
-        [[nodiscard]] auto constexpr accessed()      const -> bool  { return _flags & 0b100000; }
+        [[nodiscard]] auto constexpr accessed()      const -> bool  { return _internal & 0b100000; }
 
         /// Return the address of the pagetable pointed by this PD Entry.
         [[nodiscard]] auto constexpr pt_address() const -> uptr { 
-            return (usize(_addr_higher) << 16) | (_avl_addr_lower & 0xF0);
+            return _internal & 0xFFFFFF00;
         }
 
         [[nodiscard]] auto get_pt() const -> PageTable& {
@@ -84,33 +111,45 @@ namespace pagetables {
             return *pt_addr;
         }
 
+        [[nodiscard]] auto map(uptr const virtual_addr, uptr const physical_addr, u8 const perm) -> i8 {
+            auto& pagetable = get_pt();
+            auto pt_idx = pagetable.pt_idx(virtual_addr);
+
+            auto& pt_entry = pagetable[pt_idx];
+            return pt_entry.map(physical_addr, perm);
+        }
+
+
+        [[nodiscard]] auto add_pt(uptr ptable_addr, u8 perm) -> i8;
+
       private:
-        u8 _flags;
-        u8 _avl_addr_lower;
-        u16 _addr_higher;
+        u32 _internal;
     } __attribute__((packed));
 
     class alignas(PAGESIZE) PageDirectory {
       public:
+        PageDirectory(PageDirectory const& pd) = delete;
+        PageDirectory() {}
         static usize constexpr const NUM_ENTRIES = 1024;
 
-        auto get_entry(usize idx)       -> PageDirectoryEntry& { return _entries[idx]; }
-        auto get_entry(usize idx) const -> PageDirectoryEntry const& { return _entries[idx]; }
+        auto get_entry(usize const idx)       -> PageDirectoryEntry& { return _entries[idx]; }
+        auto get_entry(usize const idx) const -> PageDirectoryEntry const& { return _entries[idx]; }
 
-        auto map(uptr virtual_addr, uptr physical_addr) -> i8;
+        auto add_pagetable(usize const idx, PageTable const&, u8 perm) -> i8;
+
+        auto map(uptr const virtual_addr, uptr const physical_addr, u8 perm) -> i8;
 
         void set_page_directory() const;
 
-        auto va_to_pa(uptr address) const -> uptr {
-            // PD entry indexed by top 10 bits in address
-            usize const pd_idx = address & 0xFFC00000;
-            auto const& pd = _entries[pd_idx];
-            auto const& pt = pd.get_pt();
-            return pt.va_to_pa(address);
-        }
+        auto va_to_pa(uptr const address) const -> uptr;
 
-        PageDirectoryEntry& operator[](usize idx) { return _entries[idx]; }
-        PageDirectoryEntry const& operator[](usize idx) const { return _entries[idx]; }  
+        [[nodiscard]] auto constexpr va_to_idx(uptr addr) const -> usize {
+            // Indexed by top 10 bits (2^10 = 1024)
+            return (addr & 0xFFC00000) >> 22;
+        }
+        
+        PageDirectoryEntry& operator[](usize const idx) { return _entries[idx]; }
+        PageDirectoryEntry const& operator[](usize const idx) const { return _entries[idx]; }
 
       private:
         Array<PageDirectoryEntry, NUM_ENTRIES> _entries;
