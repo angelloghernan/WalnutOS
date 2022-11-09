@@ -37,7 +37,8 @@ namespace pagetables {
     }
 
     auto PageDirectoryEntry::add_pt(uptr const ptable_addr, u8 const perm) -> i8 {
-        if (pt_address() != 0) {
+        [[unlikely]] if (pt_address() != 0) {
+            /// TODO: Use dynamic allocation to try and add a pagetable to our directory.
             return -1;
         } 
         _internal = ptable_addr | PTE_P | PTE_W;

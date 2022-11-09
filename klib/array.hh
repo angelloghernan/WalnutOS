@@ -7,6 +7,8 @@
 template<typename T, usize S>
 class Array {
   public:
+
+    // Return the length of the array.
     [[nodiscard]] auto constexpr len() const -> usize { return S; }
 
     [[nodiscard]] auto constexpr data()       -> T* { return &_arr[0]; }

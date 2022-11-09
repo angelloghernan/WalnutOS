@@ -111,12 +111,16 @@ namespace pagetables {
         [[nodiscard]] auto constexpr pt_address() const -> uptr { 
             return _internal & 0xFFFFFF00;
         }
-
+        
+        // Obtain a reference to the pagetable associated with this directory entry.
+        // Undefined behavior if this page directory entry is null.
         [[nodiscard]] auto get_pt() const -> PageTable& {
             auto const pt_addr = reinterpret_cast<PageTable*>(pt_address());
             return *pt_addr;
         }
 
+        // Map [virtual_addr] to [physical_addr] with given [perm]issions.
+        // Returns -1 on failure. Else, returns 0.
         auto map(uptr const virtual_addr, uptr const physical_addr, u8 const perm) -> i8 {
             auto& pagetable = get_pt();
             auto pt_idx = pagetable.pt_idx(virtual_addr);
@@ -124,7 +128,9 @@ namespace pagetables {
             auto& pt_entry = pagetable[pt_idx];
             return pt_entry.map(physical_addr, perm);
         }
-
+        
+        // Try to map [virtual_addr] to [physical_addr] with given [perm]issions.
+        // If this operation fails, returns -1. Otherwise, returns 0.
         [[nodiscard]] auto try_map(uptr const virtual_addr, uptr const physical_addr, u8 const perm) -> i8 {
             return map(virtual_addr, physical_addr, perm);
         }

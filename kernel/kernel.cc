@@ -18,6 +18,7 @@ static PageTable starter_pt;
 extern "C" void kernel_main() {
     idt.init();
     setup_pagedir();
+    terminal.clear();
 
     Array<int, 10> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     for (auto const num : nums) {
@@ -29,7 +30,6 @@ extern "C" void kernel_main() {
 
 /// Enable paging by setting up the kernel pagedir and switching to it.
 void setup_pagedir() {
-    pagetables::enable_paging();
     kernel_pagedir.add_pagetable(0, starter_pt, 0);
 
     // Give zero permissions for the null page.
@@ -42,4 +42,5 @@ void setup_pagedir() {
 
     // Switch to the kernel pagedir; we're good to go!
     kernel_pagedir.set_page_directory();
+    pagetables::enable_paging();
 }
