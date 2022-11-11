@@ -10,7 +10,7 @@ using pagetables::PageTable;
 
 console::Console terminal;
 
-// Special, static variables.
+// Special, static variables for the starting page directory.
 PageDirectory kernel_pagedir;
 static PageTable starter_pt;
 
