@@ -47,7 +47,7 @@ namespace console {
         }  
     } 
 
-    void Console::put(u64 num, Color const fg, Color const bg) {
+    void Console::put(u32 num, Color const fg, Color const bg) {
         do {
             auto const digit = char(num % 10 + '0');
             put_char(digit, fg, bg);
@@ -57,10 +57,19 @@ namespace console {
     }
 
     void Console::put(i32 num, Color const fg, Color const bg) {
-        put(u64(num), fg, bg);
+        put(u32(num), fg, bg);
     }
 
     void Console::put(char const ch, Color const fg, Color const bg) {
         put_char(ch, fg, bg);
     }
+
+    void Console::put(u8 num, Color const fg, Color const bg) {
+        put(u32(num), fg, bg);
+    }
+
+    void Console::put(i8 num, Color const fg, Color const bg) {
+        put(u32(num), fg, bg);
+    }
+    
 }

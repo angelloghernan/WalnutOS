@@ -23,9 +23,7 @@ extern "C" void kernel_main() {
     kernel_pagedir.add_pagetable(1019, io_pt, PTE_PW);
     auto const lapic_pa = apic::LocalApic::get_pa();
     auto const check = kernel_pagedir.try_map(lapic_pa, lapic_pa, PTE_PW);
-    if (check < 0) {
-        terminal.print_line("Something horrible has happened");
-    }
+    assert(check == 0);
     auto& lapic = apic::LocalApic::get();
     lapic.enable();
 
@@ -33,8 +31,6 @@ extern "C" void kernel_main() {
     for (auto const num : nums) {
         terminal.print_line("Hello, World: ", num);
     }
-
-    assert(false);
 }
 
 /// Enable paging by setting up the kernel pagedir and switching to it.

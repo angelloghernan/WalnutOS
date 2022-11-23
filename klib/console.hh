@@ -101,7 +101,9 @@ namespace console {
         void put(void* const num, Color const fg = Color::White, Color const bg = Color::Black);
         void put(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
         void put(i32 num, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(u64 num, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(u32 num, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(u8 num, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(i8 num, Color const fg = Color::White, Color const bg = Color::Black);
 
         auto static create_char(char const ch, Color const fg, Color const bg) -> u16 {
             auto const upper = static_cast<u8>(bg);
