@@ -51,6 +51,22 @@ namespace console {
             move_cursor(row, 0);
         }
 
+        template<typename... Types>
+        void print_color(Color const fg, Color const bg) {}
+
+        template<typename T, typename... Types>
+        void print_color(Color const fg, Color const bg, T&& var1, Types&&... var2) {
+            put(var1, fg, bg);
+            print_color(fg, bg, var2...);
+        }
+
+        template<typename... Types>
+        void print_line_color(Color const fg, Color const bg, Types&&... var2) {
+            print_color(fg, bg, var2...);
+            new_line();
+            move_cursor(row, 0);
+        }
+
         Console() : col(0), row(0), console_page(reinterpret_cast<u16 *const>(0xb8000)) {
             ports::outb(Console::SET_REGISTER, Console::CURSOR_START);
             // Upper two bits are reserved
@@ -81,11 +97,11 @@ namespace console {
         static u16 const CURSOR_LOCATION_LOW = 0xF;
 
         void put_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(str const string);
-        void put(void* const num);
-        void put(char const ch);
-        void put(i32 num);
-        void put(u64 num);
+        void put(str const string, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(void* const num, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(i32 num, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(u64 num, Color const fg = Color::White, Color const bg = Color::Black);
 
         auto static create_char(char const ch, Color const fg, Color const bg) -> u16 {
             auto const upper = static_cast<u8>(bg);

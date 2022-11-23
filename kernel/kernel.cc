@@ -29,11 +29,11 @@ extern "C" void kernel_main() {
     auto& lapic = apic::LocalApic::get();
     lapic.enable();
 
-    Array<int, 10> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    Array<i32, 10> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     for (auto const num : nums) {
-        char const ch = num + '0';
-        terminal.print_line("Hello, World: ", ch);
+        terminal.print_line("Hello, World: ", num);
     }
+    ASSERT(false);
 }
 
 /// Enable paging by setting up the kernel pagedir and switching to it.

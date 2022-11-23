@@ -41,26 +41,26 @@ namespace console {
         move_cursor(row, col);
     }
 
-    void Console::put(str const string) {
+    void Console::put(str const string, Color const fg, Color const bg) {
         for (auto const ch : string) {
-            put_char(ch);
+            put_char(ch, fg, bg);
         }  
     } 
 
-    void Console::put(u64 num) {
+    void Console::put(u64 num, Color const fg, Color const bg) {
         do {
             auto const digit = char(num % 10 + '0');
-            put_char(digit);
+            put_char(digit, fg, bg);
             num /= 10;
         } while (num > 0);
         move_cursor(row, col);
     }
 
-    void Console::put(i32 num) {
-        put(u64(num));
+    void Console::put(i32 num, Color const fg, Color const bg) {
+        put(u64(num), fg, bg);
     }
 
-    void Console::put(char const ch) {
-        put_char(ch);
+    void Console::put(char const ch, Color const fg, Color const bg) {
+        put_char(ch, fg, bg);
     }
 }
