@@ -33,7 +33,8 @@ extern "C" void kernel_main() {
     for (auto const num : nums) {
         terminal.print_line("Hello, World: ", num);
     }
-    ASSERT(false);
+
+    assert(false);
 }
 
 /// Enable paging by setting up the kernel pagedir and switching to it.

@@ -1,7 +1,7 @@
 #pragma once
 #include "../klib/console.hh"
 
-inline void assert(bool const condition, char const* const file, i32 const line, 
+inline void _assert(bool const condition, char const* const file, i32 const line,
                    char const* const function) {
     using namespace console;
     if (!condition) {
@@ -10,4 +10,4 @@ inline void assert(bool const condition, char const* const file, i32 const line,
     while (true) {}
 }
 
-#define ASSERT(condition) assert(condition, __FILE__, __LINE__, __FUNCTION__)
+#define assert(condition) _assert(condition, __FILE__, __LINE__, __FUNCTION__)
