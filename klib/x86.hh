@@ -5,17 +5,30 @@
 // https://wiki.osdev.org/Inline_Assembly/Examples
 
 namespace x86 {
-    inline void cpuid(int code, uint32_t* a, uint32_t* d) {
-        asm volatile ( "cpuid" : "=a"(*a), "=d"(*d) : "0"(code) : "ebx", "ecx" );
+    struct cpuid_t {
+        u32 eax;
+        u32 edx;
+    };
+
+    [[nodiscard]] inline auto cpuid(u32 const code) -> cpuid_t {
+        cpuid_t result;
+        asm volatile ( "cpuid" : "=a"(result.eax), "=d"(result.edx) : "0"(code) : "ebx", "ecx" );
+        return result;
     }
 
-    inline void wrmsr(u32 msr_id, u64 msr_value) {
-        asm volatile ( "wrmsr" : : "c" (msr_id), "A" (msr_value) );
+    struct rdmsr_t {
+        u32 eax;
+        u32 edx;
+    };
+
+    [[nodiscard]] inline auto rdmsr(u32 const msr_id) -> rdmsr_t {
+        rdmsr_t result;
+        asm volatile ( "rdmsr" : "=a" (result.eax), "=d" (result.edx) : "c" (msr_id) );
+        return result;
+    }
+
+    inline void wrmsr(u32 const msr_id, u32 const lo, u32 const hi) {
+        asm volatile ( "wrmsr" : : "a" (lo), "d" (hi), "c" (msr_id));
     }  
 
-    inline auto rdmsr(u32 msr_id) -> u64 {
-        u64 msr_value;
-        asm volatile ( "rdmsr" : "=A" (msr_value) : "c" (msr_id) );
-        return msr_value;
-    }
 }

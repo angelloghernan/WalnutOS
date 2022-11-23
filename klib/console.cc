@@ -1,5 +1,6 @@
 #include "console.hh"
 
+console::Console terminal;
 namespace console {
     void Console::put_char(char ch, Color fg, Color bg) {
         if (ch == '\n') {

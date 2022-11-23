@@ -28,16 +28,20 @@ namespace pagetables {
         asm volatile("mov %0, %%cr3" : : "r"(this));
     }
 
-
+    
     auto PageDirectory::va_to_pa(uptr const address) const -> uptr {
         usize const pd_idx = va_to_idx(address);
-        auto const& pd = _entries[pd_idx];
-        auto const& pt = pd.get_pt();
-        return pt.va_to_pa(address);
+        auto const& pt = _entries[pd_idx].get_pt();
+        switch (pt.match()) {
+            case Some:
+                return pt.unwrap().va_to_pa(address);
+            case None:
+                return uptr(-1);
+        }
     }
 
     auto PageDirectoryEntry::add_pt(uptr const ptable_addr, u8 const perm) -> i8 {
-        [[unlikely]] if (pt_address() != 0) {
+        if (pt_address() != 0) { [[unlikely]]  
             /// TODO: Use dynamic allocation to try and add a pagetable to our directory.
             return -1;
         } 

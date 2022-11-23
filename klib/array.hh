@@ -5,9 +5,8 @@
 // A generic, compile-time sized array.
 // Do not access _arr -- this is left public so we can use brace initialization.
 template<typename T, usize S>
-class Array {
+class Array { 
   public:
-
     // Return the length of the array.
     [[nodiscard]] auto constexpr len() const -> usize { return S; }
 

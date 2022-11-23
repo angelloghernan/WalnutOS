@@ -8,12 +8,9 @@
 using pagetables::PageDirectory;
 using pagetables::PageTable;
 
-console::Console terminal;
-
 // Special, static variables for the starting page directory.
 PageDirectory kernel_pagedir;
 static PageTable starter_pt;
-
 
 extern "C" void kernel_main() {
     idt.init();
@@ -30,7 +27,7 @@ extern "C" void kernel_main() {
 
 /// Enable paging by setting up the kernel pagedir and switching to it.
 void setup_pagedir() {
-    kernel_pagedir.add_pagetable(0, starter_pt, 0);
+    kernel_pagedir.add_pagetable(0, starter_pt, PTE_PW);
 
     // Give zero permissions for the null page.
     kernel_pagedir.map(0, 0, 0);
