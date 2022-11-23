@@ -5,7 +5,8 @@ inline void _assert(bool const condition, char const* const file, i32 const line
                    char const* const function) {
     using namespace console;
     if (!condition) {
-        terminal.print_line_color(Color::White, Color::Red, "Assertion failed! At ", function, " in ", file, ':', line);
+        terminal.print_line_color(Color::White, Color::Red, "Assertion failed! At ", 
+                                  function, " in ", file, ':', line);
         while (true) {}
     }
 }
