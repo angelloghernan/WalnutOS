@@ -32,7 +32,7 @@ extern "C" void kernel_main() {
     Array<int, 10> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     for (auto const num : nums) {
         char const ch = num + '0';
-        terminal.printf("Hello, World: ", ch, "\n");
+        terminal.print_line("Hello, World: ", ch);
     }
 }
 

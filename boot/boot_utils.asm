@@ -6,6 +6,7 @@ BIOS_SERVICES_DISK equ 0x13
 ; Load 'al' sectors from drive 'dl' into ES:BX
 ; Return number of sectors read in 'al'
 disk_load:
+  push dx
   push ax
   mov ah, READ_DISK
   mov cl, 0x02 ; Read from sector 2 on disk
@@ -13,10 +14,16 @@ disk_load:
   ; dl -- drive number, set by BIOS
   mov dh, 0x00 ; Read from head 0
   int BIOS_SERVICES_DISK
-  jc disk_error
   pop dx
-  cmp al, dl
-  jne sector_error
+  sub dl, al
+  je end
+
+  mov dl, al
+  pop dx
+  jmp disk_load
+
+  end:
+  pop dx
   ret
 
 disk_error:

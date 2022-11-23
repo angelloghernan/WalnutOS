@@ -30,18 +30,25 @@ namespace console {
 
     class Console {
       public:
-        void print(str const s, Color const fg = Color::White, Color const bg = Color::Black);
-        void print_line(str const s, Color const fg = Color::White, Color const bg = Color::Black);
         void print_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
         void print_addr(uptr const addr, Color const fg = Color::White, Color const bg = Color::Black);
         void clear();
 
-        void printf() {}
+        void print() {
+            move_cursor(row, col);
+        }
 
         template<typename T, typename... Types>
-        void printf(T&& var1, Types&&... var2) {
+        void print(T&& var1, Types&&... var2) {
             put(var1);
-            printf(var2...);
+            print(var2...);
+        }
+        
+        template<typename... Types>
+        void print_line(Types&&... var2) {
+            print(var2...);
+            new_line();
+            move_cursor(row, 0);
         }
 
         Console() : col(0), row(0), console_page(reinterpret_cast<u16 *const>(0xb8000)) {
@@ -76,6 +83,8 @@ namespace console {
         void put_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
         void put(str const string);
         void put(void* const num);
+        void put(char const ch);
+        void put(i32 num);
         void put(u64 num);
 
         auto static create_char(char const ch, Color const fg, Color const bg) -> u16 {

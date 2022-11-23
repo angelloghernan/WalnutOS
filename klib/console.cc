@@ -32,19 +32,6 @@ namespace console {
         move_cursor(row, col);
     }
 
-    void Console::print(str const s, Color const fg, Color const bg) {
-        for (auto const ch : s) {
-            put_char(ch, fg, bg);
-        }
-        move_cursor(row, col);
-    }
-
-    void Console::print_line(str const s, Color const fg, Color const bg) {
-        print(s, fg, bg);
-        new_line();
-        move_cursor(row, 0);
-    }
-
     void Console::clear() {
         for (auto i = 0; i < MAX_ROWS * MAX_COLS; ++i) {
             console_page[i] = Console::create_char(' ', Color::White, Color::Black);
@@ -69,4 +56,11 @@ namespace console {
         move_cursor(row, col);
     }
 
+    void Console::put(i32 num) {
+        put(u64(num));
+    }
+
+    void Console::put(char const ch) {
+        put_char(ch);
+    }
 }
