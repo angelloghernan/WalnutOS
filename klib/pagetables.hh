@@ -159,9 +159,7 @@ namespace pagetables {
 
         auto map(uptr const virtual_addr, uptr const physical_addr, u8 perm) -> i8;
 
-        [[nodiscard]] auto try_map(uptr const virtual_addr, uptr const physical_addr, u8 const perm) -> i8 {
-            return map(virtual_addr, physical_addr, perm);
-        }
+        [[nodiscard]] auto try_map(uptr const virtual_addr, uptr const physical_addr, u8 const perm) -> i8;
 
         /// Set this page directory to be the page directory in force using %cr3.
         void set_page_directory() const;

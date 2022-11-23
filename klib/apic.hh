@@ -25,7 +25,7 @@ namespace apic {
             volatile u32 value;
         };
 
-        Array<apic_register, 0x40> _registers;
+        Array<volatile apic_register, 0x40> _registers;
 
         auto read_register(usize offset) const -> u32;
         void write_register(usize offset, u32 value);

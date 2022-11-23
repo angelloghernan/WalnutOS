@@ -1,4 +1,5 @@
 #include "console.hh"
+#include "../klib/assert.hh"
 
 console::Console terminal;
 namespace console {
@@ -52,4 +53,20 @@ namespace console {
         col = row = 0;
         move_cursor(row, col);
     }
+
+    void Console::put(str const string) {
+        for (auto const ch : string) {
+            put_char(ch);
+        }  
+    } 
+
+    void Console::put(u64 num) {
+        do {
+            auto const digit = char(num % 10 + '0');
+            put_char(digit);
+            num /= 10;
+        } while (num > 0);
+        move_cursor(row, col);
+    }
+
 }

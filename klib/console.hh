@@ -23,6 +23,11 @@ namespace console {
         White = 0xF,
     };
 
+    enum class FormatState {
+        Default,
+        Formatting,
+    };
+
     class Console {
       public:
         void print(str const s, Color const fg = Color::White, Color const bg = Color::Black);
@@ -30,6 +35,14 @@ namespace console {
         void print_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
         void print_addr(uptr const addr, Color const fg = Color::White, Color const bg = Color::Black);
         void clear();
+
+        void printf() {}
+
+        template<typename T, typename... Types>
+        void printf(T&& var1, Types&&... var2) {
+            put(var1);
+            printf(var2...);
+        }
 
         Console() : col(0), row(0), console_page(reinterpret_cast<u16 *const>(0xb8000)) {
             ports::outb(Console::SET_REGISTER, Console::CURSOR_START);
@@ -61,6 +74,9 @@ namespace console {
         static u16 const CURSOR_LOCATION_LOW = 0xF;
 
         void put_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(str const string);
+        void put(void* const num);
+        void put(u64 num);
 
         auto static create_char(char const ch, Color const fg, Color const bg) -> u16 {
             auto const upper = static_cast<u8>(bg);

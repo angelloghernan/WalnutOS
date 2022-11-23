@@ -4,9 +4,20 @@
 
 namespace pagetables {
     auto PageDirectory::map(uptr const virtual_addr, uptr const physical_addr, u8 const perm) -> i8 {
-        usize const pd_idx = va_to_idx(virtual_addr);
+        auto const pd_idx = va_to_idx(virtual_addr);
         auto& pagedir = _entries[pd_idx];
         return pagedir.map(virtual_addr, physical_addr, perm);
+    }
+
+    auto PageDirectory::try_map(uptr const virtual_addr, uptr const physical_addr, u8 const perm) -> i8 {
+        auto const pd_idx = va_to_idx(virtual_addr);
+
+        auto& pagedir = _entries[pd_idx];
+        if (pagedir.pt_address() == 0) {
+            return -1;
+        }
+
+        return pagedir.try_map(virtual_addr, physical_addr, perm);
     }
 
 

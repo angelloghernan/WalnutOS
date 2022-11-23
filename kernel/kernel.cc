@@ -1,7 +1,9 @@
 #include "../klib/strings.hh"
 #include "../klib/console.hh"
 #include "../klib/array.hh"
+#include "../klib/apic.hh"
 #include "../klib/idt.hh"
+#include "../klib/assert.hh"
 #include "../klib/pagetables.hh"
 #include "../kernel/kernel.hh"
 
@@ -11,17 +13,26 @@ using pagetables::PageTable;
 // Special, static variables for the starting page directory.
 PageDirectory kernel_pagedir;
 static PageTable starter_pt;
+static PageTable io_pt;
 
 extern "C" void kernel_main() {
     idt.init();
     setup_pagedir();
     terminal.clear();
 
+    kernel_pagedir.add_pagetable(1019, io_pt, PTE_PW);
+    auto const lapic_pa = apic::LocalApic::get_pa();
+    auto const check = kernel_pagedir.try_map(lapic_pa, lapic_pa, PTE_PW);
+    if (check < 0) {
+        terminal.print_line("Something horrible has happened");
+    }
+    auto& lapic = apic::LocalApic::get();
+    lapic.enable();
+
     Array<int, 10> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     for (auto const num : nums) {
         char const ch = num + '0';
-        terminal.print_char(ch);
-        terminal.print_char('\n');
+        terminal.printf("Hello, World: ", ch, "\n");
     }
 }
 

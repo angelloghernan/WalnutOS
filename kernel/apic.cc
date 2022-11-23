@@ -4,7 +4,7 @@
 
 namespace apic {
     auto LocalApic::get() -> LocalApic& {
-        auto const ptr = reinterpret_cast<LocalApic*>(PA_DEFAULT);
+        auto const ptr = reinterpret_cast<LocalApic*>(get_pa());
         return *ptr;
     }
 
