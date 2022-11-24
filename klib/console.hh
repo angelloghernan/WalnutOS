@@ -32,6 +32,7 @@ namespace console {
       public:
         void print_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
         void print_addr(uptr const addr, Color const fg = Color::White, Color const bg = Color::Black);
+        void put_char_back(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
         void clear();
 
         void print() {
@@ -98,12 +99,14 @@ namespace console {
 
         void put_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
         void put(str const string, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(void* const num, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(void* const ptr, Color const fg = Color::White, Color const bg = Color::Black);
         void put(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
         void put(i32 num, Color const fg = Color::White, Color const bg = Color::Black);
         void put(u32 num, Color const fg = Color::White, Color const bg = Color::Black);
         void put(u8 num, Color const fg = Color::White, Color const bg = Color::Black);
         void put(i8 num, Color const fg = Color::White, Color const bg = Color::Black);
+        void move(i8 amt);
+        auto constexpr static num_digits(usize num, u8 base) -> i8;
 
         auto static create_char(char const ch, Color const fg, Color const bg) -> u16 {
             auto const upper = static_cast<u8>(bg);

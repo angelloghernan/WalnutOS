@@ -27,10 +27,13 @@ extern "C" void kernel_main() {
     auto& lapic = apic::LocalApic::get();
     lapic.enable();
 
-    Array<i32, 10> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    constexpr Array<i32 const, 10> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     for (auto const num : nums) {
         terminal.print_line("Hello, World: ", num);
     }
+    terminal.print_line("Address of local apic: ", reinterpret_cast<void*>(lapic_pa));
+    warn_if(true);
+    assert(false);
 }
 
 /// Enable paging by setting up the kernel pagedir and switching to it.

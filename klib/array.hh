@@ -16,8 +16,8 @@ class Array {
     [[nodiscard]] auto constexpr operator[](usize idx)       -> T& { return _arr[idx]; }
     [[nodiscard]] auto constexpr operator[](usize idx) const -> T const& { return _arr[idx]; }
 
-    [[nodiscard]] auto constexpr begin() -> iterator<T> { return iterator<T>(&_arr[0]); }
-    [[nodiscard]] auto constexpr end()   -> iterator<T> { return iterator<T>(&_arr[S]); }
+    [[nodiscard]] auto constexpr begin() const -> iterator<T> { return iterator<T>(&_arr[0]); }
+    [[nodiscard]] auto constexpr end() const   -> iterator<T> { return iterator<T>(&_arr[S]); }
 
     [[nodiscard]] auto constexpr get(usize idx) const -> Option<T> {
         if (idx < S) {
