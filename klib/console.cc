@@ -101,6 +101,7 @@ namespace console {
     void Console::put(void* const ptr, Color const fg, Color const bg) {
         static constexpr Array<char const, 16> hex_values {'0', '1', '2', '3', '4', '5', '6', '7',
                                                            '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+        put("0x");
         auto addr = reinterpret_cast<uptr>(ptr);
         auto const digits = num_digits(addr, 16);
         move(digits - 1);
