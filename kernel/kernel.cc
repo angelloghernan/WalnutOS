@@ -27,7 +27,7 @@ extern "C" void kernel_main() {
     auto& lapic = apic::LocalApic::get();
     lapic.enable();
 
-    constexpr Array<i32 const, 10> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    constexpr Array<i32 const, 14> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
     for (auto const num : nums) {
         terminal.print_line("Hello, World: ", num);
     }

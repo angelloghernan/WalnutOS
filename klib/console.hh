@@ -23,11 +23,6 @@ namespace console {
         White = 0xF,
     };
 
-    enum class FormatState {
-        Default,
-        Formatting,
-    };
-
     class Console {
       public:
         void print_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);

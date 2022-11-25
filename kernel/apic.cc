@@ -40,7 +40,7 @@ namespace apic {
         }
         set_pa(get_pa());
         auto const [lo, hi] = x86::rdmsr(REG_SPURIOUS_INTERRUPT);
-        x86::wrmsr(REG_SPURIOUS_INTERRUPT, lo | APIC_ENABLE, hi);
+        x86::wrmsr(REG_SPURIOUS_INTERRUPT, lo | APIC_ENABLE | 0xFF, hi);
     }
 
     auto LocalApic::read_register(usize offset) const -> u32 {
