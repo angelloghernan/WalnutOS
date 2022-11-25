@@ -12,7 +12,7 @@ ICW_8086      equ 0x01
     mov bp, 0x9000 ; set the stack
     mov sp, bp
 
-    call pic_disable
+    ; call pic_disable
     
     call load_kernel
 
@@ -38,7 +38,7 @@ io_wait:
 [bits 16]
 load_kernel:
     mov bx, KERNEL_OFFSET
-    mov al, 32
+    mov al, 80
     call disk_load
     ret
 

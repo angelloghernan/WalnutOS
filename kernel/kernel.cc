@@ -16,24 +16,22 @@ static PageTable starter_pt;
 static PageTable io_pt;
 
 extern "C" void kernel_main() {
-    idt.init();
-    setup_pagedir();
     terminal.clear();
-
+    setup_pagedir();
     kernel_pagedir.add_pagetable(1019, io_pt, PTE_PW);
-    auto const lapic_pa = apic::LocalApic::get_pa();
-    auto const check = kernel_pagedir.try_map(lapic_pa, lapic_pa, PTE_PW);
-    assert(check == 0, "This should not happen!");
-    auto& lapic = apic::LocalApic::get();
-    lapic.enable();
+    idt.init();
+
+    // auto const lapic_pa = apic::LocalApic::get_pa();
+    // auto const check = kernel_pagedir.try_map(lapic_pa, lapic_pa, PTE_PW);
+    // assert(check == 0, "This should not happen!");
+    // auto& lapic = apic::LocalApic::get();
+    // lapic.enable();
 
     constexpr Array<i32 const, 14> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
     for (auto const num : nums) {
         terminal.print_line("Hello, World: ", num);
     }
-    terminal.print_line("Address of local apic: ", reinterpret_cast<void*>(lapic_pa));
-    warn_if(true, "This warning is ok");
-    assert(false, "Nothing");
+    // terminal.print_line("Address of local apic: ", reinterpret_cast<void*>(lapic_pa));
 }
 
 /// Enable paging by setting up the kernel pagedir and switching to it.

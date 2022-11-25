@@ -1,16 +1,15 @@
 #include "../klib/idt.hh"
 #include "../klib/console.hh"
+#include "../klib/assert.hh"
 
 Idt idt;
 static Idtr idtr;
 extern void* isr_stub_table[];
 
 extern "C" [[noreturn]] void exception_handler(regstate* regs) {
-    terminal.print_line("Unhandled exception: ");
-    terminal.print_char(char(regs->vector_code + '0'));
-    terminal.print_char('\n');
-    terminal.print_char(char(regs->error_code + '0'));
-    __asm__ volatile("cli; hlt");
+    __asm__ volatile("cli");
+    terminal.print("Unhandled Exception!");
+    __asm__ volatile("hlt");
     while (true) {}
 }
 
@@ -18,7 +17,7 @@ extern "C" [[noreturn]] void exception_handler(regstate* regs) {
 void Idt::init() {
     idtr.set_base(reinterpret_cast<usize>(&_idt[0]));
     idtr.set_limit(sizeof(IdtEntry) * MAX_NUM_DESCRIPTORS - 1);
-    for (usize i = 0; i < MAX_NUM_DESCRIPTORS; ++i) {
+    for (usize i = 0; i < Idt::MAX_NUM_DESCRIPTORS; ++i) {
         _idt[i].set(isr_stub_table[i], 0x8E);
     }
 

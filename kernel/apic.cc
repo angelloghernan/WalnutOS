@@ -33,11 +33,6 @@ namespace apic {
     
     void LocalApic::enable() {
         auto const pa = get_pa();
-        if (pa != PA_DEFAULT) {
-            terminal.print_line("Physical address is not default!");    
-        } else {
-            terminal.print_line("Physical address is default");
-        }
         set_pa(get_pa());
         auto const [lo, hi] = x86::rdmsr(REG_SPURIOUS_INTERRUPT);
         x86::wrmsr(REG_SPURIOUS_INTERRUPT, lo | APIC_ENABLE | 0xFF, hi);
