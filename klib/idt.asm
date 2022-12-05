@@ -29,7 +29,7 @@ isr_no_err_stub 4
 isr_no_err_stub 5
 isr_no_err_stub 6
 isr_no_err_stub 7
-isr_err_stub    8
+isr_no_err_stub 8
 isr_no_err_stub 9
 isr_err_stub    10
 isr_err_stub    11

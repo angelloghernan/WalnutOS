@@ -2,8 +2,9 @@
 #include "int.hh"
 #include "array.hh"
 
-class IdtEntry {
+class alignas(8) IdtEntry {
   public:
+    IdtEntry() : _isr_low(0), _kernel_cs(0), _reserved(0), _attributes(0), _isr_high(0) {}
     void set(void* handler, u8 flags) {
         auto handler_address = reinterpret_cast<uptr>(handler);
         _isr_low = handler_address & 0xFFFF;
@@ -15,11 +16,11 @@ class IdtEntry {
     }
 
   private:
-    u16 _isr_low;
-    u16 _kernel_cs;
-    u8 _reserved;
-    u8 _attributes;
-    u16 _isr_high;
+    u16 _isr_low = 0;
+    u16 _kernel_cs = 0;
+    u8 _reserved = 0;
+    u8 _attributes = 0;
+    u16 _isr_high = 0;
 
 } __attribute__((packed));
 
@@ -34,11 +35,11 @@ public:
     }
 
 private:
-    u16 _limit;
-    usize _base;
+    u16 _limit = 0;
+    u32 _base = 0;
 } __attribute__((packed));
 
-class Idt {
+class alignas(16) Idt {
   public:
     static usize const MAX_NUM_DESCRIPTORS = 256;
     static usize const NUM_RESERVED        = 32;
@@ -48,11 +49,11 @@ class Idt {
     }
 
     void init();
+    Array<IdtEntry, 256> _idt;
 
     
   private:
-    Array<IdtEntry, 256> _idt;
-} __attribute__((aligned(0x10)));
+};
 
 extern Idt idt;
 

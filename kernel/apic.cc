@@ -33,9 +33,8 @@ namespace apic {
     
     void LocalApic::enable() {
         auto const pa = get_pa();
-        set_pa(get_pa());
-        auto const [lo, hi] = x86::rdmsr(REG_SPURIOUS_INTERRUPT);
-        x86::wrmsr(REG_SPURIOUS_INTERRUPT, lo | APIC_ENABLE | 0xFF, hi);
+        auto const val = read_register(REG_SPURIOUS_INTERRUPT);
+        write_register(REG_SPURIOUS_INTERRUPT, val | APIC_ENABLE | 0xFF);
     }
 
     auto LocalApic::read_register(usize offset) const -> u32 {

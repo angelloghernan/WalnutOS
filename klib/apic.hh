@@ -11,7 +11,7 @@ namespace apic {
         LocalApic() = delete;
         static auto get() -> LocalApic&;
         static auto get_pa() -> uptr;
-        static void enable();
+        void enable();
         // Set the physical address of the APIC. 
         // Do not call while a LocalApic instance is active.
         static void set_pa(uptr addr);
@@ -51,7 +51,7 @@ namespace apic {
         // Register offset for Spurious-Interrupt Vector register
         static u32 constexpr REG_SPURIOUS_INTERRUPT    = 0xF;
         // Bitmask for enabling interrupts using the SVR register
-        static u32 constexpr APIC_ENABLE               = 0x10;
+        static u32 constexpr APIC_ENABLE               = 0x100;
         
     };
 

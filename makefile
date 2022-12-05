@@ -24,19 +24,19 @@ os-image.bin: boot/boot.bin kernel.bin
 		cat $^ > $@
 
 kernel.bin: ${OBJ_LINK_LIST}
-		i686-elf-ld -flto -use-linker-plugin -o $@ --script=ldconfig.ld $^ --oformat binary
+		i686-elf-ld -flto -use-linker-plugin  -o $@ --script=ldconfig.ld $^ --oformat binary
 
 kernel.elf: ${OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin -o $@ --script=ldconfig.ld $^ 
 
 run: os-image.bin
-		qemu-system-i386 -hda $<
+		qemu-system-i386 -hda $< 
 
 run-console: os-image.bin
 		qemu-system-i386 -hda $< -display curses
 
 gdb: os-image.bin kernel.elf
-		qemu-system-i386 -hda $< -S -s & \
+		qemu-system-i386 -hda $< -S -s -d int -no-reboot -no-shutdown & \
 		${GDB}
 
 %.o: %.cc ${HEADERS}
