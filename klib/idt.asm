@@ -4,18 +4,18 @@ isr_stub_%+%1:
     push dword %1
     push esp
     call exception_handler
-    add esp, 32
+    add esp, 8
     iret
 %endmacro
 
 ; Macro for interrupts without error codes
 %macro isr_no_err_stub 1
 isr_stub_%+%1:
-    push dword 0
-    push dword %1
-    push esp
+    ; push dword 0
+    ; push dword %1
+    ; push esp
     call exception_handler
-    add esp, 64
+    ; add esp, 64
     iret
 %endmacro
 

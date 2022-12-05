@@ -37,8 +37,11 @@ extern "C" void kernel_main() {
     for (auto const num : nums) {
         terminal.print_line("Hello, World: ", num);
     }
+    
+    usize i = 0;
     while (true) {
-        terminal.print_line("Hello");
+        terminal.print_line("Hello, ", i);
+        ++i;
     }
 }
 
