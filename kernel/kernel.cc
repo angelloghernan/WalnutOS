@@ -55,7 +55,7 @@ void setup_pagedir() {
     kernel_pagedir.add_pagetable(0, starter_pt, PTE_PW);
 
     // Give zero permissions for the null page.
-    kernel_pagedir.map(0, 0, PTE_PWU);
+    kernel_pagedir.map(0, 0, 0);
 
     // Identity map everything else
     for (auto address = 0x1000; address < 0x400000; address += PAGESIZE) {

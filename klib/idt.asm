@@ -14,9 +14,8 @@ isr_stub_%+%1:
     push dword 0
     push dword %1
     push esp
-    sub esp, 4
     call exception_handler
-    add esp, 16
+    add esp, 12
     iret
 %endmacro
 
