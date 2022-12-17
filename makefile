@@ -30,7 +30,7 @@ kernel.elf: ${OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin -o $@ --script=ldconfig.ld $^ 
 
 run: os-image.bin
-		qemu-system-i386 -hda $< 
+		qemu-system-i386 -hda $< -d int 
 
 run-console: os-image.bin
 		qemu-system-i386 -hda $< -display curses

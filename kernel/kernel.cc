@@ -25,7 +25,7 @@ extern "C" void kernel_main() {
     kernel_pagedir.add_pagetable(1019, io_pt, PTE_PW);
     terminal.print_line("asdoasdoawdejowqda diauid qwoideoiqw doiadio asdoasj");
     terminal.print_line("asdoasdoawdejowqda wsadasd doiadio asdoasj");
-    // Pic::remap(32, 32);
+    Pic::remap(32, 48);
 
     /*
     auto const lapic_pa = apic::LocalApic::get_pa();
@@ -45,7 +45,7 @@ extern "C" void kernel_main() {
     
     usize i = 0;
     while (true) {
-        // terminal.print_line("Hello, ", i);
+        terminal.print_line("Hello, ", i);
         ++i;
     }
 }
