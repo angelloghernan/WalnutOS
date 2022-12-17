@@ -25,9 +25,26 @@ ICW_8086      equ 0x01
 
 ; Disable the PIC so we can initialize the APIC later
 pic_disable:
-    mov al, 0xff
-    out PIC2_DATA, al
+    mov al, 0x11
     out PIC1_DATA, al
+    out PIC2_DATA, al
+    mov al, 0x20
+    out PIC1_DATA, al
+    mov al, 0x28
+    out PIC1_DATA, al
+    mov al, 0x04
+    out PIC1_DATA, al
+    mov al, 0x02
+    out PIC2_DATA, al
+    mov al, 0x01
+    out PIC1_DATA, al
+    out PIC2_DATA, al
+    mov al, 0x00
+    out PIC1_DATA, al
+    out PIC2_DATA, al
+    ; mov al, 0xff
+    ; out PIC2_DATA, al
+    ; out PIC1_DATA, al
     ret
 
 io_wait:
@@ -38,7 +55,7 @@ io_wait:
 [bits 16]
 load_kernel:
     mov bx, KERNEL_OFFSET
-    mov al, 40
+    mov al, 50
     call disk_load
     ret
 
@@ -73,7 +90,6 @@ BEGIN_PM: ; after the switch we will get here
   
 
 BOOT_DRIVE db 0
-MSG_REAL_MODE db "Started in 16-bit real mode", 0
 MSG_PROT_MODE db "Loaded 32-bit protected mode", 0
 
 ; bootsector

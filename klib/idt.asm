@@ -11,11 +11,12 @@ isr_stub_%+%1:
 ; Macro for interrupts without error codes
 %macro isr_no_err_stub 1
 isr_stub_%+%1:
-    ; push dword 0
-    ; push dword %1
-    ; push esp
+    push dword 0
+    push dword %1
+    push esp
+    sub esp, 4
     call exception_handler
-    ; add esp, 64
+    add esp, 16
     iret
 %endmacro
 
@@ -53,11 +54,43 @@ isr_no_err_stub 28
 isr_no_err_stub 29
 isr_err_stub    30
 isr_no_err_stub 31
+isr_no_err_stub 32
+isr_no_err_stub 33
+isr_no_err_stub 34
+isr_no_err_stub 35
+isr_no_err_stub 36
+isr_no_err_stub 37
+isr_no_err_stub 38
+isr_no_err_stub 39
+isr_no_err_stub 40
+isr_no_err_stub 41
+isr_no_err_stub 42
+isr_no_err_stub 43
+isr_no_err_stub 44
+isr_no_err_stub 45
+isr_no_err_stub 46
+isr_no_err_stub 47
+isr_no_err_stub 48
+isr_no_err_stub 49
+isr_no_err_stub 50
+isr_no_err_stub 51
+isr_no_err_stub 52
+isr_no_err_stub 53
+isr_no_err_stub 54
+isr_no_err_stub 55
+isr_no_err_stub 56
+isr_no_err_stub 57
+isr_no_err_stub 58
+isr_no_err_stub 59
+isr_no_err_stub 60
+isr_no_err_stub 61
+isr_no_err_stub 62
+isr_no_err_stub 63
 
 global isr_stub_table
 isr_stub_table:
 %assign i 0
-%rep 32
+%rep 64
     dd isr_stub_%+i
 %assign i i+1
 %endrep

@@ -60,6 +60,7 @@ extern Idt idt;
 struct regstate {
 public:
     usize vector_code;
+    // usize reg_eax;
     usize error_code;
     usize reg_eip;
     usize reg_cs;

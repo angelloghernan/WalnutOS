@@ -101,7 +101,7 @@ namespace console {
         void put(u8 num, Color const fg = Color::White, Color const bg = Color::Black);
         void put(i8 num, Color const fg = Color::White, Color const bg = Color::Black);
         void move(i8 amt);
-        auto constexpr static num_digits(usize num, u8 base) -> i8;
+        auto constexpr static num_digits(usize num, u8 base) -> u8;
 
         auto static create_char(char const ch, Color const fg, Color const bg) -> u16 {
             auto const upper = static_cast<u8>(bg);

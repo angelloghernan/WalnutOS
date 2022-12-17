@@ -42,7 +42,7 @@ namespace pagetables {
     
     auto PageDirectory::va_to_pa(uptr const address) const -> uptr {
         usize const pd_idx = va_to_idx(address);
-        auto const& pt = _entries[pd_idx].get_pt();
+        auto const pt = _entries[pd_idx].get_pt();
         switch (pt.match()) {
             case Some:
                 return pt.unwrap().va_to_pa(address);

@@ -114,8 +114,8 @@ namespace console {
         move_cursor(row, col);
     }
 
-    auto constexpr Console::num_digits(usize num, u8 base) -> i8 {
-        i8 counter = 0;
+    auto constexpr Console::num_digits(usize num, u8 base) -> u8 {
+        u8 counter = 0;
         do {
             num /= base;
             ++counter;

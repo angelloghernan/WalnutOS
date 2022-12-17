@@ -19,7 +19,7 @@ namespace apic {
     }
 
     void LocalApic::set_pa(uptr const addr) {
-        u32 lo = (addr & 0xFFFFF000) | IA32_APIC_BASE_MSR_ENABLE;
+        u32 lo = (addr & 0xFFFF0000) | IA32_APIC_BASE_MSR_ENABLE;
         x86::wrmsr(IA32_APIC_BASE_MSR, lo, 0);
     }
     
