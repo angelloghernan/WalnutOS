@@ -2,9 +2,18 @@
 %macro isr_err_stub 1
 isr_stub_%+%1:
     push dword %1
+    push ecx
+    push ebx
+    push edx
+    push eax
     push esp
     call exception_handler
-    add esp, 8
+    add esp, 4
+    pop eax
+    pop edx
+    pop ebx
+    pop ecx
+    add esp, 4
     iret
 %endmacro
 
@@ -13,9 +22,18 @@ isr_stub_%+%1:
 isr_stub_%+%1:
     push dword 0
     push dword %1
+    push ecx
+    push ebx
+    push edx
+    push eax
     push esp
     call exception_handler
-    add esp, 12
+    add esp, 4
+    pop eax
+    pop edx
+    pop ebx
+    pop ecx
+    add esp, 8
     iret
 %endmacro
 
