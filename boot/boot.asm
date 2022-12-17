@@ -42,9 +42,9 @@ pic_disable:
     mov al, 0x00
     out PIC1_DATA, al
     out PIC2_DATA, al
-    ; mov al, 0xff
-    ; out PIC2_DATA, al
-    ; out PIC1_DATA, al
+    mov al, 0xff
+    out PIC2_DATA, al
+    out PIC1_DATA, al
     ret
 
 io_wait:
