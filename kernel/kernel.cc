@@ -7,6 +7,8 @@
 #include "../klib/assert.hh"
 #include "../klib/pagetables.hh"
 #include "../kernel/kernel.hh"
+#include "../klib/result.hh"
+#include "../klib/ps2.hh"
 
 using pagetables::PageDirectory;
 using pagetables::PageTable;
@@ -23,29 +25,43 @@ extern "C" void kernel_main() {
     terminal.clear();
     setup_pagedir();
     kernel_pagedir.add_pagetable(1019, io_pt, PTE_PW);
-    terminal.print_line("asdoasdoawdejowqda diauid qwoideoiqw doiadio asdoasj");
-    terminal.print_line("asdoasdoawdejowqda wsadasd doiadio asdoasj");
     Pic::remap(32, 48);
 
     /*
+    Leaving APIC support for another day
     auto const lapic_pa = apic::LocalApic::get_pa();
     auto const check = kernel_pagedir.try_map(lapic_pa, lapic_pa, PTE_PW);
     assert(check == 0, "This should not happen!");
     auto& lapic = apic::LocalApic::get();
     lapic.enable();
-        */
+    */
 
 
     idt.init();
+
+    auto result = Ps2Controller::self_test();
+
+    terminal.print_line("Size of result: ", sizeof(result));
+
+    switch(result.match()) {
+        case Ok:
+            terminal.print_line("Ps2Controller ok!");
+          break;
+        case Err:
+            assert(false, "PS/2 not working!");
+          break;
+    }
+
+    auto check = Ps2Controller::enable_first();
 
     constexpr Array<i32 const, 14> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
     for (auto const num : nums) {
         terminal.print_line("Hello, World: ", num);
     }
     
-    usize i = 0;
+    auto i = 0_usize;
     while (true) {
-        terminal.print_line("Hello, ", i);
+        // terminal.print_line("Hello, ", i);
         ++i;
     }
 }

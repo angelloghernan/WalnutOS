@@ -55,7 +55,7 @@ io_wait:
 [bits 16]
 load_kernel:
     mov bx, KERNEL_OFFSET
-    mov al, 50
+    mov al, 64
     call disk_load
     ret
 

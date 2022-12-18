@@ -32,7 +32,7 @@ namespace apic {
     }
     
     void LocalApic::enable() {
-        auto const pa = get_pa();
+        // auto const pa = get_pa();
         auto const val = read_register(REG_SPURIOUS_INTERRUPT);
         write_register(REG_SPURIOUS_INTERRUPT, val | APIC_ENABLE | 0xFF);
     }
