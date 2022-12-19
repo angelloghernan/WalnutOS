@@ -1,0 +1,7 @@
+*.orig
+*.txt
+*.o
+*.elf
+*.bin
+old_boot.asm
+obj/

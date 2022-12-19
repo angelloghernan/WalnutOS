@@ -39,10 +39,6 @@ extern "C" void kernel_main() {
 
     auto result = Ps2Controller::self_test();
 
-    // auto result = Result<Null, Null>::Ok({});
-
-    // terminal.print_line("Size of result: ", sizeof(result));
-
     switch(result.match()) {
         case Ok:
             terminal.print_line("Ps2Controller ok!");
@@ -53,7 +49,6 @@ extern "C" void kernel_main() {
     }
 
     auto check = Ps2Controller::enable_first();
-    //
     terminal.print_line("Check ", check);
 
 

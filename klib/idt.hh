@@ -44,8 +44,16 @@ class alignas(16) Idt {
     static usize const MAX_NUM_DESCRIPTORS = 256;
     static usize const NUM_RESERVED        = 32;
 
-    void idt_set_descriptor(u8 vector, void* handler, u8 flags) {
+    inline void idt_set_descriptor(u8 vector, void* handler, u8 flags) {
         _idt[vector].set(handler, flags);
+    }
+
+    inline static void enable_interrupts() {
+        __asm__ volatile ("sti");
+    }
+
+    inline static void disable_interrupts() {
+        __asm__ volatile ("cli");
     }
 
     void init();
@@ -74,3 +82,24 @@ public:
     usize reg_eflags;
 private:
 } __attribute__((packed));
+
+/*
+struct regstate {
+public:
+    usize reg_eflags;
+    usize reg_cs;
+    usize reg_eip;
+    usize error_code;
+    usize vector_code;
+    usize reg_eax;
+    usize reg_ecx;
+    usize reg_edx;
+    usize reg_ebx;
+    usize reg_esp;
+    usize reg_ebp;
+    usize reg_esi;
+    usize reg_edi;
+private:
+} __attribute__((packed));
+*/
+

@@ -25,8 +25,23 @@ isr_stub_%+%1:
     iret
 %endmacro
 
+%macro keyboard_stub 0
+isr_stub_33:
+    push dword 0
+    push dword 33
+    pushad
+    push esp
+    call keyboard_handler
+    add esp, 4
+    popad
+    add esp, 8
+    iret
+%endmacro
+
+
 
 extern exception_handler
+extern keyboard_handler
 isr_no_err_stub 0
 isr_no_err_stub 1
 isr_no_err_stub 2
@@ -60,7 +75,8 @@ isr_no_err_stub 29
 isr_err_stub    30
 isr_no_err_stub 31
 isr_no_err_stub 32
-isr_no_err_stub 33
+keyboard_stub
+; isr_no_err_stub 33
 isr_no_err_stub 34
 isr_no_err_stub 35
 isr_no_err_stub 36

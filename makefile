@@ -29,8 +29,14 @@ kernel.bin: ${OBJ_LINK_LIST}
 kernel.elf: ${OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin -o $@ --script=ldconfig.ld $^ 
 
+dump: kernel.elf
+		objdump -d kernel.elf > dump.txt
+
 run: os-image.bin
-		qemu-system-i386 -hda $< -d int 
+		qemu-system-i386 -hda $<
+
+run-debug: os-image.bin
+		qemu-system-i386 -hda $< -d int
 
 run-console: os-image.bin
 		qemu-system-i386 -hda $< -display curses

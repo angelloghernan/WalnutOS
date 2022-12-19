@@ -1,6 +1,7 @@
 #include "../klib/ps2.hh"
 #include "../klib/result.hh"
 #include "../klib/console.hh"
+#include "../klib/idt.hh"
 
 using namespace ports;
 
@@ -16,9 +17,12 @@ auto Ps2Controller::enable_first() -> u8 {
 }
 
 auto Ps2Controller::self_test() -> Result<Null, Null> {
+    Idt::disable_interrupts();
     outb(CMD_STATUS_REGISTER, 0xAA);
 
     auto response = read_byte();
+
+    Idt::enable_interrupts();
 
     if (response == 0x55) {
         return Result<Null, Null>::Ok({});
