@@ -64,7 +64,7 @@ extern "C" void kernel_main() {
 
     auto i = 0_usize;
     while (true) {
-        terminal.print_line("Hello, ", i);
+        // terminal.print_line("Hello, ", i);
         ++i;
     }
 }
