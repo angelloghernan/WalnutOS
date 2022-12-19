@@ -25,7 +25,7 @@ extern "C" void kernel_main() {
     terminal.clear();
     setup_pagedir();
     kernel_pagedir.add_pagetable(1019, io_pt, PTE_PW);
-    Pic::remap(32, 48);
+    Pic::remap(0x20, 0x28);
 
     /*
     Leaving APIC support for another day
@@ -35,13 +35,13 @@ extern "C" void kernel_main() {
     auto& lapic = apic::LocalApic::get();
     lapic.enable();
     */
-
-
     idt.init();
 
     auto result = Ps2Controller::self_test();
 
-    terminal.print_line("Size of result: ", sizeof(result));
+    // auto result = Result<Null, Null>::Ok({});
+
+    // terminal.print_line("Size of result: ", sizeof(result));
 
     switch(result.match()) {
         case Ok:
@@ -53,15 +53,18 @@ extern "C" void kernel_main() {
     }
 
     auto check = Ps2Controller::enable_first();
+    //
+    terminal.print_line("Check ", check);
+
 
     constexpr Array<i32 const, 14> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
     for (auto const num : nums) {
         terminal.print_line("Hello, World: ", num);
     }
-    
+
     auto i = 0_usize;
     while (true) {
-        // terminal.print_line("Hello, ", i);
+        terminal.print_line("Hello, ", i);
         ++i;
     }
 }
@@ -86,12 +89,11 @@ void setup_pagedir() {
 void Idt::init() {
     static Idtr idtr;
     idtr.set_base(reinterpret_cast<usize>(&_idt[0]));
-    idtr.set_limit(sizeof(IdtEntry) * MAX_NUM_DESCRIPTORS - 1);
+    idtr.set_limit(sizeof(IdtEntry) * 63);
     for (auto i = 0; i < 64; ++i) {
         _idt[i].set(isr_stub_table[i], 0x8E);
     }
-    terminal.print_line("IDT: ", reinterpret_cast<void*>(this));
-    terminal.print_line("IDTR size: ", sizeof(idtr));
     __asm__ volatile ("lidt %0" : : "m"(idtr)); // load the new IDT
     __asm__ volatile ("sti"); // set the interrupt flag
+    
 }

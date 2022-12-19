@@ -11,8 +11,8 @@ auto Ps2Controller::enable_first() -> u8 {
         io_wait();
     }
     outb(CMD_STATUS_REGISTER, 0b00000101);
-    auto check = read_byte();
-    return check;
+    // auto check = read_byte();
+    return 0;
 }
 
 auto Ps2Controller::self_test() -> Result<Null, Null> {
