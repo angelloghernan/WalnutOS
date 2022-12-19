@@ -27,8 +27,6 @@ extern "C" void kernel_main() {
     kernel_pagedir.add_pagetable(1019, io_pt, PTE_PW);
     Pic::remap(0x20, 0x28);
 
-    auto ras = Result<Option<u8>, Null>::Ok(0);
-
     /*
     Leaving APIC support for another day
     auto const lapic_pa = apic::LocalApic::get_pa();
@@ -40,6 +38,7 @@ extern "C" void kernel_main() {
     idt.init();
 
     auto result = Ps2Controller::self_test();
+    terminal.print_line("Size of Result<Null, Null>: ", sizeof(result));
 
     match(result) {
         case Ok:

@@ -5,6 +5,10 @@ namespace ports {
         asm volatile ( "outb %0, %1" : : "a"(val), "Nd"(port) );
     }
 
+    void outw(u16 port, u16 val) {
+        asm volatile ( "outw %0, %1" : : "a"(val), "Nd"(port) );
+    }
+
     auto inb(u16 port) -> u8 {
         u8 ret;
         asm volatile ( "inb %1, %0 " : "=a" (ret) : "Nd" (port));

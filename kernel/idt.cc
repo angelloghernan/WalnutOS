@@ -12,6 +12,11 @@ extern "C" void exception_handler(regstate& regs) {
 
 extern "C" void keyboard_handler(regstate& regs) {
     auto scan_code = Ps2Controller::read_byte();
+    // 'q' key
+    if (scan_code == 16) {
+        // Hack: shut down QEMU. Not portable outside of QEMU.
+        ports::outw(0x604, 0x2000);
+    }
     terminal.print_line("Key pushed: ", scan_code);
     Pic::end_of_interrupt(0x21);
 }
