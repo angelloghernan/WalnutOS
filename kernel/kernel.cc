@@ -8,7 +8,7 @@
 #include "../klib/pagetables.hh"
 #include "../kernel/kernel.hh"
 #include "../klib/result.hh"
-#include "../klib/ps2.hh"
+#include "../klib/ps2/ps2.hh"
 
 using pagetables::PageDirectory;
 using pagetables::PageTable;
@@ -48,9 +48,7 @@ extern "C" void kernel_main() {
           break;
     }
 
-    auto check = Ps2Controller::enable_first();
-    terminal.print_line("Check ", check);
-
+    Ps2Controller::enable_first();
 
     constexpr Array<i32 const, 14> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
     for (auto const num : nums) {
@@ -90,5 +88,4 @@ void Idt::init() {
     }
     __asm__ volatile ("lidt %0" : : "m"(idtr)); // load the new IDT
     __asm__ volatile ("sti"); // set the interrupt flag
-    
 }

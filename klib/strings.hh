@@ -11,7 +11,7 @@ struct str {
     template<usize S>
     constexpr str(char const (&string)[S]) : string(string), size(S - 1) {}
     constexpr str(char const* string, usize size) : string(string), size(size - 1) {}
-    constexpr str(char const* string) : string(string), size(strlen(string)) {}
+    // constexpr str(char const* string) : string(string), size(strlen(string)) {}
 
     auto constexpr len() const -> usize { return size; }
 

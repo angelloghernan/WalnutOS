@@ -1,8 +1,8 @@
 #pragma once
 #include "../klib/console.hh"
 
-inline void _assert(bool const condition, char const* const file, i32 const line,
-                   char const* const function, str const message) {
+inline void _assert(bool const condition, str const file, i32 const line,
+                   str const function, str const message) {
     using namespace console;
     if (!condition) {
         terminal.print_line_color(Color::White, Color::Red, "Assertion failed: ",
@@ -11,8 +11,8 @@ inline void _assert(bool const condition, char const* const file, i32 const line
     }
 }
 
-inline void _warn(bool const condition, char const* const file, i32 const line,
-                  char const* const function, str const message) {
+inline void _warn(bool const condition, str const file, i32 const line,
+                  str const function, str const message) {
     using namespace console;
     if (!condition) {
         terminal.print_line_color(Color::Black, Color::Yellow, "Warning: ", message, 
