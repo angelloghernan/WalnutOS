@@ -25,3 +25,4 @@ constexpr i16   operator "" _i16(unsigned long long int i)   {   return i16(i); 
 constexpr i32   operator "" _i32(unsigned long long int i)   {   return u16(i);   }
 constexpr isize operator "" _isize(unsigned long long int i) {   return isize(i); }
 
+#define match(object) switch(object.matches())

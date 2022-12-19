@@ -27,14 +27,14 @@ class Result {
     auto constexpr static Ok(T& data) -> Result<T, E> {
         auto result = Result();
         result.m_is_success = true;
-        result.m_data.err = data;
+        result.m_data.data = data;
         return result;
     }
 
     auto constexpr static Ok(T&& data) -> Result<T, E> {
         auto result = Result();
         result.m_is_success = true;
-        result.m_data.err = data;
+        result.m_data.data = data;
         return result;
     }
 
@@ -46,7 +46,7 @@ class Result {
         return m_data.data;
     }
 
-    auto constexpr match() -> bool {
+    auto constexpr matches() -> bool {
         return m_is_success;
     }
     

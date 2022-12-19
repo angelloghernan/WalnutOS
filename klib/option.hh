@@ -46,7 +46,7 @@ class Option<T&> {
 
     auto constexpr none() const -> bool { return !_present; }
     auto constexpr some() const -> bool { return _present; }
-    auto constexpr match() const -> bool { return _present ? Some : None; }
+    auto constexpr matches() const -> bool { return _present ? Some : None; }
 
     auto constexpr unwrap() const -> T& { return *_val; }
 
