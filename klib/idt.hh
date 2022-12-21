@@ -41,6 +41,9 @@ private:
 
 class alignas(16) Idt {
   public:
+    Idt() {}
+    Idt(Idt const&) = delete;
+    Idt& operator=(Idt const&) = delete;
     static usize const MAX_NUM_DESCRIPTORS = 256;
     static usize const NUM_RESERVED        = 32;
 
@@ -61,6 +64,22 @@ class alignas(16) Idt {
 
     
   private:
+};
+
+/// InterruptGuard: Disables interrupts when constructed and then 
+/// enables interrupts at the end of its scope.
+class InterruptGuard {
+    InterruptGuard(InterruptGuard const&) = delete;
+    InterruptGuard& operator=(InterruptGuard const&) = delete;
+
+    public:
+        InterruptGuard() {
+            Idt::disable_interrupts();
+        }
+        ~InterruptGuard() {
+            Idt::enable_interrupts();
+        }
+    private:
 };
 
 extern Idt idt;

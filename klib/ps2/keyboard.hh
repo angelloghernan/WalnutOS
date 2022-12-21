@@ -1,18 +1,36 @@
 #pragma once
+#include "../int.hh"
+#include "../result.hh"
+#include "../array.hh"
+#include "../circlar_buffer.hh"
+namespace ps2 {
+    enum class Key;
+    enum class ScanCodeSet;
+    enum class KeyboardCommand;
 
-enum class Ps2Keycode;
+    class Ps2Keyboard {
+    public:
+        Ps2Keyboard(Ps2Keyboard const&) = delete;
+        Ps2Keyboard& operator=(Ps2Keyboard const&) = delete;
 
-class Ps2Keyboard {
-  public:
-    
-  private:
-};
+        auto get() -> Ps2Keyboard& {
+            static Ps2Keyboard kb;
+            return kb;
+        }
+
+        auto read_keycode() -> Result<Key, Null>;
+        auto get_set() -> ScanCodeSet;
+        auto enqueue(KeyboardCommand cmd) -> Result<Null, Null>;
+
+    private:
+        Ps2Keyboard();
+
+        // Size is 4095 since circular buffer allocates 4096 (wastes a slot)
+        CircularBuffer<KeyboardCommand, 4095> m_buffer;
+    };
 
 
-enum class Ps2KeyCode {
-    F9 = 0x01,
-    F5 = 0x03,
-    F3 = 0x04,
-    F1 = 0x05,
-    F2 = 0x06,
+    enum class Key {
+        Unknown,
+    };
 };

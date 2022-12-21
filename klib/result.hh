@@ -51,7 +51,7 @@ class Result {
     }
     
   private:
-    Result() {}
+    constexpr Result() {}
 
     bool m_is_success;
     union {

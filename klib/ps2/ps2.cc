@@ -16,6 +16,7 @@ void Ps2Controller::enable_first() {
 
 auto Ps2Controller::self_test() -> Result<Null, Null> {
     Idt::disable_interrupts();
+
     outb(CMD_STATUS_REGISTER, 0xAA);
 
     auto response = blocking_read();

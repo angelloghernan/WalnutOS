@@ -2,8 +2,8 @@
 # $< = first dependency
 # $^ = all dependencies
 
-CPP_SOURCES = $(wildcard kernel/*.cc klib/*.cc klib/ps2/*.cc)
-HEADERS = $(wildcard kernel/*.hh klib/*.hh klib/ps2/*.hh)
+CPP_SOURCES = $(wildcard kernel/*.cc klib/*.cc klib/*/*.cc)
+HEADERS = $(wildcard kernel/*.hh klib/*.hh klib/*/*.hh)
 OBJ = ${CPP_SOURCES:.cc=.o} klib/idt.o
 
 

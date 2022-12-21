@@ -1,8 +1,8 @@
 #pragma once
 #include "int.hh"
 
-auto constexpr None = false;
-auto constexpr Some = true;
+auto static constexpr None = false;
+auto static constexpr Some = true;
 
 template <typename T>
 class Option {
