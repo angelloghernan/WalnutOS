@@ -2,7 +2,7 @@
 #include "../int.hh"
 #include "../result.hh"
 #include "../array.hh"
-#include "../circlar_buffer.hh"
+#include "../circular_buffer.hh"
 namespace ps2 {
     enum class Key;
     enum class ScanCodeSet;

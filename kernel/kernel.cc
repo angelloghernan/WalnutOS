@@ -9,6 +9,7 @@
 #include "../kernel/kernel.hh"
 #include "../klib/result.hh"
 #include "../klib/ps2/ps2.hh"
+#include "../klib/circular_buffer.hh"
 
 using pagetables::PageDirectory;
 using pagetables::PageTable;
@@ -47,6 +48,13 @@ extern "C" void kernel_main() {
             assert(false, "PS/2 not working!");
           break;
     }
+
+    CircularBuffer<u8, 10> buffer;
+    auto test = buffer.push(10);
+    assert(test.matches() == Ok, "Circular Buffer error");
+    auto element = buffer.pop();
+    assert(element.some() && element.unwrap() == 10, "Circular Buffer error");
+    terminal.print_line("Element: ", element.unwrap());
 
     Ps2Controller::enable_first();
 
