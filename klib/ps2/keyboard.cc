@@ -3,5 +3,9 @@
 using namespace ps2;
 
 auto Ps2Keyboard::enqueue(KeyboardCommand cmd) -> Result<Null, Null> {
-    return Result<Null, Null>::Err({});
+    return m_buffer.push(cmd);
+}
+
+auto Ps2Keyboard::get_set() -> ScanCodeSet {
+    
 }

@@ -34,4 +34,8 @@ class Ps2Controller {
 
     static auto constexpr ENABLE_FIRST_PORT    = 0xAE_u8;
     static auto constexpr DISABLE_FIRST_PORT   = 0xAD_u8;
+
+    static auto constexpr SELF_CHECK_SUCCESS   = 0x55_u8;
+
+    static auto constexpr PERFORM_SELF_CHECK   = 0xAA_u8;
 };

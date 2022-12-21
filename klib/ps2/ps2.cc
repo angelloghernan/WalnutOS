@@ -17,13 +17,13 @@ void Ps2Controller::enable_first() {
 auto Ps2Controller::self_test() -> Result<Null, Null> {
     Idt::disable_interrupts();
 
-    outb(CMD_STATUS_REGISTER, 0xAA);
+    outb(CMD_STATUS_REGISTER, PERFORM_SELF_CHECK);
 
     auto response = blocking_read();
 
     Idt::enable_interrupts();
 
-    if (response == 0x55) {
+    if (response == SELF_CHECK_SUCCESS) {
         return Result<Null, Null>::Ok({});
     } else {
         return Result<Null, Null>::Err({});

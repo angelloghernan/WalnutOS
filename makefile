@@ -36,7 +36,7 @@ run: os-image.bin
 		qemu-system-i386 -hda $<
 
 run-debug: os-image.bin
-		qemu-system-i386 -hda $< -d int
+		qemu-system-i386 -hda $< -d int -no-reboot -no-shutdown
 
 run-console: os-image.bin
 		qemu-system-i386 -hda $< -display curses
@@ -56,7 +56,7 @@ gdb: os-image.bin kernel.elf
 
 clean:
 	rm -rf *.bin *.dis *.o os-image.bin *.elf
-	rm -rf *.o boot/*.bin boot/*.o klib/*.o
+	rm -rf *.o boot/*.bin boot/*.o klib/*.o klib/*/*.o
 
 line_count:
 	find . -name '*.asm' | xargs wc -l && \

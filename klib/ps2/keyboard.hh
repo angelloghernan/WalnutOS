@@ -4,9 +4,9 @@
 #include "../array.hh"
 #include "../circular_buffer.hh"
 namespace ps2 {
-    enum class Key;
     enum class ScanCodeSet;
     enum class KeyboardCommand;
+    enum class Key;
 
     class Ps2Keyboard {
     public:
@@ -28,7 +28,16 @@ namespace ps2 {
         // Size is 4095 since circular buffer allocates 4096 (wastes a slot)
         CircularBuffer<KeyboardCommand, 4095> m_buffer;
     };
-
+    
+    enum class ScanCodeSet {
+        Set1,
+        Set2,
+        Set3,
+    };
+    
+    enum class KeyboardCommand {
+        
+    };
 
     enum class Key {
         Unknown,

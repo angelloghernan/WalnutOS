@@ -21,7 +21,7 @@ class CircularBuffer {
         }
 
         m_buffer[m_write_end] = element;
-        ++m_write_end;
+        m_write_end = (m_write_end + 1) % S;
         return Result<Null, Null>::Ok({});
     }
     /// Pop an element from this buffer. Returns None if empty.
@@ -30,15 +30,22 @@ class CircularBuffer {
             return {};
         }
         auto element = m_buffer[m_read_end];
-        ++m_read_end;
+        m_read_end = (m_read_end + 1) % S;
         return {element};
     }
     /// Push an element into this buffer without checking if it will be successful.
-    /// Will result in undefined behavior if buffer is full when called.
-    auto constexpr push_unchecked();
+    /// May result in undefined behavior if buffer is full when called.
+    void constexpr push_unchecked(T element) {
+        m_buffer[m_write_end] = element; 
+        m_write_end = (m_write_end + 1) % S;
+    }
     /// Pop an element from this buffer without checking if it's empty.
-    /// Will result in undefined behavior if empty.
-    auto constexpr pop_unchecked();
+    /// May result in undefined behavior if empty.
+    auto constexpr pop_unchecked() -> T { 
+        auto element = m_buffer[m_read_end];
+        m_read_end = (m_read_end + 1) % S;
+        return element;
+    };
     /// Check if this buffer is empty.
     auto constexpr empty() -> bool { return m_read_end == m_write_end; }
     /// Check if this buffer is full.

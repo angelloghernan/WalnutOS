@@ -17,6 +17,6 @@ extern "C" void keyboard_handler(regstate& regs) {
         // Hack: shut down QEMU. Not portable outside of QEMU.
         ports::outw(0x604, 0x2000);
     }
-    terminal.print_line("Key pushed: ", scan_code);
+    terminal.print_line("Hello", scan_code);
     Pic::end_of_interrupt(0x21);
 }

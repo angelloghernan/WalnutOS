@@ -31,7 +31,7 @@ namespace console {
         void clear();
 
         void print() {
-            move_cursor(row, col);
+            // move_cursor(row, col);
         }
 
         template<typename T, typename... Types>
@@ -44,7 +44,6 @@ namespace console {
         void print_line(Types&&... var2) {
             print(var2...);
             new_line();
-            move_cursor(row, 0);
         }
 
         template<typename... Types>
@@ -60,13 +59,15 @@ namespace console {
         void print_line_color(Color const fg, Color const bg, Types&&... var2) {
             print_color(fg, bg, var2...);
             new_line();
-            move_cursor(row, 0);
         }
 
         Console() : col(0), row(0), console_page(reinterpret_cast<u16 *const>(0xb8000)) {
             ports::outb(Console::SET_REGISTER, Console::CURSOR_START);
+            ports::outb(Console::CURSOR_CONTROL, 0x20);
+            // ports::outb(Console::SET_REGISTER, Console::CURSOR_START);
             // Upper two bits are reserved
-            auto existing = ports::inb(Console::CURSOR_CONTROL) & 0xC;
+            // auto existing = ports::inb(Console::CURSOR_CONTROL) & 0xC;
+            /*
             // Enable cursor (bit 5 set to 0) and set start position to 0
             ports::outb(Console::CURSOR_CONTROL, existing | 0);
 
@@ -74,8 +75,18 @@ namespace console {
             // Upper three bits are reserved for cursor end
             existing = ports::inb(Console::CURSOR_CONTROL) & 0xE;
             // Set end position to 15 (take up entire block)
-            ports::outb(Console::CURSOR_CONTROL, existing | 15);
+            ports::outb(Console::CURSOR_CONTROL, existing | 0);
+            */
         }
+
+        void put_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(str const string, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(void* const ptr, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(i32 num, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(u32 num, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(u8 num, Color const fg = Color::White, Color const bg = Color::Black);
+        void put(i8 num, Color const fg = Color::White, Color const bg = Color::Black);
         
       private:
         u8 col;
@@ -92,14 +103,6 @@ namespace console {
         static u16 const CURSOR_LOCATION_HIGH = 0xE;
         static u16 const CURSOR_LOCATION_LOW = 0xF;
 
-        void put_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(str const string, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(void* const ptr, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(i32 num, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(u32 num, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(u8 num, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(i8 num, Color const fg = Color::White, Color const bg = Color::Black);
         void move(i8 amt);
         auto constexpr static num_digits(usize num, u8 base) -> u8;
 

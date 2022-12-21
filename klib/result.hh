@@ -49,6 +49,14 @@ class Result {
     auto constexpr matches() -> bool {
         return m_is_success;
     }
+
+    auto constexpr is_err() -> bool {
+        return !m_is_success;
+    }
+
+    auto constexpr is_success() -> bool {
+        return m_is_success;
+    }
     
   private:
     constexpr Result() {}
