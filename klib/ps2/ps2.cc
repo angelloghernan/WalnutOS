@@ -23,17 +23,22 @@ auto Ps2Controller::self_test() -> Result<Null, Null> {
 
     Idt::enable_interrupts();
 
-    if (response == SELF_CHECK_SUCCESS) {
-        return Result<Null, Null>::Ok({});
-    } else {
+    if (!response.is_success() || response.as_ok() != SELF_CHECK_SUCCESS) {
         return Result<Null, Null>::Err({});
     }
+
+    return Result<Null, Null>::Ok({});
 }
 
-auto Ps2Controller::blocking_read() -> u8 {
-    while ((inb(CMD_STATUS_REGISTER) & 0b1) != 1) {
+auto Ps2Controller::blocking_read() -> Result<u8, Null> {
+    auto count = 0_i8;
+    while ((inb(CMD_STATUS_REGISTER) & 0b1) != 1 && count < 3) {
         io_wait();
     }
 
-    return inb(DATA_PORT);
+    if (count == 3) {
+        return Result<u8, Null>::Err({});
+    }
+
+    return Result<u8, Null>::Ok(inb(DATA_PORT));
 }

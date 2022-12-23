@@ -15,16 +15,18 @@ class Ps2Controller {
     // Enable the first PS/2 port.
     void static enable_first();
 
-    // Read a byte from the PS/2 data port, blocking until data is ready.
-    auto static blocking_read() -> u8;
+    // Read a byte from the PS/2 data port, blocking until data is ready or it has failed three times.
+    auto static blocking_read() -> Result<u8, Null>;
 
     // Read a byte from the PS/2 data port.
     inline auto static read_byte() -> u8 {
         return ports::inb(DATA_PORT);
     }
 
-    // Write a byte to the PS/2 command port.
-    void static write_byte(u8 port, u8 value);
+    // Write a byte to the PS/2 data port.
+    void static write_byte(u8 value) {
+        ports::outb(DATA_PORT, value);
+    }
 
   private:
     // The data port is used for reading data from PS/2 devices or writing to them.

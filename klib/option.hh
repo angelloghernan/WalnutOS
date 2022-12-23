@@ -27,7 +27,6 @@ class Option {
         _present = true;
     }
 
-
     auto constexpr operator!() const -> bool { return !_present; }
 
 

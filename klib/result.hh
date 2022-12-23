@@ -10,7 +10,7 @@ template<typename T, typename E>
 class Result {
   public:
 
-    auto constexpr static Err(E& err) -> Result<T, E> {
+    auto constexpr static Err(E const& err) -> Result<T, E> {
         auto result = Result();
         result.m_is_success = false;
         result.m_data.err = err;
@@ -24,7 +24,7 @@ class Result {
         return result;
     }
 
-    auto constexpr static Ok(T& data) -> Result<T, E> {
+    auto constexpr static Ok(T const& data) -> Result<T, E> {
         auto result = Result();
         result.m_is_success = true;
         result.m_data.data = data;
@@ -42,19 +42,28 @@ class Result {
         return m_data.err;
     }
 
+    auto constexpr as_err() const -> E const& {
+        return m_data.err;
+    }
+
     auto constexpr as_ok() -> T& {
         return m_data.data;
     }
 
-    auto constexpr matches() -> bool {
+    auto constexpr as_ok() const -> T const& {
+        return m_data.data;
+    }
+
+
+    auto constexpr matches() const -> bool {
         return m_is_success;
     }
 
-    auto constexpr is_err() -> bool {
+    auto constexpr is_err() const -> bool {
         return !m_is_success;
     }
 
-    auto constexpr is_success() -> bool {
+    auto constexpr is_success() const -> bool {
         return m_is_success;
     }
     

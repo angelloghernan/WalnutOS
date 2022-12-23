@@ -51,6 +51,7 @@ extern "C" void kernel_main() {
 
     CircularBuffer<u8, 10> buffer;
     auto test = buffer.push(10);
+    assert(test.is_success(), "Circular push failure");
     auto element = buffer.pop();
     terminal.print_line("Element: ", element.unwrap());
 
