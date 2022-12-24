@@ -15,6 +15,7 @@ void Ps2Controller::enable_first() {
 }
 
 auto Ps2Controller::self_test() -> Result<Null, Null> {
+    using Result = Result<Null, Null>;
     Idt::disable_interrupts();
 
     outb(CMD_STATUS_REGISTER, PERFORM_SELF_CHECK);
@@ -24,10 +25,10 @@ auto Ps2Controller::self_test() -> Result<Null, Null> {
     Idt::enable_interrupts();
 
     if (!response.is_success() || response.as_ok() != SELF_CHECK_SUCCESS) {
-        return Result<Null, Null>::Err({});
+        return Result::Err({});
     }
 
-    return Result<Null, Null>::Ok({});
+    return Result::Ok({});
 }
 
 auto Ps2Controller::blocking_read() -> Result<u8, Null> {

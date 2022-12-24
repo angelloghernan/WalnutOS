@@ -6,12 +6,25 @@
 using namespace ps2;
 
 auto constexpr Ps2Keyboard::enqueue_command(KeyboardCommand const cmd) -> Result<Null, Null> {
-    return Result<Null, Null>::Err({});
+    return m_cmd_queue.push(cmd);
 }
 
 auto Ps2Keyboard::get_scan_code_set() -> Result<ScanCodeSet, Null> {
+    using enum ScanCodeSet;
+    using Result = Result<ScanCodeSet, Null>;
+
     Ps2Controller::write_byte(SCANCODE_SERVICES);
-    // 0 -- get scan code set
+    Ps2Controller::write_byte(0x0);
+
+    auto maybe_response = read_ack();
+
+    if (maybe_response.is_err() || maybe_response.as_ok() == 0  || maybe_response.as_ok() > 3) {
+        return Result::Err({});
+    }
+
+    auto set = static_cast<ScanCodeSet>(maybe_response.as_ok());
+
+    return Result::Ok(set);
 }
 
 auto Ps2Keyboard::read_ack() -> Result<u8, KeyboardResponse> {
@@ -27,7 +40,7 @@ auto Ps2Keyboard::read_ack() -> Result<u8, KeyboardResponse> {
     auto const response = check.as_ok();
 
     if (response != static_cast<u8>(CommandAcknowledged)) {
-        return Result::Err(u8_to_response(response));
+        return Result::Err(static_cast<KeyboardResponse>(response));
     }
 
     auto const data = Ps2Controller::read_byte();
@@ -37,51 +50,21 @@ auto Ps2Keyboard::read_ack() -> Result<u8, KeyboardResponse> {
 
 auto Ps2Keyboard::set_scan_code_set(ScanCodeSet const set) -> Result<Null, Null> {
     Ps2Controller::write_byte(static_cast<u8>(set));
-}
 
-auto constexpr Ps2Keyboard::pop_keycode() -> Option<Key> {
-    return m_key_buffer.pop();
-}
-
-auto constexpr Ps2Keyboard::u8_to_response(u8 val) -> KeyboardResponse {
-    using enum KeyboardResponse;
-
-    switch (val) {
-        case static_cast<u8>(Echo): {
-            return Echo;
-            break;
-        }
-
-        case static_cast<u8>(Resend): {
-            return Resend;
-            break;
-        }
-
-        case static_cast<u8>(CommandAcknowledged): {
-            return CommandAcknowledged;
-            break;
-        }
-
-        case 0x0: 
-        case 0xFF: {
-            return InternalError;
-            break;
-        }
-
-        case static_cast<u8>(SelfTestPassed): {
-            return SelfTestPassed;
-            break;
-        }
-
-        case 0xFC:
-        case 0xFD: {
-            return SelfTestFailed;
-            break;
-        }
-
-        default: {
-            return HardwareError;
-            break;
-        }
+    auto check = read_ack();
+    if (check.is_err()) {
+        return Result<Null, Null>::Err({});
     }
+
+    return Result<Null, Null>::Ok({});
+}
+
+auto Ps2Keyboard::read_response() -> Option<KeyboardResponse> {
+    auto response = Ps2Controller::blocking_read();
+
+    if (response.is_err()) {
+        return {};
+    }
+
+    return static_cast<KeyboardResponse>(response.as_ok());
 }

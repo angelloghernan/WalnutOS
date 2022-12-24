@@ -9,6 +9,7 @@
 #include "../kernel/kernel.hh"
 #include "../klib/result.hh"
 #include "../klib/ps2/ps2.hh"
+#include "../klib/ps2/keyboard.hh"
 #include "../klib/circular_buffer.hh"
 
 using pagetables::PageDirectory;
@@ -37,17 +38,7 @@ extern "C" void kernel_main() {
     */
     idt.init();
 
-    auto result = Ps2Controller::self_test();
-    terminal.print_line("Size of Result<Null, Null>: ", sizeof(result));
-
-    match(result) {
-        case Ok:
-            terminal.print_line("Ps2Controller ok!");
-          break;
-        case Err:
-            assert(false, "PS/2 not working!");
-          break;
-    }
+    Ps2Controller::self_test();
 
     CircularBuffer<u8, 10> buffer;
     auto test = buffer.push(10);
@@ -62,11 +53,7 @@ extern "C" void kernel_main() {
         terminal.print_line("Hello, World: ", num);
     }
 
-    auto i = 0_usize;
-    while (true) {
-        // terminal.print_line("Hello, ", i);
-        ++i;
-    }
+    while (true) {}
 }
 
 /// Enable paging by setting up the kernel pagedir and switching to it.
