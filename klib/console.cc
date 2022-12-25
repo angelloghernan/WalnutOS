@@ -62,11 +62,12 @@ namespace console {
         }
         auto const full_ch = Console::create_char(ch, fg, bg);
         console_page[col + row * Console::MAX_COLS] = full_ch;
+        move_cursor(row, col);
     }
 
     void Console::print_char(char const ch, Color const fg, Color const bg) {
         put_char(ch, fg, bg);
-        //move_cursor(row, col);
+        move_cursor(row, col);
     }
 
     void Console::clear() {
@@ -75,7 +76,7 @@ namespace console {
         }
 
         col = row = 0;
-        //move_cursor(row, col);
+        move_cursor(row, col);
     }
 
     void Console::put(str const string, Color const fg, Color const bg) {
@@ -93,7 +94,6 @@ namespace console {
             num /= 10;
         } while (num > 0);
         move(digits + 1);
-        //move_cursor(row, col);
     }
 
     void Console::put(i32 const num, Color const fg, Color const bg) {
@@ -125,7 +125,6 @@ namespace console {
             addr /= 16;
         } while (addr > 0);
         move(digits + 1);
-        //move_cursor(row, col);
     }
 
     auto constexpr Console::num_digits(usize num, u8 base) -> u8 {

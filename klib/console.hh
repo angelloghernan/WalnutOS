@@ -32,7 +32,7 @@ namespace console {
         void clear();
 
         void print() {
-            // move_cursor(row, col);
+            move_cursor(row, col);
         }
 
         template<typename T, typename... Types>
@@ -65,10 +65,9 @@ namespace console {
         Console() : col(0), row(0), console_page(reinterpret_cast<u16 *const>(0xb8000)) {
             ports::outb(Console::SET_REGISTER, Console::CURSOR_START);
             ports::outb(Console::CURSOR_CONTROL, 0x20);
-            // ports::outb(Console::SET_REGISTER, Console::CURSOR_START);
+            ports::outb(Console::SET_REGISTER, Console::CURSOR_START);
             // Upper two bits are reserved
-            // auto existing = ports::inb(Console::CURSOR_CONTROL) & 0xC;
-            /*
+            auto existing = ports::inb(Console::CURSOR_CONTROL) & 0xC;
             // Enable cursor (bit 5 set to 0) and set start position to 0
             ports::outb(Console::CURSOR_CONTROL, existing | 0);
 
@@ -77,7 +76,6 @@ namespace console {
             existing = ports::inb(Console::CURSOR_CONTROL) & 0xE;
             // Set end position to 15 (take up entire block)
             ports::outb(Console::CURSOR_CONTROL, existing | 0);
-            */
         }
 
         void put_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
@@ -139,7 +137,7 @@ namespace console {
             }
         }
 
-        void move_cursor(u16 row, u16 col) {
+        [[gnu::always_inline]] void move_cursor(u16 row, u16 col)  {
             u16 const pos = row * Console::MAX_COLS + col;
             u8 const pos_lo = pos & 0xFF;
             u8 const pos_hi = (pos >> 8) & 0xFF;
