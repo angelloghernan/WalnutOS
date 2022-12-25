@@ -62,7 +62,7 @@ namespace ps2 {
         CommandAcknowledged = 0xFA,
         InternalError       = 0x00,
         HardwareError       = 0xD4, // 0xD4 since this corresponds to nothing
-        SelfTestPassed      = 0xAA,
+        SelfTestPassed      = 0xAA, // only after 0xFF
         SelfTestFailed      = 0xFC,
         // Key responses
         EscDown             = 0x01,

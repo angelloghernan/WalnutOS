@@ -4,6 +4,7 @@
 #include "../klib/console.hh"
 #include "../klib/pic.hh"
 #include "../klib/ps2/ps2.hh"
+#include "../klib/strings.hh"
 #include "../klib/ps2/keyboard.hh"
 #include "../klib/ports.hh"
 
@@ -26,17 +27,17 @@ extern "C" void keyboard_handler() {
     auto const scan_code = static_cast<KeyboardResponse>(Ps2Controller::read_byte());
     switch (scan_code) {
         case PS2SelfTestPassed:
-            terminal.print_line("PS2 Self test passed");
-            break;
-        case SelfTestPassed:
-            terminal.print_line("Self test passed");
+            terminal.print_line(str("PS2 Self test passed"));
             break;
         case CommandAcknowledged:
-            terminal.print_line("ACK");
+            terminal.print_line(str("ACK"));
             break;
         case QDown:
             // Hack: shut down QEMU. Not portable outside of QEMU.
             ports::outw(0x604, 0x2000);
+            break;
+        case BackspaceDown:
+            terminal.put_back_char(' ');
             break;
         default:
             auto const ch = ps2::Ps2Keyboard::response_to_char(scan_code);

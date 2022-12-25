@@ -50,6 +50,20 @@ namespace console {
         }
     }
 
+
+    void Console::put_back_char(char const ch, Color const fg, Color const bg) {
+        if (col == 0) {
+            if (row != 0) {
+                col = Console::MAX_COLS - 1;
+                --row;
+            }
+        } else {
+            --col;
+        }
+        auto const full_ch = Console::create_char(ch, fg, bg);
+        console_page[col + row * Console::MAX_COLS] = full_ch;
+    }
+
     void Console::print_char(char const ch, Color const fg, Color const bg) {
         put_char(ch, fg, bg);
         //move_cursor(row, col);

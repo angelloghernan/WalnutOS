@@ -28,6 +28,7 @@ namespace console {
         void print_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
         void print_addr(uptr const addr, Color const fg = Color::White, Color const bg = Color::Black);
         void put_char_back(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
+        void put_back_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
         void clear();
 
         void print() {
