@@ -24,6 +24,7 @@ namespace ps2 {
         auto static set_scan_code_set(ScanCodeSet set) -> Result<Null, Null>;
         auto constexpr enqueue_command(KeyboardCommand cmd) -> Result<Null, Null>;
         auto constexpr pop_command() -> Option<KeyboardCommand>;
+        auto static response_to_char(KeyboardResponse response) -> char;
 
     private:
         Ps2Keyboard();
@@ -148,6 +149,8 @@ namespace ps2 {
         KeypadZeroDown      = 0x52,
         KeypadPeriodDown    = 0x53,
         // Gap of non-valid/reserved codes
+        PS2SelfTestPassed   = 0x55,
+        // Gap of non-valid/reserved codes
         F11Down             = 0x57,
         F12Down             = 0x58,
         // Gap of non-valid/reserved codes
@@ -237,5 +240,7 @@ namespace ps2 {
         F11Up               = 0xD4,
         F12Up               = 0xD5,
         ExtendedKeyCode     = 0xE0,
+        // Gap of non-valid/reserved codes
+        PS2SelfTestFailed   = 0xFC,
     };
 };

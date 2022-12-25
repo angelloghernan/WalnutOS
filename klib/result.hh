@@ -63,7 +63,7 @@ class Result {
         return !m_is_success;
     }
 
-    auto constexpr is_success() const -> bool {
+    auto constexpr is_ok() const -> bool {
         return m_is_success;
     }
     

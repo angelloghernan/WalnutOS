@@ -26,6 +26,8 @@ extern void* isr_stub_table[];
 extern "C" void kernel_main() {
     terminal.clear();
     setup_pagedir();
+
+    // Remap master to 0x20, slave to 0x28
     Pic::remap(0x20, 0x28);
 
     /*
@@ -42,7 +44,7 @@ extern "C" void kernel_main() {
 
     CircularBuffer<u8, 10> buffer;
     auto test = buffer.push(10);
-    assert(test.is_success(), "Circular push failure");
+    assert(test.is_ok(), "Circular push failure");
     auto element = buffer.pop();
     terminal.print_line("Element: ", element.unwrap());
 
@@ -53,7 +55,9 @@ extern "C" void kernel_main() {
         terminal.print_line("Hello, World: ", num);
     }
 
-    while (true) {}
+    while (true) {
+        __asm__ volatile ("hlt");
+    }
 }
 
 /// Enable paging by setting up the kernel pagedir and switching to it.
@@ -84,6 +88,9 @@ void Idt::init() {
     for (auto i = 0; i < 64; ++i) {
         _idt[i].set(isr_stub_table[i], 0x8E);
     }
+
+    // _idt[0x21].set(reinterpret_cast<void*>(keyboard_handler), 0x8E);
+
     __asm__ volatile ("lidt %0" : : "m"(idtr)); // load the new IDT
     __asm__ volatile ("sti"); // set the interrupt flag
 }

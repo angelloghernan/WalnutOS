@@ -27,14 +27,7 @@ isr_stub_%+%1:
 
 %macro keyboard_stub 0
 isr_stub_33:
-    push dword 0
-    push dword 33
-    pushad
-    push esp
     call keyboard_handler
-    add esp, 4
-    popad
-    add esp, 8
     iret
 %endmacro
 

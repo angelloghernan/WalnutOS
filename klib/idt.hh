@@ -102,6 +102,8 @@ public:
 private:
 } __attribute__((packed));
 
+extern "C" void keyboard_handler();
+
 /*
 struct regstate {
 public:

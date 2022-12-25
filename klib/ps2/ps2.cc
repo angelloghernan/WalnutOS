@@ -24,7 +24,7 @@ auto Ps2Controller::self_test() -> Result<Null, Null> {
 
     Idt::enable_interrupts();
 
-    if (!response.is_success() || response.as_ok() != SELF_CHECK_SUCCESS) {
+    if (response.is_err() || response.as_ok() != SELF_CHECK_SUCCESS) {
         return Result::Err({});
     }
 

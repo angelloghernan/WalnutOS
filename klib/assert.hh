@@ -4,7 +4,7 @@
 inline void _assert(bool const condition, str const file, i32 const line,
                    str const function, str const message) {
     using namespace console;
-    if (!condition) {
+    if (!condition) [[unlikely]] {
         terminal.print_line_color(Color::White, Color::Red, "Assertion failed: ",
                                   message, " at ", function, " in ", file, ':', line);
         while (true) {}
@@ -14,7 +14,7 @@ inline void _assert(bool const condition, str const file, i32 const line,
 inline void _warn(bool const condition, str const file, i32 const line,
                   str const function, str const message) {
     using namespace console;
-    if (!condition) {
+    if (!condition) [[unlikely]] {
         terminal.print_line_color(Color::Black, Color::Yellow, "Warning: ", message, 
                                   " at ", function, " in ", file, ':', line);
     }
