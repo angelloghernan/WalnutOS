@@ -19,7 +19,7 @@ class Option {
         if (_present) {
             return _val;
         } else {
-            return T();
+            return T {};
         }
     }
     void constexpr assign(T const& value) {

@@ -22,6 +22,7 @@ static PageTable io_pt;
 
 Idt idt;
 extern void* isr_stub_table[];
+extern ps2::Ps2Keyboard kb;
 
 extern "C" void kernel_main() {
     terminal.clear();
@@ -41,15 +42,9 @@ extern "C" void kernel_main() {
     idt.init();
 
     Ps2Controller::self_test();
-
-    CircularBuffer<u8, 10> buffer;
-    auto test = buffer.push(10);
-    assert(test.is_ok(), "Circular push failure");
-    auto element = buffer.pop();
-    terminal.print_line("Element: ", element.unwrap());
-
     Ps2Controller::enable_first();
 
+    auto result = kb.enqueue_command(ps2::KeyboardCommand::Echo);
     constexpr Array<i32 const, 14> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
     for (auto const num : nums) {
         terminal.print_line("Hello, World: ", num);

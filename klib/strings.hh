@@ -29,7 +29,13 @@ struct str {
         }
     }
 
+
   private:
     char const* string;
-    usize const size;
+    usize size;
+    auto static constexpr length(char const* string) -> usize {
+        auto i = 0_usize;
+        for (; string[i] != '\0'; ++i) {}
+        return i;
+    }
 };

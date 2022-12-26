@@ -3,35 +3,48 @@
 #include "../result.hh"
 #include "../array.hh"
 #include "../circular_buffer.hh"
+#include "../console.hh"
+#include "ps2.hh"
 namespace ps2 {
     enum class ScanCodeSet : u8;
     enum class KeyboardCommand : u8;
     enum class KeyboardResponse : u8;
-    enum class Key : u8;
 
     class Ps2Keyboard {
     public:
         Ps2Keyboard(Ps2Keyboard const&) = delete;
         Ps2Keyboard& operator=(Ps2Keyboard const&) = delete;
+        Ps2Keyboard() {}
 
-        auto static get() -> Ps2Keyboard& {
-            static Ps2Keyboard kb;
-            return kb;
-        }
 
-        auto read_response() -> Option<KeyboardResponse>;
+        auto static read_response() -> Option<KeyboardResponse>;
         auto static get_scan_code_set() -> Result<ScanCodeSet, Null>;
         auto static set_scan_code_set(ScanCodeSet set) -> Result<Null, Null>;
-        auto constexpr enqueue_command(KeyboardCommand cmd) -> Result<Null, Null>;
-        auto constexpr pop_command() -> Option<KeyboardCommand>;
         auto static response_to_char(KeyboardResponse response) -> char;
+        auto constexpr enqueue_command(KeyboardCommand cmd) -> Result<Null, Null> {
+            return m_cmd_queue.push(cmd);
+        }
+        auto constexpr next_command() const -> Option<KeyboardCommand> {
+            return m_cmd_queue.front();
+        }
+        auto constexpr pop_command() -> Option<KeyboardCommand> {
+            return m_cmd_queue.pop();
+        }
+        auto constexpr pop_command_unchecked() -> Option<KeyboardCommand> {
+            return m_cmd_queue.pop_unchecked();
+        }
+        auto constexpr queue_is_empty() const -> bool {
+            return m_cmd_queue.empty();
+        }
+        auto constexpr queue_is_full() const -> bool {
+            return m_cmd_queue.full();
+        }
 
     private:
-        Ps2Keyboard();
         auto static read_ack() -> Result<u8, KeyboardResponse>;
         auto static constexpr u8_to_response(u8 val) -> KeyboardResponse; 
-        CircularBuffer<Key, 4090> m_key_buffer;
-        CircularBuffer<KeyboardCommand, 4090> m_cmd_queue;
+        CircularBuffer<KeyboardResponse, 2042> m_response_buffer;
+        CircularBuffer<KeyboardCommand, 2042> m_cmd_queue;
         auto constexpr static SCANCODE_SERVICES = 0xF0_u8;
     };
     
@@ -61,9 +74,11 @@ namespace ps2 {
         Resend              = 0xFE,
         CommandAcknowledged = 0xFA,
         InternalError       = 0x00,
+        InternalErrorAlt    = 0xFF,
         HardwareError       = 0xD4, // 0xD4 since this corresponds to nothing
-        SelfTestPassed      = 0xAA, // only after 0xFF
-        SelfTestFailed      = 0xFC,
+        SelfTestPassed      = 0xAA, // only after power up
+        SelfTestFailed      = 0xFC, // only after power up
+        SelfTestFailedAlt   = 0xFD, // only after power up
         // Key responses
         EscDown             = 0x01,
         OneDown             = 0x02,

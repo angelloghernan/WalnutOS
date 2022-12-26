@@ -2,6 +2,7 @@
 #include "../int.hh"
 #include "../ports.hh"
 #include "../result.hh"
+#include "../console.hh"
 
 /// A driver for the PS/2 controller. Used for communicating with keyboard and mouse.
 /// TODO: This PS/2 driver isn't very robust. Have to potentially set up ACPI and do a lot of
@@ -24,8 +25,23 @@ class Ps2Controller {
     }
 
     // Write a byte to the PS/2 data port.
-    void static write_byte(u8 value) {
+    inline void static write_byte(u8 value) {
         ports::outb(DATA_PORT, value);
+    }
+
+    inline auto static polling_write(u8 value) -> Result<Null, Null> {
+        auto counter = 0_i8;
+        while (counter < 3 && ports::inb(CMD_STATUS_REGISTER) & 0b10) {
+            ++counter;
+        }
+
+        if (counter == 3) {
+            return Result<Null, Null>::Err({});
+        }
+
+        ports::outb(DATA_PORT, value);
+
+        return Result<Null, Null>::Ok({});
     }
 
   private:

@@ -3,6 +3,7 @@
 #include "array.hh"
 #include "result.hh"
 #include "option.hh"
+#include "console.hh"
 
 /// A generic circular buffer with a given size. The maximum size of the circular buffer
 /// is 2^16 - 1 -- we do not expect to exceed this number of elements for most usecases.
@@ -15,7 +16,7 @@ template<typename T, u16 S>
 class CircularBuffer {
   public:
     /// Push an element into this buffer. Returns whether it was successful.
-    auto constexpr push(T element) -> Result<Null, Null> {
+    auto constexpr push(T const& element) -> Result<Null, Null> {
         if (full()) {
             return Result<Null, Null>::Err({});
         }
@@ -35,7 +36,7 @@ class CircularBuffer {
     }
     /// Push an element into this buffer without checking if it will be successful.
     /// May result in undefined behavior if buffer is full when called.
-    void constexpr push_unchecked(T element) {
+    void constexpr push_unchecked(T const& element) {
         m_buffer[m_write_end] = element; 
         m_write_end = (m_write_end + 1) % S;
     }
@@ -46,14 +47,26 @@ class CircularBuffer {
         m_read_end = (m_read_end + 1) % S;
         return element;
     };
+    /// Return the next element in line to be popped, if it exists.
+    auto constexpr front() const -> Option<T> { 
+        if (empty()) {
+            return {};
+        }
+        return m_buffer[m_read_end]; 
+    }
+    /// Return the next element in line to be popped without checking if empty.
+    /// May result in undefined behavior if empty.
+    void constexpr front_unchecked() const {
+        return m_buffer[m_read_end];
+    }
     /// Check if this buffer is empty.
-    auto constexpr empty() -> bool { return m_read_end == m_write_end; }
+    auto constexpr empty() const -> bool { return m_read_end == m_write_end; }
     /// Check if this buffer is full.
-    auto constexpr full() -> bool { return m_read_end == m_write_end + 1; }
+    auto constexpr full() const -> bool { return m_read_end == m_write_end + 1; }
     /// Return the capacity of this circular buffer.
-    auto constexpr capacity() -> u16 { return S; }
+    auto constexpr capacity() const -> u16 { return S; }
     /// Return how many elements are in the buffer currently.
-    auto constexpr len() -> u16 { 
+    auto constexpr len() const -> u16 { 
         if (m_read_end <= m_write_end) {
             return m_write_end - m_read_end;
         } else {

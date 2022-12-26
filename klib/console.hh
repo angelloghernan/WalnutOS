@@ -40,11 +40,18 @@ namespace console {
             put(var1);
             print(var2...);
         }
+
+        template<size_t S, typename... Types>
+        void print(char const (&var1)[S], Types&&... var2) {
+            put(str(var1, S));
+            print(var2...);
+        } 
         
         template<typename... Types>
         void print_line(Types&&... var2) {
             print(var2...);
             new_line();
+            move_cursor(row, col);
         }
 
         template<typename... Types>

@@ -1,6 +1,7 @@
 #pragma once
 #include "int.hh"
 #include "array.hh"
+#include "ps2/keyboard.hh"
 
 class alignas(8) IdtEntry {
   public:

@@ -25,10 +25,6 @@ static constexpr Array<char const, 256> key_table {
     '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
 };
 
-auto constexpr Ps2Keyboard::enqueue_command(KeyboardCommand const cmd) -> Result<Null, Null> {
-    return m_cmd_queue.push(cmd);
-}
-
 auto Ps2Keyboard::get_scan_code_set() -> Result<ScanCodeSet, Null> {
     using enum ScanCodeSet;
     using Result = Result<ScanCodeSet, Null>;
