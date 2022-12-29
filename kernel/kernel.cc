@@ -27,7 +27,6 @@ extern Ps2Keyboard keyboard;
 
 extern "C" void kernel_main() {
     using enum ps2::KeyboardCommand;
-    bool shift_pressed = false;
 
     terminal.clear();
     terminal.print_line("Press F1 to exit.");
@@ -50,11 +49,16 @@ extern "C" void kernel_main() {
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);
 
+    bool shift_pressed = false;
+    bool extended = false;
+
     while (true) {
         using enum ps2::KeyboardResponse;
-
-        auto maybe_key_code = keyboard.pop_response();
-        if (maybe_key_code.some()) {
+        while (true) {
+            auto maybe_key_code = keyboard.pop_response();
+            if (maybe_key_code.none()) {
+                break;
+            }
             auto key_code = maybe_key_code.unwrap();
 
             auto key = [&]{
@@ -67,12 +71,44 @@ extern "C" void kernel_main() {
 
             if (key != '\0') {
                 terminal.print(key);
-            } else if (key_code == BackspaceDown) {
-                terminal.print_back_char(' ');
-            } else if (key_code == LeftShiftDown) {
-                shift_pressed = true;
-            } else if (key_code == LeftShiftUp) {
-                shift_pressed = false;
+                continue;
+            } 
+
+            if (!extended) {
+                switch (key_code) {
+                    case BackspaceDown:
+                        terminal.print_back_char(' ');
+                        break;
+                    case LeftShiftDown:
+                        shift_pressed = true;
+                        break;
+                    case LeftShiftUp:
+                        shift_pressed = false;
+                        break;
+                    case NextIsExtended:
+                        extended = true;
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                switch (key_code) {
+                    case ExCursorUpDown:
+                        terminal.row_up();
+                        break;
+                    case ExCursorDownDown:
+                        terminal.row_down();
+                        break;
+                    case ExCursorLeftDown:
+                        terminal.col_back();
+                        break;
+                    case ExCursorRightDown:
+                        terminal.col_forward();
+                        break;
+                    default:
+                        break;
+                }
+                extended = false;
             }
         }
         __asm__ volatile ("hlt");

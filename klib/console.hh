@@ -85,27 +85,31 @@ namespace console {
             ports::outb(Console::CURSOR_CONTROL, existing | 0);
         }
 
-        constexpr void row_up() {
+        void row_up() {
             if (row > 0) {
                 --row;
+                move_cursor(row, col);
             }
         }
 
-        constexpr void row_down() {
+        void row_down() {
             if (row < MAX_ROWS - 1) {
                 ++row;
+                move_cursor(row, col);
             }
         }
 
-        constexpr void col_back() {
+        void col_back() {
             if (col > 0) {
                 --col;
+                move_cursor(row, col);
             }
         }
 
-        constexpr void col_forward() {
+        void col_forward() {
             if (col < MAX_COLS - 1) {
                 ++col;
+                move_cursor(row, col);
             }
         }
 
