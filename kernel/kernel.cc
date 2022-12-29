@@ -40,11 +40,12 @@ extern "C" void kernel_main() {
     lapic.enable();
     */
     idt.init();
+    Idt::enable_interrupts();
 
-    Ps2Controller::self_test();
-    Ps2Controller::enable_first();
-
-    auto result = kb.enqueue_command(ps2::KeyboardCommand::Echo);
+    // Ps2Controller::self_test();
+    // Ps2Controller::enable_first();
+    kb.enqueue_command(ps2::KeyboardCommand::ResetAndSelfTest);
+    kb.enqueue_command(ps2::KeyboardCommand::Echo);
     constexpr Array<i32 const, 14> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
     for (auto const num : nums) {
         terminal.print_line("Hello, World: ", num);
@@ -87,5 +88,4 @@ void Idt::init() {
     // _idt[0x21].set(reinterpret_cast<void*>(keyboard_handler), 0x8E);
 
     __asm__ volatile ("lidt %0" : : "m"(idtr)); // load the new IDT
-    __asm__ volatile ("sti"); // set the interrupt flag
 }

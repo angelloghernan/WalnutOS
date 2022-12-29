@@ -62,10 +62,11 @@ extern "C" void keyboard_handler() {
     }
     auto const next = kb.pop_command();
     if (next.some()) {
-        terminal.print_line("Something");
+        terminal.print_line(str("Something"));
         auto result = Ps2Controller::polling_write(static_cast<u8>(next.unwrap()));
+        // auto result = Result<Null, Null>::Ok({});
         if (result.is_err()) {
-            terminal.print_line("Bruh");
+            terminal.print_line(str("Bruh"));
         }
     }
     ports::outb(0x20, 0x20);

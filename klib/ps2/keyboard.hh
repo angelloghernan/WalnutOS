@@ -21,7 +21,11 @@ namespace ps2 {
         auto static get_scan_code_set() -> Result<ScanCodeSet, Null>;
         auto static set_scan_code_set(ScanCodeSet set) -> Result<Null, Null>;
         auto static response_to_char(KeyboardResponse response) -> char;
-        auto constexpr enqueue_command(KeyboardCommand cmd) -> Result<Null, Null> {
+        auto enqueue_command(KeyboardCommand cmd) -> Result<Null, Null> {
+            if (m_cmd_queue.empty()) {
+                auto result = Ps2Controller::polling_write(static_cast<u8>(cmd));
+                return result;  
+            }
             return m_cmd_queue.push(cmd);
         }
         auto constexpr next_command() const -> Option<KeyboardCommand> {

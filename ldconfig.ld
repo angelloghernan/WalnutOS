@@ -1,8 +1,8 @@
 SECTIONS
 {
   . = 0x1000;
-  .text : { *(.text) }
-  .data : { *(.data) }
+  .text BLOCK(4K) : ALIGN(4K) { *(.text) }
+  .data BLOCK(4K) : ALIGN(4K) { *(.data) }
   .init : { *(.init) }
   .fini : { *(.fini) }
   .rodata : {
