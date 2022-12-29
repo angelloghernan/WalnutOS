@@ -54,13 +54,8 @@ extern "C" void kernel_main() {
 
     while (true) {
         using enum ps2::KeyboardResponse;
-        while (true) {
-            auto maybe_key_code = keyboard.pop_response();
-            if (maybe_key_code.none()) {
-                break;
-            }
+        for(auto maybe_key_code = keyboard.pop_response(); maybe_key_code.some();) {
             auto key_code = maybe_key_code.unwrap();
-
             auto key = [&]{
                 if (!shift_pressed) {
                     return Ps2Keyboard::response_to_char(key_code);
