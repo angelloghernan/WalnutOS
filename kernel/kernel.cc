@@ -27,7 +27,6 @@ extern Ps2Keyboard keyboard;
 
 extern "C" void kernel_main() {
     using enum ps2::KeyboardCommand;
-
     terminal.clear();
     terminal.print_line("Press F1 to exit.");
     setup_pagedir();
@@ -54,7 +53,8 @@ extern "C" void kernel_main() {
 
     while (true) {
         using enum ps2::KeyboardResponse;
-        for(auto maybe_key_code = keyboard.pop_response(); maybe_key_code.some();) {
+        for (auto maybe_key_code = keyboard.pop_response(); maybe_key_code.some(); 
+             maybe_key_code = keyboard.pop_response()) {
             auto key_code = maybe_key_code.unwrap();
             auto key = [&]{
                 if (!shift_pressed) {
