@@ -14,6 +14,7 @@
 
 using pagetables::PageDirectory;
 using pagetables::PageTable;
+using ps2::Ps2Keyboard;
 
 // Special, static variables for the starting page directory.
 PageDirectory kernel_pagedir;
@@ -22,9 +23,12 @@ static PageTable io_pt;
 
 Idt idt;
 extern void* isr_stub_table[];
-extern ps2::Ps2Keyboard kb;
+extern Ps2Keyboard keyboard;
 
 extern "C" void kernel_main() {
+    using enum ps2::KeyboardCommand;
+    bool shift_pressed = false;
+
     terminal.clear();
     setup_pagedir();
 
@@ -42,16 +46,32 @@ extern "C" void kernel_main() {
     idt.init();
     Idt::enable_interrupts();
 
-    // Ps2Controller::self_test();
-    // Ps2Controller::enable_first();
-    kb.enqueue_command(ps2::KeyboardCommand::ResetAndSelfTest);
-    kb.enqueue_command(ps2::KeyboardCommand::Echo);
-    constexpr Array<i32 const, 14> nums {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
-    for (auto const num : nums) {
-        terminal.print_line("Hello, World: ", num);
-    }
+    keyboard.enqueue_command(ResetAndSelfTest);
+    keyboard.enqueue_command(Echo);
 
     while (true) {
+        auto maybe_key_code = keyboard.pop_response();
+        if (maybe_key_code.some()) {
+            auto key_code = maybe_key_code.unwrap();
+
+            char key = [&]{
+                if (!shift_pressed) {
+                    return Ps2Keyboard::response_to_char(key_code);
+                } else {
+                    return Ps2Keyboard::response_to_shifted_char(key_code);
+                }
+            }();
+
+            if (key != '\0') {
+                terminal.print(key);
+            } else if (key_code == ps2::KeyboardResponse::BackspaceDown) {
+                terminal.put_back_char(' ');
+            } else if (key_code == ps2::KeyboardResponse::LeftShiftDown) {
+                shift_pressed = true;
+            } else if (key_code == ps2::KeyboardResponse::LeftShiftUp) {
+                shift_pressed = false;
+            }
+        }
         __asm__ volatile ("hlt");
     }
 }

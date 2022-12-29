@@ -21,6 +21,7 @@ namespace ps2 {
         auto static get_scan_code_set() -> Result<ScanCodeSet, Null>;
         auto static set_scan_code_set(ScanCodeSet set) -> Result<Null, Null>;
         auto static response_to_char(KeyboardResponse response) -> char;
+        auto static response_to_shifted_char(KeyboardResponse response) -> char;
         auto enqueue_command(KeyboardCommand cmd) -> Result<Null, Null> {
             if (m_cmd_queue.empty()) {
                 auto result = Ps2Controller::polling_write(static_cast<u8>(cmd));
@@ -34,13 +35,19 @@ namespace ps2 {
         auto constexpr pop_command() -> Option<KeyboardCommand> {
             return m_cmd_queue.pop();
         }
+        auto constexpr push_response(KeyboardResponse response) -> Result<Null, Null> {
+            return m_response_buffer.push(response);
+        }
+        auto constexpr pop_response() -> Option<KeyboardResponse> {
+            return m_response_buffer.pop();
+        }
         auto constexpr pop_command_unchecked() -> Option<KeyboardCommand> {
             return m_cmd_queue.pop_unchecked();
         }
-        auto constexpr queue_is_empty() const -> bool {
+        auto constexpr cmd_queue_is_empty() const -> bool {
             return m_cmd_queue.empty();
         }
-        auto constexpr queue_is_full() const -> bool {
+        auto constexpr cmd_queue_is_full() const -> bool {
             return m_cmd_queue.full();
         }
 

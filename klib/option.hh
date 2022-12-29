@@ -16,11 +16,7 @@ class Option {
     void constexpr make_none() { _present = false; }
 
     auto constexpr unwrap() const -> T {
-        if (_present) {
-            return _val;
-        } else {
-            return T {};
-        }
+        return _val;
     }
     void constexpr assign(T const& value) {
         _val = value;

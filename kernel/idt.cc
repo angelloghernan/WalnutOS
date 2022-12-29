@@ -10,7 +10,7 @@
 
 using namespace ps2;
 
-Ps2Keyboard kb;
+Ps2Keyboard keyboard;
 
 void end_of_interrupt(u8 vector_code) {
     if (vector_code - 0x20 >= 8) {
@@ -31,43 +31,28 @@ extern "C" void keyboard_handler() {
     auto const scan_code = static_cast<KeyboardResponse>(Ps2Controller::read_byte());
     switch (scan_code) {
         case PS2SelfTestPassed: {
-            auto constexpr s = str("PS2 Self test passed");
-            terminal.print_line(s);
             break;
         }
         case CommandAcknowledged: {
-            auto constexpr s = str("ACK");
-            terminal.print_line(s);
-            kb.pop_command();
+            keyboard.pop_command();
             break;
         }
-        case QDown: {
+        case BackTickDown: {
             // Hack: shut down QEMU. Not portable outside of QEMU.
             ports::outw(0x604, 0x2000);
             break;
         }
-        case BackspaceDown: {
-            terminal.put_back_char(' ');
-            break;
-        }
         default: {
-            auto const ch = ps2::Ps2Keyboard::response_to_char(scan_code);
-            if (ch != '\0') {
-                terminal.print(ps2::Ps2Keyboard::response_to_char(scan_code));
-            } else {
-                terminal.print(reinterpret_cast<void*>(scan_code));
-            }
+            keyboard.push_response(scan_code);
             break;
         }
     }
-    auto const next = kb.pop_command();
+
+    auto const next = keyboard.next_command();
     if (next.some()) {
         terminal.print_line(str("Something"));
         auto result = Ps2Controller::polling_write(static_cast<u8>(next.unwrap()));
-        // auto result = Result<Null, Null>::Ok({});
-        if (result.is_err()) {
-            terminal.print_line(str("Bruh"));
-        }
+        warn_if(result.is_err(), "Error reading response from kb");
     }
     ports::outb(0x20, 0x20);
 }
