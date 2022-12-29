@@ -4,7 +4,22 @@
 
 console::Console terminal;
 namespace console {
-    void Console::put_char(char ch, Color const fg, Color const bg) {
+    void Console::put_char(char const ch) {
+        if (ch == '\n') {
+            new_line();
+            return;
+        }
+
+        auto const full_ch = Console::create_char(ch, Color::White, Color::Black);
+        console_page[col + row * Console::MAX_COLS] = full_ch;
+
+        col += 1;
+        if (col == Console::MAX_COLS) {
+            new_line();
+        }
+    }
+
+    void Console::put_color(char const ch, Color const fg, Color const bg) {
         if (ch == '\n') {
             new_line();
             return;
@@ -37,8 +52,8 @@ namespace console {
         }
     }
 
-    void Console::put_char_back(char const ch, Color const fg, Color const bg) {
-        auto const full_ch = Console::create_char(ch, fg, bg);
+    void Console::put_char_back(char const ch) {
+        auto const full_ch = Console::create_char(ch, Color::White, Color::Black);
         console_page[col + row * Console::MAX_COLS] = full_ch;
         if (col == 0) {
             if (row != 0) {
@@ -51,7 +66,7 @@ namespace console {
     }
 
 
-    void Console::put_back_char(char const ch, Color const fg, Color const bg) {
+    void Console::print_back_char(char const ch) {
         if (col == 0) {
             if (row != 0) {
                 col = Console::MAX_COLS - 1;
@@ -60,13 +75,13 @@ namespace console {
         } else {
             --col;
         }
-        auto const full_ch = Console::create_char(ch, fg, bg);
+        auto const full_ch = Console::create_char(ch, Color::White, Color::Black);
         console_page[col + row * Console::MAX_COLS] = full_ch;
         move_cursor(row, col);
     }
 
-    void Console::print_char(char const ch, Color const fg, Color const bg) {
-        put_char(ch, fg, bg);
+    void Console::print_char(char const ch) {
+        put_char(ch);
         move_cursor(row, col);
     }
 
@@ -79,40 +94,40 @@ namespace console {
         move_cursor(row, col);
     }
 
-    void Console::put(str const string, Color const fg, Color const bg) {
+    void Console::put(str const string) {
         for (auto const ch : string) {
-            put_char(ch, fg, bg);
+            put_char(ch);
         }  
     } 
 
-    void Console::put(u32 num, Color const fg, Color const bg) {
+    void Console::put(u32 num) {
         auto const digits = num_digits(num, 10);
         move(digits - 1);
         do {
             auto const digit = char(num % 10 + '0');
-            put_char_back(digit, fg, bg);
+            put_char_back(digit);
             num /= 10;
         } while (num > 0);
         move(digits + 1);
     }
 
-    void Console::put(i32 const num, Color const fg, Color const bg) {
-        put(u32(num), fg, bg);
+    void Console::put(i32 const num) {
+        put(u32(num));
     }
 
-    void Console::put(char const ch, Color const fg, Color const bg) {
-        put_char(ch, fg, bg);
+    void Console::put(char const ch) {
+        put_char(ch);
     }
 
-    void Console::put(u8 const num, Color const fg, Color const bg) {
-        put(u32(num), fg, bg);
+    void Console::put(u8 const num) {
+        put(u32(num));
     }
 
-    void Console::put(i8 const num, Color const fg, Color const bg) {
-        put(u32(num), fg, bg);
+    void Console::put(i8 const num) {
+        put(u32(num));
     }
 
-    void Console::put(void* const ptr, Color const fg, Color const bg) {
+    void Console::put(void* const ptr) {
         static constexpr Array<char const, 16> hex_values {'0', '1', '2', '3', '4', '5', '6', '7',
                                                            '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
         put(str("0x"));
@@ -136,4 +151,9 @@ namespace console {
         return counter;
     }
     
+    void Console::put_color(str const string, Color const fg, Color const bg) {
+        for (auto const ch : string) {
+            put_color(ch, fg, bg);
+        }
+    }
 }

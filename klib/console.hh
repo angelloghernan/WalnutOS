@@ -25,10 +25,11 @@ namespace console {
 
     class Console {
       public:
-        void print_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
-        void print_addr(uptr const addr, Color const fg = Color::White, Color const bg = Color::Black);
-        void put_char_back(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
-        void put_back_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
+        void print_char(char const ch);
+        void print_char_color(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
+        void print_addr(uptr const addr);
+        void put_char_back(char const ch);
+        void print_back_char(char const ch);
         void clear();
 
         void print() {
@@ -43,8 +44,7 @@ namespace console {
 
         template<size_t S, typename... Types>
         void print(char const (&var1)[S], Types&&... var2) {
-            put(str(var1, S));
-            print(var2...);
+            print(str(var1, S), var2...);
         } 
         
         template<typename... Types>
@@ -59,7 +59,7 @@ namespace console {
 
         template<typename T, typename... Types>
         void print_color(Color const fg, Color const bg, T&& var1, Types&&... var2) {
-            put(var1, fg, bg);
+            put_color(var1, fg, bg);
             print_color(fg, bg, var2...);
         }
 
@@ -85,14 +85,40 @@ namespace console {
             ports::outb(Console::CURSOR_CONTROL, existing | 0);
         }
 
-        void put_char(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(str const string, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(void* const ptr, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(char const ch, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(i32 num, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(u32 num, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(u8 num, Color const fg = Color::White, Color const bg = Color::Black);
-        void put(i8 num, Color const fg = Color::White, Color const bg = Color::Black);
+        constexpr void row_up() {
+            if (row > 0) {
+                --row;
+            }
+        }
+
+        constexpr void row_down() {
+            if (row < MAX_ROWS - 1) {
+                ++row;
+            }
+        }
+
+        constexpr void col_back() {
+            if (col > 0) {
+                --col;
+            }
+        }
+
+        constexpr void col_forward() {
+            if (col < MAX_COLS - 1) {
+                ++col;
+            }
+        }
+
+        void put_char(char const ch);
+        void put_color(char const ch, Color const fg, Color const bg);
+        void put_color(str const string, Color const fg, Color const bg);
+        void put(str const string);
+        void put(void* const ptr);
+        void put(char const ch);
+        void put(i32 num);
+        void put(u32 num);
+        void put(u8 num);
+        void put(i8 num);
         
       private:
         u8 col;
@@ -112,7 +138,7 @@ namespace console {
         void move(i8 amt);
         auto constexpr static num_digits(usize num, u8 base) -> u8;
 
-        auto static create_char(char const ch, Color const fg, Color const bg) -> u16 {
+        auto constexpr static create_char(char const ch, Color const fg, Color const bg) -> u16 {
             auto const upper = static_cast<u8>(bg);
             auto const lower = static_cast<u8>(fg);
 

@@ -10,22 +10,22 @@ class Array {
     // Return the length of the array.
     [[nodiscard]] auto constexpr len() const -> usize { return S; }
 
-    [[nodiscard]] auto constexpr data()       -> T* { return &_arr[0]; }
-    [[nodiscard]] auto constexpr data() const -> T const* { return &_arr[0]; }
+    [[nodiscard]] auto constexpr data()       -> T* { return &m_arr[0]; }
+    [[nodiscard]] auto constexpr data() const -> T const* { return &m_arr[0]; }
 
-    [[nodiscard]] auto constexpr operator[](usize idx)       -> T& { return _arr[idx]; }
-    [[nodiscard]] auto constexpr operator[](usize idx) const -> T const& { return _arr[idx]; }
+    [[nodiscard]] auto constexpr operator[](usize idx)       -> T& { return m_arr[idx]; }
+    [[nodiscard]] auto constexpr operator[](usize idx) const -> T const& { return m_arr[idx]; }
 
-    [[nodiscard]] auto constexpr begin() const -> iterator<T> { return iterator<T>(&_arr[0]); }
-    [[nodiscard]] auto constexpr end() const   -> iterator<T> { return iterator<T>(&_arr[S]); }
+    [[nodiscard]] auto constexpr begin() const -> iterator<T> { return iterator<T>(&m_arr[0]); }
+    [[nodiscard]] auto constexpr end() const   -> iterator<T> { return iterator<T>(&m_arr[S]); }
 
     [[nodiscard]] auto constexpr get(usize idx) const -> Option<T> {
         if (idx < S) {
-            return Option<T>(_arr[idx]); 
+            return {m_arr[idx]}; 
         } else {
-            return Option<T>();
+            return {};
         }
     }
 
-    T _arr[S];
+    T m_arr[S];
 };

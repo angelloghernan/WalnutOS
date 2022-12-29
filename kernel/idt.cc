@@ -37,7 +37,7 @@ extern "C" void keyboard_handler() {
             keyboard.pop_command();
             break;
         }
-        case BackTickDown: {
+        case F1Down: {
             // Hack: shut down QEMU. Not portable outside of QEMU.
             ports::outw(0x604, 0x2000);
             break;

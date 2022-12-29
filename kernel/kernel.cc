@@ -30,6 +30,7 @@ extern "C" void kernel_main() {
     bool shift_pressed = false;
 
     terminal.clear();
+    terminal.print_line("Press F1 to exit.");
     setup_pagedir();
 
     // Remap master to 0x20, slave to 0x28
@@ -50,11 +51,13 @@ extern "C" void kernel_main() {
     keyboard.enqueue_command(Echo);
 
     while (true) {
+        using enum ps2::KeyboardResponse;
+
         auto maybe_key_code = keyboard.pop_response();
         if (maybe_key_code.some()) {
             auto key_code = maybe_key_code.unwrap();
 
-            char key = [&]{
+            auto key = [&]{
                 if (!shift_pressed) {
                     return Ps2Keyboard::response_to_char(key_code);
                 } else {
@@ -64,11 +67,11 @@ extern "C" void kernel_main() {
 
             if (key != '\0') {
                 terminal.print(key);
-            } else if (key_code == ps2::KeyboardResponse::BackspaceDown) {
-                terminal.put_back_char(' ');
-            } else if (key_code == ps2::KeyboardResponse::LeftShiftDown) {
+            } else if (key_code == BackspaceDown) {
+                terminal.print_back_char(' ');
+            } else if (key_code == LeftShiftDown) {
                 shift_pressed = true;
-            } else if (key_code == ps2::KeyboardResponse::LeftShiftUp) {
+            } else if (key_code == LeftShiftUp) {
                 shift_pressed = false;
             }
         }
