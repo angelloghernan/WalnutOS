@@ -24,6 +24,10 @@ class Option {
     }
 
     auto constexpr operator!() const -> bool { return !_present; }
+    void constexpr operator=(T const& value) { 
+        _val = value; 
+        _present = true; 
+    }
 
 
   private:
@@ -34,29 +38,31 @@ class Option {
 template <typename T>
 class Option<T&> {
   public:
-    constexpr Option(T const& value) : _val(&value), _present(true) {}
-    constexpr Option(T& value) : _val(&value), _present(true) {}
+    constexpr Option(T const& value) : _val(&value) {}
+    constexpr Option(T& value) : _val(&value) {}
 
-    constexpr Option() : _present(false) {}
+    constexpr Option() : _val(nullptr) {}
 
-    auto constexpr none() const -> bool { return !_present; }
-    auto constexpr some() const -> bool { return _present; }
-    auto constexpr matches() const -> bool { return _present ? Some : None; }
+    auto constexpr none() const -> bool { return !_val; }
+    auto constexpr some() const -> bool { return _val; }
+    auto constexpr matches() const -> bool { return _val ? Some : None; }
 
-    auto constexpr unwrap() const -> T& { return *_val; }
+    auto constexpr unwrap() -> T& { return *_val; }
+    auto constexpr unwrap() const -> T const& { return *_val; }
 
     void constexpr assign(T const& value) {
         _val = &value;
-        _present = true;
     }
 
-    void constexpr make_none() { _present = false; }
+    void constexpr make_none() { _val = nullptr; }
 
-    auto constexpr operator!() const -> bool { return !_present; }
+    auto constexpr operator!() const -> bool { return !_val; }
+    void constexpr operator=(T& value) { _val = &value; }
+    void constexpr operator=(T const& value) { _val = &value; }
+    void constexpr operator==(Option<T&> const& value) { _val == value._val; }
 
 
   private:
     T* _val;
-    bool _present;
 };
 

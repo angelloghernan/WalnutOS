@@ -35,6 +35,7 @@ auto Ps2Controller::blocking_read() -> Result<u8, Null> {
     auto count = 0_i8;
     while ((inb(CMD_STATUS_REGISTER) & 0b1) != 1 && count < 3) {
         io_wait();
+        ++count;
     }
 
     if (count == 3) {

@@ -50,6 +50,7 @@ extern "C" void kernel_main() {
 
     bool shift_pressed = false;
     bool extended = false;
+    Array arr {1, 2, 3};
 
     while (true) {
         using enum ps2::KeyboardResponse;
@@ -59,7 +60,7 @@ extern "C" void kernel_main() {
             auto key = [&]{
                 if (!shift_pressed) {
                     return Ps2Keyboard::response_to_char(key_code);
-                } else {
+               } else {
                     return Ps2Keyboard::response_to_shifted_char(key_code);
                 }
             }();

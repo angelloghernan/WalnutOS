@@ -29,3 +29,6 @@ class Array {
 
     T m_arr[S];
 };
+
+template<typename T, typename... Types>
+Array(T, Types...) -> Array<T, sizeof...(Types) + 1>;
