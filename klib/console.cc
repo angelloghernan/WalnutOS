@@ -11,10 +11,10 @@ namespace console {
         }
 
         auto const full_ch = Console::create_char(ch, Color::White, Color::Black);
-        console_page[col + row * Console::MAX_COLS] = full_ch;
+        console_page[m_col + m_row * Console::MAX_COLS] = full_ch;
 
-        col += 1;
-        if (col == Console::MAX_COLS) {
+        m_col += 1;
+        if (m_col == Console::MAX_COLS) {
             new_line();
         }
     }
@@ -26,63 +26,63 @@ namespace console {
         }
 
         auto const full_ch = Console::create_char(ch, fg, bg);
-        console_page[col + row * Console::MAX_COLS] = full_ch;
+        console_page[m_col + m_row * Console::MAX_COLS] = full_ch;
 
-        col += 1;
-        if (col == Console::MAX_COLS) {
+        m_col += 1;
+        if (m_col == Console::MAX_COLS) {
             new_line();
         }
     }
 
     void Console::move(i8 amt) {
-        i32 new_col = col + amt;
+        i32 new_col = m_col + amt;
         if (new_col < 0) {
-            col = 0;
-            if (row > 0) {
-                row -= 1;
+            m_col = 0;
+            if (m_row > 0) {
+                m_row -= 1;
             }
         } else if (new_col >= Console::MAX_COLS) {
-            col = new_col - Console::MAX_COLS;
-            row += 1;
-            if (row == Console::MAX_ROWS) {
+            m_col = new_col - Console::MAX_COLS;
+            m_row += 1;
+            if (m_row == Console::MAX_ROWS) {
                 scroll();
             }
         } else {
-            col = new_col;
+            m_col = new_col;
         }
     }
 
     void Console::put_char_back(char const ch) {
         auto const full_ch = Console::create_char(ch, Color::White, Color::Black);
-        console_page[col + row * Console::MAX_COLS] = full_ch;
-        if (col == 0) {
-            if (row != 0) {
-                col = Console::MAX_COLS - 1;
-                --row;
+        console_page[m_col + m_row * Console::MAX_COLS] = full_ch;
+        if (m_col == 0) {
+            if (m_row != 0) {
+                m_col = Console::MAX_COLS - 1;
+                --m_row;
             }
         } else {
-            --col;
+            --m_col;
         }
     }
 
 
     void Console::print_back_char(char const ch) {
-        if (col == 0) {
-            if (row != 0) {
-                col = Console::MAX_COLS - 1;
-                --row;
+        if (m_col == 0) {
+            if (m_row != 0) {
+                m_col = Console::MAX_COLS - 1;
+                --m_row;
             }
         } else {
-            --col;
+            --m_col;
         }
         auto const full_ch = Console::create_char(ch, Color::White, Color::Black);
-        console_page[col + row * Console::MAX_COLS] = full_ch;
-        move_cursor(row, col);
+        console_page[m_col + m_row * Console::MAX_COLS] = full_ch;
+        move_cursor(m_row, m_col);
     }
 
     void Console::print_char(char const ch) {
         put_char(ch);
-        move_cursor(row, col);
+        move_cursor(m_row, m_col);
     }
 
     void Console::clear() {
@@ -90,8 +90,8 @@ namespace console {
             console_page[i] = Console::create_char(' ', Color::White, Color::Black);
         }
 
-        col = row = 0;
-        move_cursor(row, col);
+        m_col = m_row = 0;
+        move_cursor(m_row, m_col);
     }
 
     void Console::put(str const string) {

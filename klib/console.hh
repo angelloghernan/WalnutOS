@@ -33,7 +33,7 @@ namespace console {
         void clear();
 
         void print() {
-            move_cursor(row, col);
+            move_cursor(m_row, m_col);
         }
 
         template<typename T, typename... Types>
@@ -51,7 +51,7 @@ namespace console {
         void print_line(Types&&... var2) {
             print(var2...);
             new_line();
-            move_cursor(row, col);
+            move_cursor(m_row, m_col);
         }
 
         template<typename... Types>
@@ -69,7 +69,7 @@ namespace console {
             new_line();
         }
 
-        Console() : col(0), row(0), console_page(reinterpret_cast<u16 *const>(0xb8000)) {
+        Console() : m_col(0), m_row(0), console_page(reinterpret_cast<u16 *const>(0xb8000)) {
             ports::outb(Console::SET_REGISTER, Console::CURSOR_START);
             ports::outb(Console::CURSOR_CONTROL, 0x20);
             ports::outb(Console::SET_REGISTER, Console::CURSOR_START);
@@ -85,31 +85,31 @@ namespace console {
             ports::outb(Console::CURSOR_CONTROL, existing | 0);
         }
 
-        void row_up() {
-            if (row > 0) {
-                --row;
-                move_cursor(row, col);
+        void m_row_up() {
+            if (m_row > 0) {
+                --m_row;
+                move_cursor(m_row, m_col);
             }
         }
 
-        void row_down() {
-            if (row < MAX_ROWS - 1) {
-                ++row;
-                move_cursor(row, col);
+        void m_row_down() {
+            if (m_row < MAX_ROWS - 1) {
+                ++m_row;
+                move_cursor(m_row, m_col);
             }
         }
 
         void col_back() {
-            if (col > 0) {
-                --col;
-                move_cursor(row, col);
+            if (m_col > 0) {
+                --m_col;
+                move_cursor(m_row, m_col);
             }
         }
 
         void col_forward() {
-            if (col < MAX_COLS - 1) {
-                ++col;
-                move_cursor(row, col);
+            if (m_col < MAX_COLS - 1) {
+                ++m_col;
+                move_cursor(m_row, m_col);
             }
         }
 
@@ -125,8 +125,8 @@ namespace console {
         void put(i8 num);
         
       private:
-        u8 col;
-        u8 row;
+        u8 m_col;
+        u8 m_row;
         u16 *const console_page;
 
         static u8 const MAX_ROWS = 25;
@@ -152,10 +152,10 @@ namespace console {
         }
 
         void new_line() {
-            col = 0;
-            row += 1;
-            if (row == Console::MAX_ROWS) {
-                row -= 1;
+            m_col = 0;
+            m_row += 1;
+            if (m_row == Console::MAX_ROWS) {
+                m_row -= 1;
                 scroll();
             }
         }
@@ -174,8 +174,8 @@ namespace console {
             }
         }
 
-        [[gnu::always_inline]] void move_cursor(u16 row, u16 col)  {
-            u16 const pos = row * Console::MAX_COLS + col;
+        [[gnu::always_inline]] void move_cursor(u16 m_row, u16 m_col)  {
+            u16 const pos = m_row * Console::MAX_COLS + m_col;
             u8 const pos_lo = pos & 0xFF;
             u8 const pos_hi = (pos >> 8) & 0xFF;
 
