@@ -36,6 +36,9 @@ class Option {
 };
 
 template <typename T>
+Option(T) -> Option<T>;
+
+template <typename T>
 class Option<T&> {
   public:
     constexpr Option(T const& value) : _val(&value) {}
@@ -66,3 +69,5 @@ class Option<T&> {
     T* _val;
 };
 
+template <typename T>
+Option(T&) -> Option<T&>;

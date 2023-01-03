@@ -50,7 +50,6 @@ extern "C" void kernel_main() {
 
     bool shift_pressed = false;
     bool extended = false;
-    Array arr {1, 2, 3};
 
     while (true) {
         using enum ps2::KeyboardResponse;
@@ -116,7 +115,6 @@ void setup_pagedir() {
     kernel_pagedir.add_pagetable(0, starter_pt, PTE_PW);
     kernel_pagedir.add_pagetable(1019, io_pt, PTE_PW);
 
-    // Give zero permissions for the null page.
     auto result = kernel_pagedir.try_map(0, 0, 0);
     
     assert(result >= 0, "Failure on initial maps!");
@@ -127,7 +125,6 @@ void setup_pagedir() {
         assert(result >= 0, "Failure on initial maps!");
     }
 
-    // Switch to the kernel pagedir; we're good to go!
     kernel_pagedir.set_page_directory();
     pagetables::enable_paging();
 }
