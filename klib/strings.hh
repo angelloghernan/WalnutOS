@@ -9,12 +9,10 @@
 struct str {
   public:
     template<usize S>
-    constexpr str(char const (&string)[S]) : string(string), size(S - 1) {}
+    str(char const (&string)[S]) : string(string), size(S - 1) {}
     constexpr str(char const* string, usize size) : string(string), size(size - 1) {}
 
     auto constexpr len() const -> usize { return size; }
-
-
 
     auto constexpr begin() const -> iterator<char const> { return iterator<char const>(string); }
     auto constexpr end() const -> iterator<char const> { return iterator<char const>(string + size); }
@@ -33,9 +31,4 @@ struct str {
   private:
     char const* string;
     usize size;
-    auto static constexpr length(char const* string) -> usize {
-        auto i = 0_usize;
-        for (; string[i] != '\0'; ++i) {}
-        return i;
-    }
 };
