@@ -9,7 +9,7 @@
 struct str {
   public:
     template<usize S>
-    str(char const (&string)[S]) : m_string(string), m_size(S - 1) {}
+    constexpr str(char const (&string)[S]) : m_string(string), m_size(S - 1) {}
     constexpr str(char const* string, usize size) : m_string(string), m_size(size - 1) {}
 
     auto constexpr len() const -> usize { return m_size; }
@@ -21,9 +21,9 @@ struct str {
 
     auto constexpr get(usize const idx) const -> Option<char> {
         if (idx < m_size) {
-            return Option<char>(m_string[idx]);
+            return m_string[idx];
         } else {
-            return Option<char>();
+            return {};
         }
     }
 
