@@ -7,7 +7,7 @@ SECTIONS
   .fini : { *(.fini) }
   .rodata : {
         start_ctors = .;
-        *(SORT(.ctors*))  /* Note the "SORT" */
+        *(SORT(.ctors*))
         end_ctors = .;
 
         start_dtors = .;
