@@ -123,6 +123,7 @@ namespace console {
         void put(u32 num);
         void put(u8 num);
         void put(i8 num);
+        void put(bool b);
         
       private:
         u8 m_col;

@@ -127,6 +127,11 @@ namespace console {
         put(u32(num));
     }
 
+    void Console::put(bool const b) {
+        static constexpr Array<str const, 2> outputs {"false", "true"};
+        put(outputs[b]);
+    }
+
     void Console::put(void* const ptr) {
         static constexpr Array<char const, 16> hex_values {'0', '1', '2', '3', '4', '5', '6', '7',
                                                            '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
