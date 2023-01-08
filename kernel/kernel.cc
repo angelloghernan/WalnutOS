@@ -11,6 +11,7 @@
 #include "../klib/ps2/ps2.hh"
 #include "../klib/ps2/keyboard.hh"
 #include "../klib/circular_buffer.hh"
+#include "alloc.hh"
 
 using pagetables::PageDirectory;
 using pagetables::PageTable;
@@ -20,6 +21,8 @@ using ps2::Ps2Keyboard;
 PageDirectory kernel_pagedir;
 static PageTable starter_pt;
 static PageTable io_pt;
+
+static alloc::BuddyAllocator allocator;
 
 Idt idt;
 extern void* isr_stub_table[];
@@ -34,14 +37,10 @@ extern "C" void kernel_main() {
     // Remap master to 0x20, slave to 0x28
     Pic::remap(0x20, 0x28);
 
-    /*
-    Leaving APIC support for another day
-    auto const lapic_pa = apic::LocalApic::get_pa();
-    auto const check = kernel_pagedir.try_map(lapic_pa, lapic_pa, PTE_PW);
-    assert(check == 0, "This should not happen!");
-    auto& lapic = apic::LocalApic::get();
-    lapic.enable();
-    */
+    for (auto const& bit : allocator.m_block_is_free) {
+        terminal.print(bit, " ");
+    }
+
     idt.init();
     Idt::enable_interrupts();
 
@@ -53,7 +52,8 @@ extern "C" void kernel_main() {
 
     while (true) {
         using enum ps2::KeyboardResponse;
-        for (auto maybe_key_code = keyboard.pop_response(); maybe_key_code.some(); 
+        for (auto maybe_key_code = keyboard.pop_response(); 
+             maybe_key_code.some();
              maybe_key_code = keyboard.pop_response()) {
             auto key_code = maybe_key_code.unwrap();
             auto key = [&]{
