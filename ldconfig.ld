@@ -2,10 +2,11 @@ SECTIONS
 {
   . = 0x1000;
   .text BLOCK(4K) : ALIGN(4K) { *(.text) }
-  .data BLOCK(4K) : ALIGN(4K) { *(.data) }
-  .init : { *(.init) }
-  .fini : { *(.fini) }
-  .rodata : {
+  .data BLOCK(4K) : ALIGN(4K) { 
+      *(.data) 
+      *(.gnu.linkonce.r*)
+  }
+  .rodata : ALIGN(4K) {
         start_ctors = .;
         *(SORT(.ctors*))
         end_ctors = .;
@@ -17,4 +18,6 @@ SECTIONS
         *(.rodata*)
         *(.gnu.linkonce.r*)
   }
+  .init : { *(.init) }
+  .fini : { *(.fini) }
 }
