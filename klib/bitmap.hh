@@ -1,8 +1,6 @@
 #pragma once
 #include "array.hh"
 
-// 0b1 
-
 template<usize S>
 class Bitmap {
   public:
@@ -10,16 +8,29 @@ class Bitmap {
 
     class reference {
       public:
-        constexpr void operator=(bool const b) { 
+        constexpr void operator=(bool const b) {
             // Trick: untoggle bit, then OR with result of b to be branchless
             *m_ref = (*m_ref & (~(1 << m_idx))) | (u8(b) << m_idx); 
         }
-        constexpr void flip() { *m_ref ^= (1 << m_idx); }
-        constexpr bool operator==(bool const b) const { return ((*m_ref & (1 << m_idx)) >> m_idx) == b; }
-        constexpr bool operator==(reference const& b) const { return m_ref == b.m_ref && m_idx == b.m_idx; }
-        constexpr bool operator!=(bool const b) const { return ((*m_ref & (1 << m_idx)) >> m_idx) != b; }
-        constexpr bool operator!=(reference const& b) const { return m_ref != b.m_ref || m_idx != b.m_idx; }
-        constexpr bool operator!() const { return *this == true; }
+        constexpr void flip() {
+            *m_ref ^= (1 << m_idx); 
+        }
+        constexpr bool operator==(bool const b) const {
+            // Take the [m_idx]'th bit of the underlying bool, then shift to compare
+            return ((*m_ref & (1 << m_idx)) >> m_idx) == b; 
+        }
+        constexpr bool operator==(reference const& b) const {
+            return m_ref == b.m_ref && m_idx == b.m_idx; 
+        }
+        constexpr bool operator!() const {
+            return *this == false; 
+        }
+        constexpr bool operator!=(bool const b) const {
+            return ((*m_ref & (1 << m_idx)) >> m_idx) != b; 
+        }
+        constexpr bool operator!=(reference const& b) const {
+            return m_ref != b.m_ref || m_idx != b.m_idx; 
+        }
 
       private:
         u8* m_ref;
