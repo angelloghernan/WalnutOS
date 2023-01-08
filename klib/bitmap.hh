@@ -1,6 +1,8 @@
 #pragma once
 #include "array.hh"
 
+// 0b1 
+
 template<usize S>
 class Bitmap {
   public:
@@ -20,10 +22,10 @@ class Bitmap {
         constexpr bool operator!() const { return *this == true; }
 
       private:
-        bool* m_ref;
+        u8* m_ref;
         u8 m_idx;
 
-        reference(bool& ref, u8 idx) : m_ref(&ref), m_idx(idx) {};
+        reference(u8& ref, u8 idx) : m_ref(&ref), m_idx(idx) {};
         friend class Bitmap;
         friend class iterator;
     };
@@ -39,8 +41,8 @@ class Bitmap {
         auto constexpr operator->() const -> pointer { return &m_bit_ref; }
         auto constexpr operator++() -> iterator& {
             ++m_bit_ref.m_idx;
-            m_bit_ref.m_ref += m_bit_ref.m_idx == sizeof(bool);
-            m_bit_ref.m_idx %= sizeof(bool);
+            m_bit_ref.m_ref += m_bit_ref.m_idx == 8;
+            m_bit_ref.m_idx %= 8;
             return *this; 
         }
         auto constexpr operator++(int) -> iterator { iterator tmp = *this; ++(*this); return tmp; }
@@ -57,31 +59,42 @@ class Bitmap {
 
     Bitmap() {};
 
+    // Return the *length* in terms of bits.
     [[nodiscard]] auto static constexpr len() -> usize { 
-        return (S + (sizeof(bool) - S % sizeof(bool))) / sizeof(bool);
+        return S;
+    }
+
+    // Return the *size* in terms of bytes.
+    [[nodiscard]] auto static constexpr size() -> usize { 
+        auto constexpr remainder = S % 8;
+        if constexpr (remainder > 0) {
+            return (S + (8 - remainder)) / 8;
+        } else {
+            return S / 8;
+        }
     }
 
     [[nodiscard]] auto constexpr last() -> reference {
-        return reference { m_map[(S - 1) / sizeof(bool)], (S - 1) % sizeof(bool) };
+        return reference { m_map[size() - 1], u8((S - 1) % 8) };
     }
 
     [[nodiscard]] constexpr reference operator[](usize const idx) { 
-        return reference { m_map[idx / sizeof(bool)], idx % sizeof(bool) }; 
+        return reference { m_map[idx / 8], u8(idx % 8) }; 
     };
 
     [[nodiscard]] constexpr reference const operator[](usize const idx) const { 
-        return reference { m_map[idx / sizeof(bool)], idx % sizeof(bool) }; 
+        return reference { m_map[idx / 8], u8(idx % 8) }; 
     };
 
     [[nodiscard]] auto constexpr begin() -> iterator { 
-        return iterator( reference { m_map[0], 0 } ); 
+        return iterator( reference { m_map[0], 0_u8 } ); 
     }
 
     [[nodiscard]] auto constexpr end() -> iterator { 
-        return iterator( reference { m_map[S / sizeof(bool)], S % sizeof(bool) } ); 
+        return iterator( reference { m_map[size()], u8(S % 8) } ); 
     }
 
   private:
     // Array of size S / 8 bits (one byte per 8 bits), rounded up to the nearest 8 bits
-    Array<bool, len()> m_map; 
+    Array<u8, size()> m_map; 
 };
