@@ -55,6 +55,8 @@ class Bitmap {
         reference m_bit_ref;
     };
 
+    Bitmap() {};
+
     [[nodiscard]] auto static constexpr len() -> usize { 
         return (S + (sizeof(bool) - S % sizeof(bool))) / sizeof(bool);
     }
@@ -62,8 +64,6 @@ class Bitmap {
     [[nodiscard]] auto constexpr last() -> reference {
         return reference { m_map[(S - 1) / sizeof(bool)], (S - 1) % sizeof(bool) };
     }
-
-    Bitmap() {};
 
     [[nodiscard]] constexpr reference operator[](usize const idx) { 
         return reference { m_map[idx / sizeof(bool)], idx % sizeof(bool) }; 
