@@ -27,6 +27,9 @@ class Array {
         }
     }
 
+    [[nodiscard]] auto constexpr last() -> T& { return m_arr[S - 1]; }
+    [[nodiscard]] auto constexpr last() const -> T const& { return m_arr[S - 1]; }
+
     T m_arr[S];
 };
 

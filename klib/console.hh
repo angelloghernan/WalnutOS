@@ -4,7 +4,7 @@
 #include "ports.hh"
 
 namespace console {
-    enum class Color {
+    enum class Color : u8 {
         Black = 0x0,
         Blue = 0x1,
         Green = 0x2,
@@ -85,14 +85,14 @@ namespace console {
             ports::outb(Console::CURSOR_CONTROL, existing | 0);
         }
 
-        void m_row_up() {
+        void row_up() {
             if (m_row > 0) {
                 --m_row;
                 move_cursor(m_row, m_col);
             }
         }
 
-        void m_row_down() {
+        void row_down() {
             if (m_row < MAX_ROWS - 1) {
                 ++m_row;
                 move_cursor(m_row, m_col);
@@ -168,7 +168,7 @@ namespace console {
                 }
             }
             
-            auto const blank = Console::create_char(' ', Color::White, Color::Black);
+            auto constexpr blank = Console::create_char(' ', Color::White, Color::Black);
             for (auto j = 0; j < Console::MAX_COLS; ++j) {
                 console_page[(Console::MAX_ROWS - 1) * Console::MAX_COLS + j] = blank;
             }
