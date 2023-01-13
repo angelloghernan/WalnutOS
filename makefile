@@ -2,13 +2,13 @@
 # $< = first dependency
 # $^ = all dependencies
 
-CPP_SOURCES = $(wildcard kernel/*.cc klib/*.cc klib/*/*.cc)
+CPP_SOURCES = $(wildcard klib/*.cc klib/*/*.cc kernel/*.cc)
 HEADERS = $(wildcard kernel/*.hh klib/*.hh klib/*/*.hh)
 OBJ = ${CPP_SOURCES:.cc=.o} klib/idt.o
 
 
 CC = i686-elf-g++ 
-CFLAGS = -g -std=c++20 -ffreestanding -nostdlib -lgcc -lsupc++ -Wall -O2 -flto -ffat-lto-objects \
+CFLAGS = -g -std=c++20 -fmodules-ts -ffreestanding -nostdlib -lgcc -lsupc++ -Wall -O2 -flto -ffat-lto-objects \
          -fno-threadsafe-statics -fno-stack-protector -fno-exceptions
 GDB = gdb
 
@@ -46,8 +46,10 @@ gdb: os-image.bin kernel.elf
 		qemu-system-i386 -hda $< -S -s -d int -no-reboot -no-shutdown & \
 		${GDB}
 
-%.o: %.cc ${HEADERS}
-		${CC} ${CFLAGS} -c $< -o $@
+%.o: %.cc
+		${CC} ${CFLAGS} -MMD -c $< -o $@
+
+-include $(wildcard kernel/*.d klib/*.d klib/*/*.d)
 
 %.o: %.asm
 		nasm $< -f elf -o $@
