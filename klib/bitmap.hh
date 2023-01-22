@@ -31,12 +31,15 @@ class Bitmap {
         constexpr bool operator!=(reference const& b) const {
             return m_ref != b.m_ref || m_idx != b.m_idx; 
         }
+        constexpr operator bool() const {
+            return *this == true;
+        }
 
       private:
         u8* m_ref;
         u8 m_idx;
 
-        reference(u8& ref, u8 idx) : m_ref(&ref), m_idx(idx) {};
+        constexpr reference(u8& ref, u8 idx) : m_ref(&ref), m_idx(idx) {};
         friend class Bitmap;
         friend class iterator;
     };
@@ -85,6 +88,18 @@ class Bitmap {
         }
     }
 
+    void constexpr set_all()  {
+        for (auto& byte : m_map) {
+            byte |= 0xFF;
+        }
+    }
+
+    void constexpr clear_all() {
+        for (auto& byte : m_map) {
+            byte &= 0x00;
+        }
+    }
+
     [[nodiscard]] auto constexpr last() -> reference {
         return reference { m_map[size() - 1], u8((S - 1) % 8) };
     }
@@ -93,8 +108,8 @@ class Bitmap {
         return reference { m_map[idx / 8], u8(idx % 8) }; 
     };
 
-    [[nodiscard]] constexpr reference const operator[](usize const idx) const { 
-        return reference { m_map[idx / 8], u8(idx % 8) }; 
+    [[nodiscard]] constexpr bool operator[](usize const idx) const { 
+        return m_map[(idx / 8)] & (idx % 8);
     };
 
     [[nodiscard]] auto constexpr begin() -> iterator { 

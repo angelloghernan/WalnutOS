@@ -121,6 +121,8 @@ namespace console {
         void put(char const ch);
         void put(i32 num);
         void put(u32 num);
+        void put(u16 num);
+        void put(i16 num);
         void put(u8 num);
         void put(i8 num);
         void put(bool b);

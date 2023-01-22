@@ -115,6 +115,14 @@ namespace console {
         put(u32(num));
     }
 
+    void Console::put(u16 const num) {
+        put(u32(num));
+    }
+
+    void Console::put(i16 const num) {
+        put(u32(num));
+    }
+
     void Console::put(char const ch) {
         put_char(ch);
     }

@@ -3,8 +3,7 @@
 #include "option.hh"
 #include "iterator.hh"
 
-// str: A primitive type wrapping around string literals, allowing
-// for easier iteration and slicing.
+// str: A primitive type wrapping around string literals, allowing for easier iteration and slicing.
 // When passing size, it is the size of the entire string, *including a null character*.
 struct str {
   public:

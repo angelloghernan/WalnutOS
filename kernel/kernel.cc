@@ -37,8 +37,9 @@ extern "C" void kernel_main() {
     // Remap master to 0x20, slave to 0x28
     Pic::remap(0x20, 0x28);
 
-    for (auto const& bit : allocator.m_block_is_free) {
-        terminal.print(bit, " ");
+    for (auto i = 0; i < 20; ++i) {
+        auto check = allocator.kalloc(PAGESIZE * 2);
+        terminal.print_line("Allocator: ", reinterpret_cast<void*>(check.unwrap()));
     }
 
     idt.init();

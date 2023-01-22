@@ -14,6 +14,8 @@ typedef int32_t i32;
 typedef size_t usize;
 typedef int32_t isize; 
 
+// This is meant as a low-level alternative to void*.
+// Works exactly as expected except that Option<uptr> has 0 == None.
 typedef uintptr_t uptr;
 
 constexpr u8    operator "" _u8(unsigned long long int i)    {   return u8(i);    }

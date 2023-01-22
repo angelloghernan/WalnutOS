@@ -3,5 +3,7 @@
 *.o
 *.elf
 *.bin
+*.d
 old_boot.asm
 obj/
+gcm.cache
