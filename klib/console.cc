@@ -111,30 +111,6 @@ namespace console {
         move(digits + 1);
     }
 
-    void Console::put(i32 const num) {
-        put(u32(num));
-    }
-
-    void Console::put(u16 const num) {
-        put(u32(num));
-    }
-
-    void Console::put(i16 const num) {
-        put(u32(num));
-    }
-
-    void Console::put(char const ch) {
-        put_char(ch);
-    }
-
-    void Console::put(u8 const num) {
-        put(u32(num));
-    }
-
-    void Console::put(i8 const num) {
-        put(u32(num));
-    }
-
     void Console::put(bool const b) {
         static constexpr Array<str const, 2> outputs {"false", "true"};
         put(outputs[b]);
@@ -143,7 +119,8 @@ namespace console {
     void Console::put(void* const ptr) {
         static constexpr Array<char const, 16> hex_values {'0', '1', '2', '3', '4', '5', '6', '7',
                                                            '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-        put(str("0x"));
+        auto constexpr prefix = str("0x");
+        put(prefix);
         auto addr = reinterpret_cast<uptr>(ptr);
         auto const digits = num_digits(addr, 16);
         move(digits - 1);

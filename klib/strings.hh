@@ -19,7 +19,7 @@ struct str {
     auto constexpr operator[](usize const idx) const -> char const& { return m_string[idx]; }
 
     auto constexpr get(usize const idx) const -> Option<char> {
-        if (idx < m_size) {
+        if (idx < m_size) [[likely]] {
             return m_string[idx];
         } else {
             return {};
