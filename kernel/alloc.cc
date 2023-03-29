@@ -104,7 +104,7 @@ void BuddyAllocator::kfree(uptr const ptr) {
     // Coalesce with its buddy until we can't anymore
     while (buddy_is_free(block_idx)) {
         auto const buddy_idx = buddy_index(block_idx);
-        terminal.print_line(buddy_idx);
+        // terminal.print_line(buddy_idx);
 
         if (buddy_idx > blocks.len()) {
             break;
@@ -188,7 +188,7 @@ auto constexpr BuddyAllocator::buddy_index(u16 const block_idx) -> u16 {
 
 auto BuddyAllocator::buddy_is_free(u16 const idx) -> bool {
     auto const buddy_idx = buddy_index(idx);
-    terminal.print_line(idx, " buddy: ", buddy_idx, " order: ", blocks[idx].order());
+    // terminal.print_line(idx, " buddy: ", buddy_idx, " order: ", blocks[idx].order());
 
     if (buddy_idx > blocks.len()) {
         return false;
