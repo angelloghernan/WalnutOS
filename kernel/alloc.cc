@@ -12,6 +12,10 @@ using namespace alloc;
 auto round_up_pow2(u32 num) -> u32;
 auto log2(u32 num) -> u8;
 
+// The buddy allocator should begin in the following state:
+// All lists have no head (i.e. they are "none")
+// ... Except for the last list, which points to block 0
+// All blocks, even the first, should point nowhere (next and prev are none)
 BuddyAllocator::BuddyAllocator() {
     for (auto& list : free_lists) {
         list.become_none();
@@ -20,11 +24,19 @@ BuddyAllocator::BuddyAllocator() {
     free_lists.last() = 0;
 
     for (auto& block : blocks) {
-        block.next = NULL_BLOCK;
-        block.prev = NULL_BLOCK;
+        block.next.become_none();
+        block.prev.become_none();
     }
 }
 
+// kalloc: If size is less than the minimum block size, round up to the minimum size.
+// Otherwise, keep it the same.
+// Find what list index this corresponds to, and check if this is too large (if so, return null)
+// Check this list. If it has a block, just return that block.
+// If not, then we need to loop until we find the first list above that list index that has a block.
+// Once we do, we need to continually split this block until we split to the size we want.
+// Finally, return the block.
+// If we don't find a block of an appropriate size at all, return null.
 auto BuddyAllocator::kalloc(usize const size) -> Nullable<uptr, 0> {
     auto const adjusted_size = size < (1 << SMALLEST_BLOCK_SIZE) ?
                                1 << SMALLEST_BLOCK_SIZE :
@@ -39,7 +51,6 @@ auto BuddyAllocator::kalloc(usize const size) -> Nullable<uptr, 0> {
     auto const head_idx = pop_free_list(list_idx);
 
     if (head_idx.some()) {
-        terminal.print_line("source 1: ", head_idx.unwrap());
         return index_to_addr(head_idx.unwrap());
     }
 
@@ -50,8 +61,6 @@ auto BuddyAllocator::kalloc(usize const size) -> Nullable<uptr, 0> {
             continue;
         }
 
-        terminal.print_line("some ", head.unwrap(), " ", i);
-
         auto const head_addr = index_to_addr(head.unwrap());
 
         // split the block into a suitable size
@@ -59,7 +68,7 @@ auto BuddyAllocator::kalloc(usize const size) -> Nullable<uptr, 0> {
             // we find the "middle address" by taking the head address and adding 2^(x - 1)
             // where x is the "order" of the block. e.g. a block at 0x0000 of order of 13 has
             // its middle address at 0x1000, since 2^13 = 0x2000.
-            auto const middle_offset = (1 << (j + SMALLEST_BLOCK_SIZE - 1));
+            auto const middle_offset = (1 << ((j - 1) + SMALLEST_BLOCK_SIZE));
             auto const middle_addr = head_addr + middle_offset;
             auto const maybe_middle_idx = addr_to_index(middle_addr);
 
@@ -68,6 +77,9 @@ auto BuddyAllocator::kalloc(usize const size) -> Nullable<uptr, 0> {
                 push_free_list(j - 1, middle_idx);
             }
         }
+
+        blocks[head.unwrap()].set_order(list_idx);
+        blocks[head.unwrap()].clear_free();
         
         return {head_addr};
     }
@@ -75,46 +87,57 @@ auto BuddyAllocator::kalloc(usize const size) -> Nullable<uptr, 0> {
     return {};
 }
 
+// kfree: Check invariants, find block from the index
+// While its buddy is free, we need to coalesce with the buddy, removing the buddy from the list at every step
+// Finally, we put the block in the new list.
 void BuddyAllocator::kfree(uptr const ptr) {
     assert(ptr % (1 << SMALLEST_BLOCK_SIZE) == 0 &&
            ptr >= BLOCK_OFFSET, "Attempted to free a wild pointer");
     
-    auto const block_idx = addr_to_index(ptr).unwrap();
+    auto block_idx = addr_to_index(ptr).unwrap();
     auto& block = blocks[block_idx];
 
-    assert(!block.is_free(), "Attempted to free a block that is not free");
+    assert(!block.is_free(), "Attempted to free an already-freed block");
     
     auto new_list_idx = block.order();
 
     // Coalesce with its buddy until we can't anymore
     while (buddy_is_free(block_idx)) {
         auto const buddy_idx = buddy_index(block_idx);
+        terminal.print_line(buddy_idx);
+
+        if (buddy_idx > blocks.len()) {
+            break;
+        }
+
         remove_from_list(buddy_idx);
         ++new_list_idx;
+        block_idx = block_idx > buddy_idx ? buddy_idx : block_idx;
+        blocks[block_idx].set_order(new_list_idx);
     }
     
     // insert original block into the new list
-    remove_from_list(block_idx);
     push_free_list(new_list_idx, block_idx);
 }
 
 auto BuddyAllocator::pop_free_list(u16 const idx) -> Nullable<u16, NULL_BLOCK> {
     if (free_lists[idx].none()) {
-        return {};
+        return NULL_BLOCK;
     }
 
     auto head_idx = free_lists[idx].unwrap();
     auto& head = blocks[head_idx];
     
     free_lists[idx] = head.next;
-    terminal.print_line(head_idx, " idx ", head.next.unwrap());
+    // terminal.print_line(head_idx, " idx ", head.next.unwrap());
 
     if (head.next.some()) {
         blocks[head.next.unwrap()].prev = {};
     }
 
-    head.next = {};
-    head.set_free();
+    head.next = NULL_BLOCK;
+    head.clear_free();
+    head.set_order(idx);
 
     return head_idx;
 }
@@ -122,16 +145,17 @@ auto BuddyAllocator::pop_free_list(u16 const idx) -> Nullable<u16, NULL_BLOCK> {
 void BuddyAllocator::push_free_list(u16 const idx, u16 const block_idx) {
     auto& block = blocks[block_idx];
     block.set_free();
-    block.prev = {};
+    block.set_order(idx);
+    block.prev.become_none();
 
     if (free_lists[idx].none()) {
-        terminal.print_line("head: ", block_idx, " for ", idx);
+        // terminal.print_line("head: ", block_idx, " for ", idx);
         free_lists[idx] = block_idx;
-        block.next = {NULL_BLOCK};
+        block.next = NULL_BLOCK;
     } else {
         auto const head_idx = free_lists[idx].unwrap();
         auto& head = blocks[head_idx];
-        terminal.print_line(idx, " block next: ", head_idx);
+        // terminal.print_line(idx, " block next: ", head_idx);
         head.prev = block_idx;
         block.next = head_idx;
     }
@@ -139,7 +163,6 @@ void BuddyAllocator::push_free_list(u16 const idx, u16 const block_idx) {
 
 void constexpr BuddyAllocator::remove_from_list(u16 const block_idx) {
     auto& block = blocks[block_idx];
-    block.set_free();
     if (block.prev.some()) {
         auto& prev = blocks[block.prev.unwrap()];
         prev.next = block.next;
@@ -152,19 +175,20 @@ void constexpr BuddyAllocator::remove_from_list(u16 const block_idx) {
 
 auto constexpr BuddyAllocator::buddy_index(u16 const block_idx) -> u16 {
     auto const order = blocks[block_idx].order();
-    auto const block_address = block_idx * PAGESIZE;
+    uptr const block_address = block_idx * PAGESIZE;
 
-    if (block_address % (1 << (order + 1)) == 0) {
-        auto const buddy_address = block_address + (1 << order);
-        return buddy_address + BLOCK_OFFSET;
+    if (block_address % (1 << (order + SMALLEST_BLOCK_SIZE + 1)) == 0) {
+        auto const buddy_address = block_address + (1 << (order + SMALLEST_BLOCK_SIZE));
+        return addr_to_index(buddy_address + BLOCK_OFFSET).unwrap();
     } else {
-        auto const buddy_address = block_address - (1 << order);
-        return buddy_address + BLOCK_OFFSET;
+        auto const buddy_address = block_address - (1 << (order + SMALLEST_BLOCK_SIZE));
+        return addr_to_index(buddy_address + BLOCK_OFFSET).unwrap();
     }
 }
 
-auto constexpr BuddyAllocator::buddy_is_free(u16 const idx) -> bool {
+auto BuddyAllocator::buddy_is_free(u16 const idx) -> bool {
     auto const buddy_idx = buddy_index(idx);
+    terminal.print_line(idx, " buddy: ", buddy_idx, " order: ", blocks[idx].order());
 
     if (buddy_idx > blocks.len()) {
         return false;
@@ -199,6 +223,7 @@ auto constexpr BuddyAllocator::block::order() -> u8 {
 }
 
 void constexpr BuddyAllocator::block::set_order(u8 order) {
+    order_and_free &= 0b1;
     order_and_free |= order << 1;
 }
 

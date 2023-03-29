@@ -7,7 +7,7 @@
 
 namespace alloc {
     template<typename A>
-    concept Allocator = requires(A allocator) {
+    concept KernelAllocator = requires(A allocator) {
         { allocator.kalloc() } -> concepts::is_type<Nullable<uptr, 0>>;
         { allocator.kfree() } -> concepts::is_type<void>;
     };
@@ -23,6 +23,7 @@ namespace alloc {
 
         // Number of blocks. 
         // The [i]th block is located at memory location 4096 * i + BLOCK_OFFSET.
+        // i.e., each block is 1000 bytes and we start at BLOCK_OFFSET.
         auto static constexpr NUM_BLOCKS = 32_u8;
 
         // Number of lists.
@@ -57,7 +58,7 @@ namespace alloc {
 
         void push_free_list(u16 list_idx, u16 block_idx);
 
-        [[gnu::always_inline]] auto constexpr buddy_is_free(u16 idx) -> bool;
+        [[gnu::always_inline]] auto buddy_is_free(u16 idx) -> bool;
 
         [[gnu::always_inline]] auto constexpr buddy_index(u16 idx) -> u16;
 
