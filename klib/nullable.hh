@@ -13,7 +13,7 @@ class Nullable {
     [[gnu::always_inline]] auto constexpr some() const -> bool { return _data != NullValue; }
     [[gnu::always_inline]] auto constexpr none() const -> bool { return _data == NullValue; }
 
-    [[gnu::always_inline]] void constexpr make_none() { _data = NullValue; }
+    [[gnu::always_inline]] void constexpr become_none() { _data = NullValue; }
 
     [[gnu::always_inline]] auto constexpr unwrap() -> T& { return _data; }
     [[gnu::always_inline]] auto constexpr unwrap() const -> T const& { return _data; }

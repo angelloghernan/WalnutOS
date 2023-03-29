@@ -1,6 +1,7 @@
 #include "../klib/pagetables.hh"
 #include "../klib/int.hh"
 #include "../klib/console.hh"
+#include "../klib/nullable.hh"
 
 namespace pagetables {
     auto PageDirectory::map(uptr const virtual_addr, uptr const physical_addr, u8 const perm) -> i8 {
@@ -40,14 +41,14 @@ namespace pagetables {
     }
 
     
-    auto PageDirectory::va_to_pa(uptr const address) const -> uptr {
+    auto PageDirectory::va_to_pa(uptr const address) const -> Nullable<uptr, uptr(-1)> {
         usize const pd_idx = va_to_idx(address);
         auto const pt = _entries[pd_idx].get_pt();
         match(pt) {
             case Some:
                 return pt.unwrap().va_to_pa(address);
             case None:
-                return uptr(-1);
+                return {};
         }
     }
 

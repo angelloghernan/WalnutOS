@@ -21,6 +21,12 @@ class Array {
 
     [[nodiscard]] auto constexpr begin() -> iterator<T> { return iterator<T>(&m_arr[0]); }
     [[nodiscard]] auto constexpr end() -> iterator<T> { return iterator<T>(&m_arr[S]); }
+    
+    [[nodiscard]] auto constexpr first() -> T& { return m_arr[0]; }
+    [[nodiscard]] auto constexpr first() const -> T const& { return m_arr[0]; }
+
+    [[nodiscard]] auto constexpr last() -> T& { return m_arr[S - 1]; }
+    [[nodiscard]] auto constexpr last() const -> T const& { return m_arr[S - 1]; }
 
     [[nodiscard]] auto constexpr get(usize idx) const -> Option<T> {
         if (idx < S) {
@@ -29,10 +35,6 @@ class Array {
             return {};
         }
     }
-
-    [[nodiscard]] auto constexpr last() -> T& { return m_arr[S - 1]; }
-    [[nodiscard]] auto constexpr last() const -> T const& { return m_arr[S - 1]; }
-
     T m_arr[S];
 };
 

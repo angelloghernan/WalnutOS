@@ -50,7 +50,6 @@ extern "C" void keyboard_handler() {
 
     auto const next = keyboard.next_command();
     if (next.some()) {
-        terminal.print_line(str("Something"));
         auto result = Ps2Controller::polling_write(static_cast<u8>(next.unwrap()));
         warn_if(result.is_err(), "Error reading response from kb");
     }

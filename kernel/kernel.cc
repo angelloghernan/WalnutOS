@@ -37,9 +37,23 @@ extern "C" void kernel_main() {
     // Remap master to 0x20, slave to 0x28
     Pic::remap(0x20, 0x28);
 
-    for (auto i = 0; i < 20; ++i) {
-        auto check = allocator.kalloc(PAGESIZE * 2);
-        terminal.print_line("Allocator: ", reinterpret_cast<void*>(check.unwrap()));
+    Array<uptr, 16> arr;
+
+    for (auto i = 0; i < 5; ++i) {
+        for (auto i = 0; i < 16; ++i) {
+            auto check = allocator.kalloc(PAGESIZE * 2);
+            if (check.none()) {
+                terminal.print_line("Out of memory");
+            } else {
+                terminal.print_line("Allocator: ", (void*)check.unwrap());
+                arr[i] = check.unwrap();
+            }
+        }
+            
+        for (auto addr : arr) {
+            allocator.kfree(addr);
+        }
+        terminal.print_line("done");
     }
 
     idt.init();
@@ -117,7 +131,7 @@ void setup_pagedir() {
     kernel_pagedir.add_pagetable(1019, io_pt, PTE_PW);
 
     auto result = kernel_pagedir.try_map(0, 0, 0);
-    
+
     assert(result >= 0, "Failure on initial maps!");
 
     // Identity map everything else

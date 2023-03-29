@@ -118,13 +118,31 @@ namespace console {
         void put_color(str const string, Color const fg, Color const bg);
         void put(str const string);
         void put(void* const ptr);
-        void put(char const ch);
-        void put(i32 num);
         void put(u32 num);
-        void put(u16 num);
-        void put(i16 num);
-        void put(u8 num);
-        void put(i8 num);
+        void put(i32 const num) {
+            put(u32(num));
+        }
+
+        void put(u16 const num) {
+            put(u32(num));
+        }
+
+        void put(i16 const num) {
+            put(u32(num));
+        }
+
+        void put(char const ch) {
+            put_char(ch);
+        }
+
+        void put(u8 const num) {
+            put(u32(num));
+        }
+
+        void put(i8 const num) {
+            put(u32(num));
+        }
+
         void put(bool b);
         
       private:

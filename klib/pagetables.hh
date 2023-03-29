@@ -2,6 +2,7 @@
 #include "int.hh"
 #include "array.hh"
 #include "console.hh"
+#include "nullable.hh"
 
 static auto constexpr const PAGESIZE = 4096;
 static auto constexpr const PTE_P   = 0b001;
@@ -164,7 +165,7 @@ namespace pagetables {
         /// Set this page directory to be the page directory in force using %cr3.
         void set_page_directory() const;
 
-        auto va_to_pa(uptr const address) const -> uptr;
+        auto va_to_pa(uptr const address) const -> Nullable<uptr, uptr(-1)>;
 
         [[nodiscard]] auto constexpr va_to_idx(uptr addr) const -> usize {
             // Indexed by top 10 bits (2^10 = 1024)
