@@ -36,14 +36,14 @@ dump: kernel.elf
 run: os-image.bin
 		qemu-system-i386 -hda $<
 
-run-debug: os-image.bin
+run-debug-int: os-image.bin
 		qemu-system-i386 -hda $< -d int -no-reboot -no-shutdown
 
 run-console: os-image.bin
 		qemu-system-i386 -hda $< -display curses
 
 gdb: os-image.bin kernel.elf
-		qemu-system-i386 -hda $< -S -s -d int -no-reboot -no-shutdown & \
+		qemu-system-i386 -hda $< -S -s -no-reboot -no-shutdown & \
 		${GDB}
 
 %.o: %.cc
