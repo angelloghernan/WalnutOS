@@ -7,6 +7,16 @@
 template<typename T, usize S>
 class Array { 
   public:
+    auto static constexpr filled(T const& element) -> Array {
+        Array array;
+
+        for (usize i = 0; i < S; ++i) {
+            array.m_arr[i] = element;
+        }
+
+        return array;
+    }
+
     // Return the length of the array.
     [[nodiscard]] auto constexpr len() const -> usize { return S; }
 
