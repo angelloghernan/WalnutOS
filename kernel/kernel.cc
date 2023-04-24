@@ -37,21 +37,33 @@ extern "C" void kernel_main() {
     // Remap master to 0x20, slave to 0x28
     Pic::remap(0x20, 0x28);
 
-    Array<uptr, 16> arr;
+    auto arr = Array<uptr, 16>::filled(0);
+
+    // current bug: weirdly has extra blocks when it shouldn't? purely in kalloc
 
     for (auto i = 0; i < 5; ++i) {
-        for (auto i = 0; i < 16; ++i) {
-            auto check = allocator.kalloc(PAGESIZE * 2);
+        auto num_allocated = 0;
+        for (auto i = 0; i < 17; ++i) {
+            ++num_allocated;
+            auto check = allocator.kalloc(PAGESIZE * 3);
             if (check.none()) {
-                terminal.print_line("Out of memory");
+                check = allocator.kalloc(PAGESIZE);
+                if (check.none()) {
+                    terminal.print_line("Out of memory");
+                    --num_allocated;
+                    break;
+                } else {
+                    terminal.print_line("Allocator 2: ", (void*)check.unwrap());
+                    arr[i] = check.unwrap();
+                }
             } else {
                 terminal.print_line("Allocator: ", (void*)check.unwrap());
                 arr[i] = check.unwrap();
             }
         }
             
-        for (auto addr : arr) {
-            allocator.kfree(addr);
+        for (auto i = 0; i < num_allocated; ++i) {
+            allocator.kfree(arr[i]);
         }
         terminal.print_line("done");
     }
