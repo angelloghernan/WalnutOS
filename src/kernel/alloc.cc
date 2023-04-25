@@ -51,7 +51,7 @@ auto BuddyAllocator::kalloc(usize const size) -> Nullable<uptr, 0> {
     auto const head_idx = pop_free_list(list_idx);
 
     if (head_idx.some()) {
-        terminal.print_line("Head is some 1");
+        terminal.print_debug("Head is some 1");
         return index_to_addr(head_idx.unwrap());
     }
 
@@ -59,13 +59,13 @@ auto BuddyAllocator::kalloc(usize const size) -> Nullable<uptr, 0> {
         auto const head = pop_free_list(i);
 
         if (head.none()) {
-            terminal.print_line("Head is none");
+            terminal.print_debug("Head is none");
             continue;
         }
 
         auto const head_addr = index_to_addr(head.unwrap());
 
-        terminal.print_line("List index is ", i8(list_idx));
+        terminal.print_debug("List index is ", i8(list_idx));
 
         // split the block into a suitable size
         for (auto j = i; j > list_idx; --j) {
@@ -108,7 +108,7 @@ void BuddyAllocator::kfree(uptr const ptr) {
     // Coalesce with its buddy until we can't anymore
     while (buddy_is_free(block_idx)) {
         auto const buddy_idx = buddy_index(block_idx);
-        // terminal.print_line(buddy_idx);
+        // terminal.print_debug(buddy_idx);
 
         if (buddy_idx > blocks.len()) {
             break;
@@ -133,7 +133,7 @@ auto BuddyAllocator::pop_free_list(u16 const idx) -> Nullable<u16, NULL_BLOCK> {
     auto& head = blocks[head_idx];
     
     free_lists[idx] = head.next;
-    terminal.print_line("pop ", head_idx, " from ", idx, " next is ", head.next.unwrap());
+    terminal.print_debug("pop ", head_idx, " from ", idx, " next is ", head.next.unwrap());
 
     if (head.next.some()) {
         blocks[head.next.unwrap()].next.become_none();
@@ -153,14 +153,14 @@ void BuddyAllocator::push_free_list(u16 const idx, u16 const block_idx) {
     block.set_order(idx);
 
     if (free_lists[idx].none()) {
-        terminal.print_line("push head: ", block_idx, " for ", idx);
+        terminal.print_debug("push head: ", block_idx, " for ", idx);
         free_lists[idx] = block_idx;
         block.next.become_none();
         block.prev.become_none();
     } else {
         auto const head_idx = free_lists[idx].unwrap();
         auto& head = blocks[head_idx];
-        terminal.print_line("push to ", idx, " block next: ", head_idx);
+        terminal.print_debug("push to ", idx, " block next: ", head_idx);
         block.prev = head_idx;
         block.next.become_none();
         head.next = block_idx;
@@ -194,7 +194,7 @@ auto constexpr BuddyAllocator::buddy_index(u16 const block_idx) -> u16 {
 
 auto BuddyAllocator::buddy_is_free(u16 const idx) -> bool {
     auto const buddy_idx = buddy_index(idx);
-    terminal.print_line(idx, " buddy: ", buddy_idx, " order: ", blocks[idx].order());
+    terminal.print_debug(idx, " buddy: ", buddy_idx, " order: ", blocks[idx].order());
 
     if (buddy_idx > blocks.len()) {
         return false;

@@ -47,15 +47,15 @@ extern "C" void kernel_main() {
             if (check.none()) {
                 check = allocator.kalloc(PAGESIZE);
                 if (check.none()) {
-                    terminal.print_line("Out of memory");
+                    terminal.print_debug("Out of memory");
                     --num_allocated;
                     break;
                 } else {
-                    terminal.print_line("Allocator 2: ", (void*)check.unwrap());
+                    terminal.print_debug("Allocator 2: ", (void*)check.unwrap());
                     arr[i] = check.unwrap();
                 }
             } else {
-                terminal.print_line("Allocator: ", (void*)check.unwrap());
+                terminal.print_debug("Allocator: ", (void*)check.unwrap());
                 arr[i] = check.unwrap();
             }
         }
@@ -65,7 +65,6 @@ extern "C" void kernel_main() {
         }
         terminal.print_line("done");
     }
-    terminal.print_debug("Debug mode");
 
     idt.init();
     Idt::enable_interrupts();
