@@ -5,8 +5,8 @@
 OBJ_FOLDER = obj
 SRC_FOLDER = src
 DEBUG_FOLDER = debug
-CPP_SOURCES = $(wildcard src/klib/*.cc src/klib/*/*.cc src/kernel/*.cc)
-HEADERS = $(wildcard src/kernel/*.hh src/klib/*.hh src/klib/*/*.hh)
+CPP_SOURCES = $(wildcard ${SRC_FOLDER}/klib/*.cc ${SRC_FOLDER}/klib/*/*.cc ${SRC_FOLDER}/kernel/*.cc)
+HEADERS = $(wildcard ${SRC_FOLDER}/kernel/*.hh ${SRC_FOLDER}/klib/*.hh ${SRC_FOLDER}/klib/*/*.hh)
 OBJ = ${CPP_SOURCES:%.cc=${OBJ_FOLDER}/%.o} src/klib/idt.o
 DEBUG_OBJ = ${CPP_SOURCES:%.cc=${DEBUG_FOLDER}/%.o} src/klib/idt.o
 
