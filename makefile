@@ -27,10 +27,10 @@ DEBUG_OBJ_LINK_LIST:= $(CRT0_OBJ) $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(DEBUG_OBJ) $(CRT
 
 all: run
 
-${OBJ_FOLDER}/os-image.bin: ${SRC_FOLDER}/boot/boot.bin kernel.bin
+${OBJ_FOLDER}/os-image.bin: ${SRC_FOLDER}/boot/boot.bin ${OBJ_FOLDER}/kernel.bin
 		cat $^ > $@
 
-kernel.bin: ${OBJ_LINK_LIST}
+${OBJ_FOLDER}/kernel.bin: ${OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin  -o $@ --script=ldconfig.ld $^ --oformat binary
 
 ${DEBUG_FOLDER}/kernel.bin: ${DEBUG_OBJ_LINK_LIST}
