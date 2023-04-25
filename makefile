@@ -36,14 +36,14 @@ ${OBJ_FOLDER}/kernel.bin: ${OBJ_LINK_LIST}
 ${DEBUG_FOLDER}/kernel.bin: ${DEBUG_OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin  -o $@ --script=ldconfig.ld $^ --oformat binary
 
-kernel.elf: ${OBJ_LINK_LIST}
+${OBJ_FOLDER}/kernel.elf: ${OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin -o $@ --script=ldconfig.ld $^ 
 
 ${DEBUG_FOLDER}/kernel.elf: ${DEBUG_OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin -o $@ --script=ldconfig.ld $^ 
 
-dump: kernel.elf
-		objdump -d kernel.elf > dump.txt
+dump: ${OBJ_FOLDER}/kernel.elf
+		objdump -d $^ > dump.txt
 
 ${DEBUG_FOLDER}/os-image.bin: ${SRC_FOLDER}/boot/boot.bin ${DEBUG_FOLDER}/kernel.bin
 		cat $^ > $@
