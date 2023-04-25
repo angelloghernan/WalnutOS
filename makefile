@@ -46,10 +46,10 @@ ${DEBUG_FOLDER}/os-image.bin: ${SRC_FOLDER}/boot/boot.bin ${DEBUG_FOLDER}/kernel
 		cat $^ > $@
 
 object-file-structure:
-		 find src -type d -exec mkdir -p -- ${OBJ_FOLDER}/{} \;
+		 mkdir ${OBJ_FOLDER}; find ${SRC_FOLDER} -type d -exec mkdir -p -- ${OBJ_FOLDER}/{} \;
 
 debug-file-structure:
-	   find src -type d -exec mkdir -p -- ${DEBUG_FOLDER}/{} \;
+	   mkdir ${DEBUG_FOLDER}; find ${SRC_FOLDER} -type d -exec mkdir -p -- ${DEBUG_FOLDER}/{} \;
 
 debug: debug-file-structure ${DEBUG_FOLDER}/os-image.bin 
 		qemu-system-i386 -hda ${DEBUG_FOLDER}/os-image.bin
