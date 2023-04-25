@@ -42,8 +42,11 @@ dump: kernel.elf
 debug/os-image.bin: src/boot/boot.bin debug/kernel.bin
 		cat $^ > $@
 
-debug: debug/os-image.bin
-		qemu-system-i386 -hda $<
+debug-file-structure:
+	   find src -type d -exec mkdir -p -- debug/{} \;
+
+debug: debug-file-structure debug/os-image.bin 
+		qemu-system-i386 -hda debug/os-image.bin
 
 run: os-image.bin
 		qemu-system-i386 -hda $<
