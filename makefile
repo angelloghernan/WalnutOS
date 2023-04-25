@@ -2,10 +2,13 @@
 # $< = first dependency
 # $^ = all dependencies
 
+OBJ_FOLDER = obj
+SRC_FOLDER = src
+DEBUG_FOLDER = debug
 CPP_SOURCES = $(wildcard src/klib/*.cc src/klib/*/*.cc src/kernel/*.cc)
 HEADERS = $(wildcard src/kernel/*.hh src/klib/*.hh src/klib/*/*.hh)
-OBJ = ${CPP_SOURCES:.cc=.o} src/klib/idt.o
-DEBUG_OBJ = ${CPP_SOURCES:%.cc=debug/%.o} src/klib/idt.o
+OBJ = ${CPP_SOURCES:%.cc=${OBJ_FOLDER}/%.o} src/klib/idt.o
+DEBUG_OBJ = ${CPP_SOURCES:%.cc=${DEBUG_FOLDER}/%.o} src/klib/idt.o
 
 CC = i686-elf-g++ 
 CXXFLAGS += -g -std=c++20 -fmodules-ts -ffreestanding -nostdlib -lgcc -lsupc++ -Wall -flto -ffat-lto-objects \
@@ -14,9 +17,9 @@ DEBUG_FLAGS = -DDEBUG -O1
 RELEASE_FLAGS = -O3
 GDB = gdb
 
-CRTI_OBJ = src/boot/crti.o
-CRTN_OBJ = src/boot/crtn.o
-CRT0_OBJ = src/boot/crt0.o
+CRTI_OBJ = ${SRC_FOLDER}/boot/crti.o
+CRTN_OBJ = ${SRC_FOLDER}/boot/crtn.o
+CRT0_OBJ = ${SRC_FOLDER}/boot/crt0.o
 CRTBEGIN_OBJ:=$(shell $(CC) $(CXXFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ:=$(shell $(CC) $(CXXFLAGS) -print-file-name=crtend.o)
 OBJ_LINK_LIST:= $(CRT0_OBJ) $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJ) $(CRTEND_OBJ) $(CRTN_OBJ)
@@ -24,13 +27,13 @@ DEBUG_OBJ_LINK_LIST:= $(CRT0_OBJ) $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(DEBUG_OBJ) $(CRT
 
 all: run
 
-os-image.bin: src/boot/boot.bin kernel.bin
+${OBJ_FOLDER}/os-image.bin: ${SRC_FOLDER}/boot/boot.bin kernel.bin
 		cat $^ > $@
 
 kernel.bin: ${OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin  -o $@ --script=ldconfig.ld $^ --oformat binary
 
-debug/kernel.bin: ${DEBUG_OBJ_LINK_LIST}
+${DEBUG_FOLDER}/kernel.bin: ${DEBUG_OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin  -o $@ --script=ldconfig.ld $^ --oformat binary
 
 kernel.elf: ${OBJ_LINK_LIST}
@@ -39,30 +42,36 @@ kernel.elf: ${OBJ_LINK_LIST}
 dump: kernel.elf
 		objdump -d kernel.elf > dump.txt
 
-debug/os-image.bin: src/boot/boot.bin debug/kernel.bin
+${DEBUG_FOLDER}/os-image.bin: ${SRC_FOLDER}/boot/boot.bin ${DEBUG_FOLDER}/kernel.bin
 		cat $^ > $@
 
+object-file-structure:
+		 find src -type d -exec mkdir -p -- ${OBJ_FOLDER}/{} \;
+
 debug-file-structure:
-	   find src -type d -exec mkdir -p -- debug/{} \;
+	   find src -type d -exec mkdir -p -- ${DEBUG_FOLDER}/{} \;
 
-debug: debug-file-structure debug/os-image.bin 
-		qemu-system-i386 -hda debug/os-image.bin
+debug: debug-file-structure ${DEBUG_FOLDER}/os-image.bin 
+		qemu-system-i386 -hda ${DEBUG_FOLDER}/os-image.bin
 
-run: os-image.bin
-		qemu-system-i386 -hda $<
+run: object-file-structure ${OBJ_FOLDER}/os-image.bin
+		qemu-system-i386 -hda ${OBJ_FOLDER}/os-image.bin
 
-run-debug-int: os-image.bin
+run-debug-int: ${OBJ_FOLDER}/os-image.bin
 		qemu-system-i386 -hda $< -d int -no-reboot -no-shutdown
 
-run-console: os-image.bin
+run-console: ${OBJ_FOLDER}/os-image.bin
 		qemu-system-i386 -hda $< -display curses
 
-gdb: os-image.bin kernel.elf
+gdb: ${OBJ_FOLDER}/os-image.bin kernel.elf
 		qemu-system-i386 -hda $< -S -s -no-reboot -no-shutdown & \
 		${GDB}
 
-debug/%.o: %.cc
+${DEBUG_FOLDER}/%.o: %.cc
 		${CC} ${CXXFLAGS} ${DEBUG_FLAGS} -MMD -c $< -o $@
+
+${OBJ_FOLDER}/%.o: %.cc
+		${CC} ${CXXFLAGS} ${RELEASE_FLAGS} -MMD -c $< -o $@
 
 %.o: %.cc
 		${CC} ${CXXFLAGS} ${RELEASE_FLAGS} -MMD -c $< -o $@
