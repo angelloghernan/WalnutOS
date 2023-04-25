@@ -89,8 +89,6 @@ clean:
 	find . -type f -name '*.bin' -delete
 	find . -type f -name '*.elf' -delete
 	find . -type f -name '*.dis' -delete
-	#rm -rf *.o boot/*.bin boot/*.o klib/*.o klib/*/*.o kernel/*.o obj/*
-	#rm -rf *.o boot/*.bin boot/*.o klib/*.o klib/*/*.o kernel/*.o obj/*
 
 summary:
 	find . -name '*.asm' | xargs wc -l && \
