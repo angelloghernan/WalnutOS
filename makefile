@@ -39,6 +39,9 @@ ${DEBUG_FOLDER}/kernel.bin: ${DEBUG_OBJ_LINK_LIST}
 kernel.elf: ${OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin -o $@ --script=ldconfig.ld $^ 
 
+${DEBUG_FOLDER}/kernel.elf: ${DEBUG_OBJ_LINK_LIST}
+		i686-elf-ld -flto -use-linker-plugin -o $@ --script=ldconfig.ld $^ 
+
 dump: kernel.elf
 		objdump -d kernel.elf > dump.txt
 
@@ -63,7 +66,7 @@ run-debug-int: ${OBJ_FOLDER}/os-image.bin
 run-console: ${OBJ_FOLDER}/os-image.bin
 		qemu-system-i386 -hda $< -display curses
 
-gdb: ${OBJ_FOLDER}/os-image.bin kernel.elf
+gdb: ${DEBUG_FOLDER}/os-image.bin ${DEBUG_FOLDER}/kernel.elf
 		qemu-system-i386 -hda $< -S -s -no-reboot -no-shutdown & \
 		${GDB}
 
