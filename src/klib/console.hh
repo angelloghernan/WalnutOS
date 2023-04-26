@@ -75,6 +75,7 @@ namespace console {
         void print_line_color(Color const fg, Color const bg, Types&&... var2) {
             print_color(fg, bg, var2...);
             new_line();
+            move_cursor(m_row, m_col);
         }
 
         Console() : m_col(0), m_row(0), console_page(reinterpret_cast<u16 *const>(0xb8000)) {
