@@ -7,10 +7,14 @@ SRC_FOLDER = src
 DEBUG_FOLDER = debug
 DEFAULT_ENTRY_FILE = src/kernel/kernel.cc
 CPP_SOURCES := $(wildcard ${SRC_FOLDER}/klib/*.cc ${SRC_FOLDER}/klib/*/*.cc ${SRC_FOLDER}/kernel/*.cc)
+OS_IMAGE = os-image.bin
+KERNEL_IMAGE = kernel.bin
 
-ifdef TEST
+ifdef TEST-FILE
 	CPP_SOURCES := $(filter-out $(DEFAULT_ENTRY_FILE), $(CPP_SOURCES))
-	CPP_SOURCES += $(TEST)
+	CPP_SOURCES += $(TEST-FILE)
+	OS_IMAGE := test-os-image.bin
+	KERNEL_IMAGE := test-kernel-image.bin
 endif
 
 HEADERS = $(wildcard ${SRC_FOLDER}/kernel/*.hh ${SRC_FOLDER}/klib/*.hh ${SRC_FOLDER}/klib/*/*.hh)
@@ -34,13 +38,13 @@ DEBUG_OBJ_LINK_LIST:= $(CRT0_OBJ) $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(DEBUG_OBJ) $(CRT
 
 all: run
 
-${OBJ_FOLDER}/os-image.bin: ${SRC_FOLDER}/boot/boot.bin ${OBJ_FOLDER}/kernel.bin
+${OBJ_FOLDER}/${OS_IMAGE}: ${SRC_FOLDER}/boot/boot.bin ${OBJ_FOLDER}/${KERNEL_IMAGE}
 		cat $^ > $@
 
-${OBJ_FOLDER}/kernel.bin: ${OBJ_LINK_LIST}
+${OBJ_FOLDER}/${KERNEL_IMAGE}: ${OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin  -o $@ --script=ldconfig.ld $^ --oformat binary
 
-${DEBUG_FOLDER}/kernel.bin: ${DEBUG_OBJ_LINK_LIST}
+${DEBUG_FOLDER}/${KERNEL_IMAGE}: ${DEBUG_OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin  -o $@ --script=ldconfig.ld $^ --oformat binary
 
 ${OBJ_FOLDER}/kernel.elf: ${OBJ_LINK_LIST}
@@ -52,7 +56,7 @@ ${DEBUG_FOLDER}/kernel.elf: ${DEBUG_OBJ_LINK_LIST}
 dump: ${OBJ_FOLDER}/kernel.elf
 		objdump -d $^ > dump.txt
 
-${DEBUG_FOLDER}/os-image.bin: ${SRC_FOLDER}/boot/boot.bin ${DEBUG_FOLDER}/kernel.bin
+${DEBUG_FOLDER}/${OS_IMAGE}: ${SRC_FOLDER}/boot/boot.bin ${DEBUG_FOLDER}/${KERNEL_IMAGE}
 		cat $^ > $@
 
 object-file-structure:
@@ -61,24 +65,24 @@ object-file-structure:
 debug-file-structure:
 	  mkdir ${DEBUG_FOLDER}; find ${SRC_FOLDER} -type d -exec mkdir -p -- ${DEBUG_FOLDER}/{} \;
 
-debug: debug-file-structure ${DEBUG_FOLDER}/os-image.bin 
-		qemu-system-i386 -hda ${DEBUG_FOLDER}/os-image.bin
+debug: debug-file-structure ${DEBUG_FOLDER}/${OS_IMAGE} 
+		qemu-system-i386 -hda ${DEBUG_FOLDER}/${OS_IMAGE}
 
-run: object-file-structure ${OBJ_FOLDER}/os-image.bin
-		qemu-system-i386 -hda ${OBJ_FOLDER}/os-image.bin
+run: object-file-structure ${OBJ_FOLDER}/${OS_IMAGE}
+		qemu-system-i386 -hda ${OBJ_FOLDER}/${OS_IMAGE}
 
-run-debug-int: object-file-structure ${OBJ_FOLDER}/os-image.bin
+run-debug-int: object-file-structure ${OBJ_FOLDER}/${OS_IMAGE}
 		qemu-system-i386 -hda $< -d int -no-reboot -no-shutdown
 
-run-console: object-file-structure ${OBJ_FOLDER}/os-image.bin
+run-console: object-file-structure ${OBJ_FOLDER}/${OS_IMAGE}
 		qemu-system-i386 -hda $< -display curses
 
-gdb: ${DEBUG_FOLDER}/os-image.bin ${DEBUG_FOLDER}/kernel.elf
+gdb: ${DEBUG_FOLDER}/${OS_IMAGE} ${DEBUG_FOLDER}/kernel.elf
 		qemu-system-i386 -hda $< -S -s -no-reboot -no-shutdown & \
 		${GDB}
 
 test-%: src/test/%.cc
-		make TEST=$<
+		make TEST-FILE=$<
 
 ${DEBUG_FOLDER}/%.o: %.cc
 		${CC} ${CXXFLAGS} ${DEBUG_FLAGS} -MMD -c $< -o $@
