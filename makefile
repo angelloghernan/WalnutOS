@@ -5,7 +5,14 @@
 OBJ_FOLDER = obj
 SRC_FOLDER = src
 DEBUG_FOLDER = debug
-CPP_SOURCES = $(wildcard ${SRC_FOLDER}/klib/*.cc ${SRC_FOLDER}/klib/*/*.cc ${SRC_FOLDER}/kernel/*.cc)
+DEFAULT_ENTRY_FILE = src/kernel/kernel.cc
+CPP_SOURCES := $(wildcard ${SRC_FOLDER}/klib/*.cc ${SRC_FOLDER}/klib/*/*.cc ${SRC_FOLDER}/kernel/*.cc)
+
+ifdef TEST
+	CPP_SOURCES := $(filter-out $(DEFAULT_ENTRY_FILE), $(CPP_SOURCES))
+	CPP_SOURCES += $(TEST)
+endif
+
 HEADERS = $(wildcard ${SRC_FOLDER}/kernel/*.hh ${SRC_FOLDER}/klib/*.hh ${SRC_FOLDER}/klib/*/*.hh)
 OBJ = ${CPP_SOURCES:%.cc=${OBJ_FOLDER}/%.o} src/klib/idt.o
 DEBUG_OBJ = ${CPP_SOURCES:%.cc=${DEBUG_FOLDER}/%.o} src/klib/idt.o
@@ -49,10 +56,10 @@ ${DEBUG_FOLDER}/os-image.bin: ${SRC_FOLDER}/boot/boot.bin ${DEBUG_FOLDER}/kernel
 		cat $^ > $@
 
 object-file-structure:
-		 mkdir ${OBJ_FOLDER}; find ${SRC_FOLDER} -type d -exec mkdir -p -- ${OBJ_FOLDER}/{} \;
+		mkdir ${OBJ_FOLDER}; find ${SRC_FOLDER} -type d -exec mkdir -p -- ${OBJ_FOLDER}/{} \;
 
 debug-file-structure:
-	   mkdir ${DEBUG_FOLDER}; find ${SRC_FOLDER} -type d -exec mkdir -p -- ${DEBUG_FOLDER}/{} \;
+	  mkdir ${DEBUG_FOLDER}; find ${SRC_FOLDER} -type d -exec mkdir -p -- ${DEBUG_FOLDER}/{} \;
 
 debug: debug-file-structure ${DEBUG_FOLDER}/os-image.bin 
 		qemu-system-i386 -hda ${DEBUG_FOLDER}/os-image.bin
@@ -60,15 +67,18 @@ debug: debug-file-structure ${DEBUG_FOLDER}/os-image.bin
 run: object-file-structure ${OBJ_FOLDER}/os-image.bin
 		qemu-system-i386 -hda ${OBJ_FOLDER}/os-image.bin
 
-run-debug-int: ${OBJ_FOLDER}/os-image.bin
+run-debug-int: object-file-structure ${OBJ_FOLDER}/os-image.bin
 		qemu-system-i386 -hda $< -d int -no-reboot -no-shutdown
 
-run-console: ${OBJ_FOLDER}/os-image.bin
+run-console: object-file-structure ${OBJ_FOLDER}/os-image.bin
 		qemu-system-i386 -hda $< -display curses
 
 gdb: ${DEBUG_FOLDER}/os-image.bin ${DEBUG_FOLDER}/kernel.elf
 		qemu-system-i386 -hda $< -S -s -no-reboot -no-shutdown & \
 		${GDB}
+
+test-%: src/test/%.cc
+		make TEST=$<
 
 ${DEBUG_FOLDER}/%.o: %.cc
 		${CC} ${CXXFLAGS} ${DEBUG_FLAGS} -MMD -c $< -o $@

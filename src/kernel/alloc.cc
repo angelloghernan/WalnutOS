@@ -175,7 +175,7 @@ void constexpr BuddyAllocator::remove_from_list(u16 const block_idx) {
     }
 
     if (free_lists[block.order()] == block_idx) {
-        free_lists[block.order()] = block.prev;
+        free_lists[block.order()] = block.next;
     }
 }
 
