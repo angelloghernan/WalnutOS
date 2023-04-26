@@ -37,35 +37,6 @@ extern "C" void kernel_main() {
     // Remap master to 0x20, slave to 0x28
     Pic::remap(0x20, 0x28);
 
-    auto arr = Array<uptr, 16>::filled(0);
-
-    for (auto i = 0; i < 5; ++i) {
-        auto num_allocated = 0;
-        for (auto i = 0; i < 17; ++i) {
-            ++num_allocated;
-            auto check = allocator.kalloc(PAGESIZE * 3);
-            if (check.none()) {
-                check = allocator.kalloc(PAGESIZE);
-                if (check.none()) {
-                    terminal.print_debug("Out of memory");
-                    --num_allocated;
-                    break;
-                } else {
-                    terminal.print_debug("Allocator 2: ", (void*)check.unwrap());
-                    arr[i] = check.unwrap();
-                }
-            } else {
-                terminal.print_debug("Allocator: ", (void*)check.unwrap());
-                arr[i] = check.unwrap();
-            }
-        }
-            
-        for (auto i = 0; i < num_allocated; ++i) {
-            allocator.kfree(arr[i]);
-        }
-        terminal.print_line("done");
-    }
-
     idt.init();
     Idt::enable_interrupts();
 
