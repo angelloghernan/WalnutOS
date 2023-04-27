@@ -133,7 +133,7 @@ auto BuddyAllocator::pop_free_list(u16 const idx) -> Nullable<u16, NULL_BLOCK> {
 
     auto head_idx = free_lists[idx].unwrap();
     auto& head = blocks[head_idx];
-    
+
     free_lists[idx] = head.next;
     terminal.print_debug("pop ", head_idx, " from ", idx, " next is ", head.next.unwrap());
 
@@ -162,10 +162,11 @@ void BuddyAllocator::push_free_list(u16 const idx, u16 const block_idx) {
     } else {
         auto const head_idx = free_lists[idx].unwrap();
         auto& head = blocks[head_idx];
+        head.prev = block_idx;
+        block.next = head_idx;
+        blocks[head_idx] = block;
+        block.prev.become_none();
         terminal.print_debug("push to ", idx, " block next: ", head_idx);
-        block.prev = head_idx;
-        block.next.become_none();
-        head.next = block_idx;
     }
 }
 
