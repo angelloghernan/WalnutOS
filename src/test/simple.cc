@@ -20,10 +20,13 @@ extern "C" void kernel_main() {
             auto check = allocator.kalloc(PAGESIZE * 3);
             if (check.none()) {
                 --num_allocated;
-                assert(allocator.kalloc(PAGESIZE).none(), "Kalloc should be none");
+                // Note that this assert only makes sense in the context of a buddy allocator;
+                // the 3-sized blocks should leave no space for a single slot block since they
+                // will take up 4-sized blocks each time
+                assert(allocator.kalloc(PAGESIZE).none(), "Kalloc should return none");
                 break;
             } else {
-                terminal.print_debug("Allocator: ", (void*)check.unwrap());
+                terminal.print_line("Allocator: ", (void*)check.unwrap());
                 arr[i] = check.unwrap();
             }
         }

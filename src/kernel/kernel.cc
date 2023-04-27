@@ -43,7 +43,8 @@ extern "C" void kernel_main() {
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);
 
-    bool shift_pressed = false;
+    bool left_shift_pressed = false;
+    bool right_shift_pressed = false;
     bool extended = false;
 
     while (true) {
@@ -53,7 +54,7 @@ extern "C" void kernel_main() {
              maybe_key_code = keyboard.pop_response()) {
             auto key_code = maybe_key_code.unwrap();
             auto key = [&]{
-                if (!shift_pressed) {
+                if (!left_shift_pressed && !right_shift_pressed) {
                     return Ps2Keyboard::response_to_char(key_code);
                } else {
                     return Ps2Keyboard::response_to_shifted_char(key_code);
@@ -71,10 +72,16 @@ extern "C" void kernel_main() {
                         terminal.print_back_char(' ');
                         break;
                     case LeftShiftDown:
-                        shift_pressed = true;
+                        left_shift_pressed = true;
+                        break;
+                    case RightShiftDown:
+                        right_shift_pressed = true;
                         break;
                     case LeftShiftUp:
-                        shift_pressed = false;
+                        left_shift_pressed = false;
+                        break;
+                    case RightShiftUp:
+                        right_shift_pressed = false;
                         break;
                     case NextIsExtended:
                         extended = true;

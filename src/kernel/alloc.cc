@@ -9,8 +9,6 @@
 
 using namespace alloc;
 
-auto round_up_pow2(u32 num) -> u16;
-auto log2(u32 num) -> u8;
 
 // The buddy allocator should begin in the following state:
 // All lists have no head (i.e. they are "none")
@@ -42,7 +40,11 @@ auto BuddyAllocator::kalloc(usize const size) -> Nullable<uptr, 0> {
                                1 << SMALLEST_BLOCK_SIZE :
                                size;
 
+    terminal.print_debug("Adjusted size: ", usize(adjusted_size));
+    terminal.print_debug("Rounded up: ", round_up_pow2(adjusted_size));
+
     auto const list_idx = log2(round_up_pow2(adjusted_size)) - SMALLEST_BLOCK_SIZE;
+    terminal.print_debug("List index: ", i8(list_idx));
 
     if (list_idx >= NUM_BLOCKS) [[unlikely]] {
         return Nullable<uptr, 0>();
@@ -233,7 +235,7 @@ void constexpr BuddyAllocator::block::set_order(u8 order) {
     order_and_free |= order << 1;
 }
 
-auto round_up_pow2(u32 num) -> u16 {
+auto alloc::round_up_pow2(u32 num) -> u32 {
     --num;
     num |= num >> 1;
     num |= num >> 2;
@@ -244,7 +246,7 @@ auto round_up_pow2(u32 num) -> u16 {
     return num;
 }
 
-auto log2(u32 num) -> u8 {
+auto alloc::log2(u32 num) -> u8 {
     auto count = u8(-1);
     while (num) {
         num >>= 1;

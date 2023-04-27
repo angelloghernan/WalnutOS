@@ -58,7 +58,7 @@ namespace alloc {
 
         void push_free_list(u16 list_idx, u16 block_idx);
 
-        [[gnu::always_inline]] auto buddy_is_free(u16 idx) -> bool;
+        auto buddy_is_free(u16 idx) -> bool;
 
         [[gnu::always_inline]] auto constexpr buddy_index(u16 idx) -> u16;
 
@@ -68,4 +68,8 @@ namespace alloc {
 
         [[gnu::always_inline]] auto constexpr addr_to_index(uptr addr) -> Nullable<u16, NULL_BLOCK>;
     };
+
+    auto round_up_pow2(u32 num) -> u32;
+    auto log2(u32 num) -> u8;
 };
+

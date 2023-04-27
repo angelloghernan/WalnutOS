@@ -85,6 +85,9 @@ gdb: ${DEBUG_FOLDER}/${OS_IMAGE} ${DEBUG_FOLDER}/kernel.elf
 test-%: src/test/%.cc
 		make TEST-FILE=$<
 
+test-debug-%: src/test/%.cc
+		make debug TEST-FILE=$<
+
 -include $(HEADER_SOURCES)
 
 ${DEBUG_FOLDER}/%.o: %.cc
