@@ -164,8 +164,8 @@ void BuddyAllocator::push_free_list(u16 const idx, u16 const block_idx) {
         auto& head = blocks[head_idx];
         head.prev = block_idx;
         block.next = head_idx;
-        blocks[head_idx] = block;
         block.prev.become_none();
+        free_lists[idx] = block_idx;
         terminal.print_debug("push to ", idx, " block next: ", head_idx);
     }
 }
