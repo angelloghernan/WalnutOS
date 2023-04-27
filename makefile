@@ -9,6 +9,7 @@ DEFAULT_ENTRY_FILE = src/kernel/kernel.cc
 CPP_SOURCES := $(wildcard ${SRC_FOLDER}/klib/*.cc ${SRC_FOLDER}/klib/*/*.cc ${SRC_FOLDER}/kernel/*.cc)
 OS_IMAGE = os-image.bin
 KERNEL_IMAGE = kernel.bin
+QEMU_FLAGS = -hda
 
 ifdef TEST-FILE
 	CPP_SOURCES := $(filter-out $(DEFAULT_ENTRY_FILE), $(CPP_SOURCES))
@@ -73,13 +74,13 @@ run: object-file-structure ${OBJ_FOLDER}/${OS_IMAGE}
 		qemu-system-i386 -hda ${OBJ_FOLDER}/${OS_IMAGE}
 
 run-debug-int: object-file-structure ${OBJ_FOLDER}/${OS_IMAGE}
-		qemu-system-i386 -hda $< -d int -no-reboot -no-shutdown
+		qemu-system-i386 -hda ${OBJ_FOLDER}/${OS_IMAGE} -d int -no-reboot -no-shutdown
 
 run-console: object-file-structure ${OBJ_FOLDER}/${OS_IMAGE}
-		qemu-system-i386 -hda $< -display curses
+		qemu-system-i386 -hda ${OBJ_FOLDER}/${OS_IMAGE} -display curses
 
 gdb: ${DEBUG_FOLDER}/${OS_IMAGE} ${DEBUG_FOLDER}/kernel.elf
-		qemu-system-i386 -hda $< -S -s -no-reboot -no-shutdown & \
+		qemu-system-i386 -hda ${OBJ_FOLDER}/${OS_IMAGE} -S -s -no-reboot -no-shutdown & \
 		${GDB}
 
 test-%: src/test/%.cc
