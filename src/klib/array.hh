@@ -17,17 +17,16 @@ class Array {
         return array;
     }
 
-    // Return the length of the array.
     [[nodiscard]] auto constexpr len() const -> usize { return S; }
 
-    [[nodiscard]] auto constexpr data()       -> T* { return &m_arr[0]; }
+    [[nodiscard]] auto constexpr data() -> T* { return &m_arr[0]; }
     [[nodiscard]] auto constexpr data() const -> T const* { return &m_arr[0]; }
 
-    [[nodiscard]] auto constexpr operator[](usize idx)       -> T& { return m_arr[idx]; }
+    [[nodiscard]] auto constexpr operator[](usize idx) -> T& { return m_arr[idx]; }
     [[nodiscard]] auto constexpr operator[](usize idx) const -> T const& { return m_arr[idx]; }
 
     [[nodiscard]] auto constexpr begin() const -> iterator<T> { return iterator<T>(&m_arr[0]); }
-    [[nodiscard]] auto constexpr end() const   -> iterator<T> { return iterator<T>(&m_arr[S]); }
+    [[nodiscard]] auto constexpr end() const -> iterator<T> { return iterator<T>(&m_arr[S]); }
 
     [[nodiscard]] auto constexpr begin() -> iterator<T> { return iterator<T>(&m_arr[0]); }
     [[nodiscard]] auto constexpr end() -> iterator<T> { return iterator<T>(&m_arr[S]); }

@@ -3,6 +3,7 @@
 #include "array.hh"
 #include "console.hh"
 #include "nullable.hh"
+#include "result.hh"
 
 static auto constexpr const PAGESIZE = 4096;
 static auto constexpr const PTE_P   = 0b001;
@@ -45,13 +46,13 @@ namespace pagetables {
         }
 
         /// Make this pagetable entry map to physical address [addr].
-        auto map(uptr addr, u8 perm) -> i8 {
+        auto map(uptr addr, u8 perm) -> Result<Null, Null> {
             _internal = addr;
             _internal |= perm;
-            return 0;
+            return Result<Null, Null>::Ok({});
         }
         
-        [[nodiscard]] auto try_map(uptr addr, u8 perm) -> i8 {
+        [[nodiscard]] auto try_map(uptr addr, u8 perm) -> Result<Null, Null> {
             return map(addr, perm);
         }
 
@@ -126,7 +127,7 @@ namespace pagetables {
 
         // Map [virtual_addr] to [physical_addr] with given [perm]issions.
         // Returns -1 on failure. Else, returns 0.
-        auto map(uptr const virtual_addr, uptr const physical_addr, u8 const perm) -> i8 {
+        auto map(uptr const virtual_addr, uptr const physical_addr, u8 const perm) -> Result<Null, Null> {
             auto& pagetable = get_pt().unwrap();
             auto pt_idx = pagetable.pt_idx(virtual_addr);
 
@@ -136,12 +137,13 @@ namespace pagetables {
         
         // Try to map [virtual_addr] to [physical_addr] with given [perm]issions.
         // If this operation fails, returns -1. Otherwise, returns 0.
-        [[nodiscard]] auto try_map(uptr const virtual_addr, uptr const physical_addr, u8 const perm) -> i8 {
+        [[nodiscard]] auto try_map(uptr const virtual_addr, 
+                                   uptr const physical_addr, u8 const perm) -> Result<Null, Null> {
             return map(virtual_addr, physical_addr, perm);
         }
 
 
-        [[nodiscard]] auto add_pt(uptr ptable_addr, u8 perm) -> i8;
+        [[nodiscard]] auto add_pt(uptr ptable_addr, u8 perm) -> Result<Null, Null>;
 
       private:
         u32 _internal;
@@ -151,16 +153,17 @@ namespace pagetables {
       public:
         PageDirectory(PageDirectory const& pd) = delete;
         PageDirectory() {}
-        static usize constexpr const NUM_ENTRIES = 1024;
+        static auto constexpr NUM_ENTRIES = 1024_usize;
 
         auto get_entry(usize const idx)       -> PageDirectoryEntry& { return _entries[idx]; }
         auto get_entry(usize const idx) const -> PageDirectoryEntry const& { return _entries[idx]; }
 
-        auto add_pagetable(usize const idx, PageTable const&, u8 perm) -> i8;
+        auto add_pagetable(usize const idx, PageTable const&, u8 perm) -> Result<Null, Null>;
 
-        auto map(uptr const virtual_addr, uptr const physical_addr, u8 perm) -> i8;
+        auto map(uptr const virtual_addr, uptr const physical_addr, u8 perm) -> Result<Null, Null>;
 
-        [[nodiscard]] auto try_map(uptr const virtual_addr, uptr const physical_addr, u8 const perm) -> i8;
+        [[nodiscard]] auto try_map(uptr const virtual_addr, 
+                                   uptr const physical_addr, u8 const perm) -> Result<Null, Null>;
 
         /// Set this page directory to be the page directory in force using %cr3.
         void set_page_directory() const;

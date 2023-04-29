@@ -11,7 +11,6 @@
 #include "../klib/ps2/ps2.hh"
 #include "../klib/ps2/keyboard.hh"
 #include "../klib/circular_buffer.hh"
-#include "alloc.hh"
 
 using pagetables::PageDirectory;
 using pagetables::PageTable;
@@ -22,7 +21,7 @@ PageDirectory kernel_pagedir;
 static PageTable starter_pt;
 static PageTable io_pt;
 
-static alloc::BuddyAllocator allocator;
+alloc::BuddyAllocator simple_allocator;
 
 Idt idt;
 extern void* isr_stub_table[];
@@ -46,6 +45,8 @@ extern "C" void kernel_main() {
     bool left_shift_pressed = false;
     bool right_shift_pressed = false;
     bool extended = false;
+
+    Array array {1_u8, 2_u8, 3_u8};
 
     while (true) {
         using enum ps2::KeyboardResponse;
@@ -120,12 +121,12 @@ void setup_pagedir() {
 
     auto result = kernel_pagedir.try_map(0, 0, 0);
 
-    assert(result >= 0, "Failure on initial maps!");
+    assert(result.is_ok(), "Failure on initial maps!");
 
     // Identity map everything else
     for (auto address = 0x1000; address < 0x400000; address += PAGESIZE) {
         auto result = kernel_pagedir[0].try_map(address, address, PTE_PW);
-        assert(result >= 0, "Failure on initial maps!");
+        assert(result.is_ok(), "Failure on initial maps!");
     }
 
     kernel_pagedir.set_page_directory();

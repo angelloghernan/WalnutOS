@@ -24,6 +24,7 @@ BuddyAllocator::BuddyAllocator() {
     for (auto& block : blocks) {
         block.next.become_none();
         block.prev.become_none();
+        block.set_free();
     }
 }
 
@@ -155,10 +156,10 @@ void BuddyAllocator::push_free_list(u16 const idx, u16 const block_idx) {
     block.set_order(idx);
 
     if (free_lists[idx].none()) {
-        terminal.print_debug("push head: ", block_idx, " for ", idx);
         free_lists[idx] = block_idx;
         block.next.become_none();
         block.prev.become_none();
+        terminal.print_debug("push head: ", block_idx, " for ", idx);
     } else {
         auto const head_idx = free_lists[idx].unwrap();
         auto& head = blocks[head_idx];
