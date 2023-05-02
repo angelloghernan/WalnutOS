@@ -11,6 +11,7 @@
 #include "../klib/ps2/ps2.hh"
 #include "../klib/ps2/keyboard.hh"
 #include "../klib/circular_buffer.hh"
+#include "../klib/pci.hh"
 
 using pagetables::PageDirectory;
 using pagetables::PageTable;
@@ -38,6 +39,16 @@ extern "C" void kernel_main() {
 
     idt.init();
     Idt::enable_interrupts();
+
+    pci::PCIState state;
+    auto result = state.check_vendor(0, 0);
+
+    if (result.none()) {
+        terminal.print_line("PCI has no output");
+    } else {
+        terminal.print_line("PCI output: ", result.unwrap_as<void*>(), " test ");
+        terminal.print_line(1);
+    }
 
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);

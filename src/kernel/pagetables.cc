@@ -26,7 +26,17 @@ namespace pagetables {
             }
 
             if (pagedir.add_pt(new_pt.unwrap_as<uptr>(), perm).is_err()) {
+                simple_allocator.kfree(new_pt.unwrap());
                 return Result<Null, Null>::Err({});
+            }
+            
+            // Need to zero out pages, or else weird bugs
+            // start to occur 
+            char* ptr = new_pt.unwrap_as<char*>();
+            
+            for (auto i = 0; i < PAGESIZE; ++i) {
+                *ptr = 0;
+                ++ptr;
             }
         }
 
