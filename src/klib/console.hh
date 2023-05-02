@@ -132,6 +132,10 @@ namespace console {
             put(u32(num));
         }
 
+        void put(int& num) {
+            put(u32(num));
+        }
+
         void put(u16 const num) {
             put(u32(num));
         }
