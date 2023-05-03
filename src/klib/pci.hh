@@ -39,7 +39,7 @@ namespace pci {
             bytes |= 1 << b_u8;
         }
 
-        auto get_bit(bit b) {
+        auto get_bit(bit b) -> bool {
             auto b_u8 = static_cast<u8>(b);
             return bytes & (1 << b_u8);
         }
