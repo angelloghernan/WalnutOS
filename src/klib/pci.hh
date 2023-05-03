@@ -21,6 +21,8 @@ namespace pci {
     };
 
     struct command_register {
+      public:
+        command_register(u16 bytes) : bytes(bytes) {}
         enum class bit : u8 {
             InterruptDisable        = 10,
             FastBackToBackEnable    = 9,
@@ -44,10 +46,13 @@ namespace pci {
             return bytes & (1 << b_u8);
         }
 
-        u16 bytes;
+      private:
+            u16 bytes;
     };
 
     struct status_register {
+      public:
+        status_register(u16 bytes) : bytes(bytes) {}
         enum class bit : u8 {
             DetectedParityError   = 15,
             SignaledSystemError   = 14,
@@ -75,13 +80,43 @@ namespace pci {
             u16 constexpr mask = 0b11 << 9;
             return (bytes & mask) >> 9;
         }
-        
+
+      private:
         u16 bytes;  
     };
-    
+
+    struct memory_space_bar {
+      public:
+        memory_space_bar(u32 bytes) : bytes(bytes) {}
+        auto get_address() -> u32 {
+            return bytes & (~0xF);
+        }
+
+        auto prefetchable() -> bool {
+            return bytes & (1 << 3);
+        }
+
+        auto type() -> u8 {
+            u32 constexpr mask = 0b11 << 1;
+            return (bytes & mask) >> 1;
+        }
+      private:
+        u32 bytes;
+    };
+
+    struct io_space_bar {
+      public:
+        io_space_bar(u32 bytes) : bytes(bytes) {}
+        auto get_address() -> u32 {
+            return bytes & (~0b11);
+        }
+      private:
+        u32 bytes;
+    };
+
     class PCIState {
       public:
-        auto config_read_word(u8 bus, u8 slot, 
+        auto config_read_word(u8 bus, u8 slot,
                              u8 func_number, u8 offset) -> u16;
         auto check_vendor(u8 bus, u8 slot) -> Nullable<u16, NO_VENDOR>;
         auto check_device_id(u8 const bus,
