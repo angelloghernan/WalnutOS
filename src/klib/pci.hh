@@ -9,20 +9,32 @@ namespace pci {
     auto constexpr static CONFIG_DATA = 0xCFC;
     auto constexpr static NO_VENDOR = 0xFFFF_u16;
     auto constexpr static NO_DEVICE = 0xFFFF_u16;
-    auto constexpr static OFFSET_VENDOR_ID = 0x0_u16;
-    auto constexpr static OFFSET_DEVICE_ID = 0x2_u16;
-    auto constexpr static OFFSET_HEADER_TYPE = 0xE_u16;
+
+    enum class RegisterOffset : u8 {
+        DeviceId      = 0x0,
+        VendorId      = 0x2,
+        Command       = 0x4,
+        Status        = 0x6,
+        RevisionId    = 0x8,
+        ProgIF        = 0x9,
+        Subclass      = 0xA,
+        ClassCode     = 0xB,
+        CacheLineSize = 0xC,
+        LatencyTimer  = 0xD,
+        HeaderType    = 0xE,
+        BIST          = 0xF,
+    };   
 
     enum class HeaderType : u8 {
         GeneralDevice = 0x0,
-        PciToPci = 0x1,
-        PciToCardBus = 0x2,
+        PciToPci      = 0x1,
+        PciToCardBus  = 0x2,
         MultiFunction,
+        Unknown,
     };
 
     struct command_register {
       public:
-        command_register(u16 bytes) : bytes(bytes) {}
         enum class bit : u8 {
             InterruptDisable        = 10,
             FastBackToBackEnable    = 9,
@@ -46,13 +58,11 @@ namespace pci {
             return bytes & (1 << b_u8);
         }
 
-      private:
-            u16 bytes;
+        u16 bytes;
     };
 
     struct status_register {
       public:
-        status_register(u16 bytes) : bytes(bytes) {}
         enum class bit : u8 {
             DetectedParityError   = 15,
             SignaledSystemError   = 14,
@@ -81,13 +91,11 @@ namespace pci {
             return (bytes & mask) >> 9;
         }
 
-      private:
         u16 bytes;  
     };
 
     struct memory_space_bar {
       public:
-        memory_space_bar(u32 bytes) : bytes(bytes) {}
         auto get_address() -> u32 {
             return bytes & (~0xF);
         }
@@ -100,29 +108,33 @@ namespace pci {
             u32 constexpr mask = 0b11 << 1;
             return (bytes & mask) >> 1;
         }
-      private:
+
         u32 bytes;
     };
 
     struct io_space_bar {
       public:
-        io_space_bar(u32 bytes) : bytes(bytes) {}
         auto get_address() -> u32 {
             return bytes & (~0b11);
         }
-      private:
+
         u32 bytes;
     };
 
+    // State representing one PCI bus
     class PCIState {
       public:
         auto config_read_word(u8 bus, u8 slot,
-                             u8 func_number, u8 offset) -> u16;
+                             u8 func_number, RegisterOffset offset) -> u16;
         auto check_vendor(u8 bus, u8 slot) -> Nullable<u16, NO_VENDOR>;
         auto check_device_id(u8 const bus,
                              u8 const slot) -> Nullable<u16, NO_DEVICE>;
         auto check_header_type(u8 const bus,
                                u8 const slot) -> HeaderType;
+        auto get_status(u8 const bus, u8 const slot) -> Option<status_register>;
+        void set_status(u8 const bus, u8 const slot, status_register status);
       private:
+        // TODO(?): store header types and no longer assume Header Type 0 
+        // (normal devices; not bridges)
     };
 }; // namespace pci
