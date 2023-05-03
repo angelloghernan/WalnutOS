@@ -19,6 +19,64 @@ namespace pci {
         PciToCardBus = 0x2,
         MultiFunction,
     };
+
+    struct command_register {
+        enum class bit : u8 {
+            InterruptDisable        = 10,
+            FastBackToBackEnable    = 9,
+            SERRNoEnable            = 8,
+            ParityErrorResponse     = 6,
+            VGAPaletteSnoop         = 5,
+            MemoryWriteInvalidateEn = 4,
+            SpecialCycles           = 3,
+            BusMaster               = 2,
+            MemorySpace             = 1,
+            IOSpace                 = 0,
+        };
+
+        void set_bit(bit b) {
+            auto b_u8 = static_cast<u8>(b);
+            bytes |= 1 << b_u8;
+        }
+
+        auto get_bit(bit b) {
+            auto b_u8 = static_cast<u8>(b);
+            return bytes & (1 << b_u8);
+        }
+
+        u16 bytes;
+    };
+
+    struct status_register {
+        enum class bit : u8 {
+            DetectedParityError = 15,
+            SignaledSystemError = 14,
+            ReceivedMasterAbort = 13,
+            ReceivedTargetAbort = 12,
+            SignaledTargetAbort = 11,
+            MasterDataParityError = 8,
+            FastBackToBackCapable = 7,
+            Mhz66Capable = 5,
+            CapabilitiesList = 4,
+            InterruptStatus = 3,
+        };
+
+        void set_bit(bit b) {
+            auto b_u8 = static_cast<u8>(b);
+            bytes |= 1 << b_u8;
+        }
+
+        auto get_bit(bit b) -> bool {
+            auto b_u8 = static_cast<u8>(b);
+            return bytes & (1 << b_u8);
+        }
+
+        auto get_devsel_timing() -> u8 {
+            return (bytes & (0b11 << 9)) >> 9;
+        }
+        
+        u16 bytes;  
+    };
     
     class PCIState {
       public:
