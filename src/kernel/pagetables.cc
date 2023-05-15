@@ -32,9 +32,10 @@ namespace pagetables {
             
             // Need to zero out pages, or else weird bugs
             // start to occur 
-            char* ptr = new_pt.unwrap_as<char*>();
+            auto ptr = new_pt.unwrap_as<int*>();
             
-            for (auto i = 0; i < PAGESIZE; ++i) {
+            for (auto i = 0; i < PAGESIZE / sizeof(int); ++i) {
+                // We can assume PAGSIZE is divisible by 4 reasonably
                 *ptr = 0;
                 ++ptr;
             }
@@ -67,7 +68,7 @@ namespace pagetables {
     auto PageDirectory::va_to_pa(uptr const address) const -> Nullable<uptr, uptr(-1)> {
         usize const pd_idx = va_to_idx(address);
         auto const pt = _entries[pd_idx].get_pt();
-        match(pt) {
+        switch(pt.matches()) {
             case Some:
                 return pt.unwrap().va_to_pa(address);
             case None:
