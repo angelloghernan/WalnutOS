@@ -137,9 +137,19 @@ namespace pagetables {
         
         // Try to map [virtual_addr] to [physical_addr] with given [perm]issions.
         // If this operation fails, returns -1. Otherwise, returns 0.
-        [[nodiscard]] auto try_map(uptr const virtual_addr, 
+        [[nodiscard]] auto try_map(uptr const virtual_addr,
                                    uptr const physical_addr, u8 const perm) -> Result<Null, Null> {
-            return map(virtual_addr, physical_addr, perm);
+            auto maybe_pagetable = get_pt();
+            if (maybe_pagetable.none()) {
+                return Result<Null, Null>::Err({});
+            }
+
+            auto& pagetable = maybe_pagetable.unwrap();
+
+            auto pt_idx = pagetable.pt_idx(virtual_addr);
+            auto& pt_entry = pagetable[pt_idx];
+
+            return pt_entry.try_map(physical_addr, perm);
         }
 
 
