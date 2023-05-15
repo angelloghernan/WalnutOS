@@ -40,14 +40,22 @@ extern "C" void kernel_main() {
     idt.init();
     Idt::enable_interrupts();
 
-    pci::PCIState state;
-    auto result = state.check_vendor(0, 0);
-
-    if (result.none()) {
-        terminal.print_line("PCI has no output");
-    } else {
-        terminal.print_line("PCI output: ", result.unwrap_as<void*>(), " test ");
-        terminal.print_line(1);
+    // QEMU: 
+    // Slot 0 is Natoma (chipset)
+    // Slot 1 is ISA controller
+    // Slot 2 is QEMU Virtual Video Controller
+    // Slot 3 is Ethernet device
+    pci::PCIState pci_state;
+    for (auto i = 0; i < 10; ++i) {
+        for (auto j = 0; j < 10; ++j) {
+            auto result = pci_state.check_vendor(i, j);
+            if (result.some()) {
+                auto device_num = pci_state.check_device_id(i, j).unwrap_as<void*>();
+                terminal.print_line("PCI bus ", i, " has slot ", j, 
+                                    " with vendor ", result.unwrap_as<void*>(), 
+                                    " and device num ", device_num);
+            }
+        }
     }
 
     keyboard.enqueue_command(ResetAndSelfTest);
@@ -56,8 +64,6 @@ extern "C" void kernel_main() {
     bool left_shift_pressed = false;
     bool right_shift_pressed = false;
     bool extended = false;
-
-    Array array {1_u8, 2_u8, 3_u8};
 
     while (true) {
         using enum ps2::KeyboardResponse;
