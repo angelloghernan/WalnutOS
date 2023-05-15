@@ -10,7 +10,7 @@ CPP_SOURCES := $(wildcard ${SRC_FOLDER}/klib/*.cc ${SRC_FOLDER}/klib/*/*.cc ${SR
 OS_IMAGE = os-image.bin
 KERNEL_IMAGE = kernel.bin
 QEMU_FLAGS = -device piix4-ide,bus=pci.0,id=piix4-ide \
-             -drive file=obj/os-image.bin,if=none,format=raw,id=maindisk \
+             -drive file=${OBJ_FOLDER}/${OS_IMAGE},if=none,format=raw,id=maindisk \
              -device ide-hd,drive=maindisk,bus=piix4-ide.0 \
              -drive file=img/disk.img,if=none,format=raw,id=bootdisk \
              -device ide-hd,drive=bootdisk,bus=ide.0 \
@@ -78,13 +78,13 @@ run: object-file-structure ${OBJ_FOLDER}/${OS_IMAGE}
 		qemu-system-i386 ${QEMU_FLAGS}
 
 run-debug-int: object-file-structure ${OBJ_FOLDER}/${OS_IMAGE}
-		qemu-system-i386 -hda ${OBJ_FOLDER}/${OS_IMAGE} ${QEMU_FLAGS} -d int -no-reboot -no-shutdown
+		qemu-system-i386 ${QEMU_FLAGS} -d int -no-reboot -no-shutdown
 
 run-console: object-file-structure ${OBJ_FOLDER}/${OS_IMAGE}
-		qemu-system-i386 -hda ${OBJ_FOLDER}/${OS_IMAGE} ${QEMU_FLAGS} -display curses
+		qemu-system-i386 ${QEMU_FLAGS} -display curses
 
 gdb: ${DEBUG_FOLDER}/${OS_IMAGE} ${DEBUG_FOLDER}/kernel.elf
-		qemu-system-i386 -hda ${OBJ_FOLDER}/${OS_IMAGE} ${QEMU_FLAGS} -S -s -no-reboot -no-shutdown & \
+		qemu-system-i386 ${QEMU_FLAGS} -S -s -no-reboot -no-shutdown & \
 		${GDB}
 
 test-%: src/test/%.cc
