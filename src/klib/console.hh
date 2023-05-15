@@ -85,13 +85,13 @@ namespace console {
             // Upper two bits are reserved
             auto existing = ports::inb(Console::CURSOR_CONTROL) & 0xC;
             // Enable cursor (bit 5 set to 0) and set start position to 0
-            ports::outb(Console::CURSOR_CONTROL, existing | 0);
+            ports::outb(Console::CURSOR_CONTROL, existing);
 
             ports::outb(Console::SET_REGISTER, Console::CURSOR_END);
             // Upper three bits are reserved for cursor end
             existing = ports::inb(Console::CURSOR_CONTROL) & 0xE;
             // Set end position to 15 (take up entire block)
-            ports::outb(Console::CURSOR_CONTROL, existing | 0);
+            ports::outb(Console::CURSOR_CONTROL, existing);
         }
 
         void row_up() {

@@ -5,7 +5,7 @@
 #include "../klib/pagetables.hh"
 #include "../klib/assert.hh"
 
-static alloc::BuddyAllocator allocator;
+alloc::BuddyAllocator simple_allocator;
 
 extern "C" void kernel_main() {
     using console::Color;
@@ -20,15 +20,15 @@ extern "C" void kernel_main() {
         auto num_blocks = 0;
         terminal.print_line("Expecting ", i8(NUM_BLOCKS / alloc::round_up_pow2(i)), " block(s)");
         for (i8 j = 0; j < i8(NUM_BLOCKS / (alloc::round_up_pow2(i))); ++j) {
-            auto block = allocator.kalloc(PAGESIZE * i);
-            assert(block.some(), "Allocator returned nothing");
+            auto block = simple_allocator.kalloc(PAGESIZE * i);
+            assert(block.some(), "simple_allocator returned nothing");
             arr[num_blocks] = block.unwrap();
-            terminal.print_line("Allocator returned: ", block.unwrap_as<void*>());
+            terminal.print_line("simple_allocator returned: ", block.unwrap_as<void*>());
             ++num_blocks;
         }
 
         for (i8 j = 0; j < num_blocks; ++j) {
-            allocator.kfree(arr[j]);
+            simple_allocator.kfree(arr[j]);
         }
 
         terminal.print_line("Passed loop ", i);

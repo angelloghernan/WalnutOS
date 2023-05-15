@@ -5,7 +5,7 @@
 using namespace pci;
 
 auto PCIState::config_read_word(u8 const bus, u8 const slot,
-                                u8 const func_number, RegisterOffset const offset) -> u16 {
+                                u8 const func_number, Register const offset) -> u16 {
     auto const ext_bus = u32(bus);
     auto const ext_slot = u32(slot);
     auto const ext_func = u32(func_number);
@@ -34,18 +34,18 @@ auto PCIState::config_read_word(u8 const bus, u8 const slot,
 
 auto PCIState::check_vendor(u8 const bus, 
                             u8 const slot) -> Nullable<u16, NO_VENDOR> {
-    return config_read_word(bus, slot, 0, RegisterOffset::VendorId);
+    return config_read_word(bus, slot, 0, Register::VendorId);
 }
 
 auto PCIState::check_device_id(u8 const bus,
                                u8 const slot) -> Nullable<u16, NO_DEVICE> {
-    return config_read_word(bus, slot, 0, RegisterOffset::DeviceId);
+    return config_read_word(bus, slot, 0, Register::DeviceId);
 }
 
 auto PCIState::check_header_type(u8 const bus,
                                  u8 const slot) -> HeaderType {
-    auto byte = config_read_word(bus, slot, 0, 
-                                 RegisterOffset::HeaderType) & 0xFF;
+    auto const byte = config_read_word(bus, slot, 0, 
+                                       Register::HeaderType) & 0xFF;
     if (byte & 0x10000000) {
         return HeaderType::MultiFunction;
     }
@@ -54,7 +54,7 @@ auto PCIState::check_header_type(u8 const bus,
 }
 
 auto PCIState::get_status(u8 const bus, u8 const slot) -> Option<status_register> {
-    auto bytes = config_read_word(bus, slot, 0, RegisterOffset::Status);
+    auto const bytes = config_read_word(bus, slot, 0, Register::Status);
     if (bytes == 0xFFFF) {
         return {};
     }

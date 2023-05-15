@@ -1,6 +1,10 @@
 #pragma once
 
 // A version of Option that uses in-band data to determine whether it is valid.
+//
+// A Nullable type generally will not cause a fault or undefined behavior when merely unwrapped,
+// however, it is generally used to indicate when unwrapping an object and treating it as valid 
+// data would result in a violation of an invariant, which may then lead to undefined behavior.
 template<typename T, T NullValue>
 class Nullable {
   public:

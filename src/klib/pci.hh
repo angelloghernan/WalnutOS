@@ -10,9 +10,9 @@ namespace pci {
     auto constexpr static NO_VENDOR = 0xFFFF_u16;
     auto constexpr static NO_DEVICE = 0xFFFF_u16;
 
-    enum class RegisterOffset : u8 {
-        DeviceId      = 0x0,
-        VendorId      = 0x2,
+    enum class Register : u8 {
+        VendorId      = 0x0,
+        DeviceId      = 0x2,
         Command       = 0x4,
         Status        = 0x6,
         RevisionId    = 0x8,
@@ -125,7 +125,7 @@ namespace pci {
     class PCIState {
       public:
         auto config_read_word(u8 bus, u8 slot,
-                             u8 func_number, RegisterOffset offset) -> u16;
+                             u8 func_number, Register offset) -> u16;
         auto check_vendor(u8 bus, u8 slot) -> Nullable<u16, NO_VENDOR>;
         auto check_device_id(u8 const bus,
                              u8 const slot) -> Nullable<u16, NO_DEVICE>;

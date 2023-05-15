@@ -12,7 +12,7 @@ typedef int16_t i16;
 typedef int32_t i32;
 
 typedef size_t usize;
-typedef int32_t isize; 
+typedef int32_t isize;
 
 // This is meant as a low-level alternative to void*.
 // Works exactly as expected except that Option<uptr> has 0 == None.
