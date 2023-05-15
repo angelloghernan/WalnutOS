@@ -125,7 +125,9 @@ namespace pci {
     class PCIState {
       public:
         auto config_read_word(u8 bus, u8 slot,
-                             u8 func_number, Register offset) -> u16;
+                              u8 func_number, Register offset) -> u16;
+        auto config_read_byte(u8 const bus, u8 const slot,
+                              u8 const func_number, Register const offset) -> u8;
         auto check_vendor(u8 bus, u8 slot) -> Nullable<u16, NO_VENDOR>;
         auto check_device_id(u8 const bus,
                              u8 const slot) -> Nullable<u16, NO_DEVICE>;

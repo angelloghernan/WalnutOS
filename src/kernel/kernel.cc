@@ -44,16 +44,22 @@ extern "C" void kernel_main() {
     // Slot 0 is Natoma (chipset)
     // Slot 1 is ISA controller
     // Slot 2 is QEMU Virtual Video Controller
-    // Slot 3 is Ethernet device
+    // Slot 3 is an Ethernet device
+    // Slot 4 should be the PCI IDE controller
     pci::PCIState pci_state;
     for (auto i = 0; i < 10; ++i) {
         for (auto j = 0; j < 10; ++j) {
-            auto result = pci_state.check_vendor(i, j);
-            if (result.some()) {
-                auto device_num = pci_state.check_device_id(i, j).unwrap_as<void*>();
-                terminal.print_line("PCI bus ", i, " has slot ", j, 
-                                    " with vendor ", result.unwrap_as<void*>(), 
-                                    " and device num ", device_num);
+            auto vendor = pci_state.check_vendor(i, j);
+            if (vendor.some()) {
+                auto class_code = pci_state.config_read_byte(i, j, 0, pci::Register::ClassCode);
+                auto subclass = pci_state.config_read_byte(i, j, 0, pci::Register::Subclass);
+                if (class_code == 0x01 && subclass == 0x01) {
+                    // Device is an IDE controller, which is what we were looking for
+                    terminal.print_line(i, " ", j, " is the hard drive");   
+                    break;
+                } else {
+                    terminal.print_line(i, " " , j, " has class ", (void*)class_code, " and subclass ", (void*)subclass);
+                }
             }
         }
     }
@@ -74,7 +80,7 @@ extern "C" void kernel_main() {
             auto key = [&]{
                 if (!left_shift_pressed && !right_shift_pressed) {
                     return Ps2Keyboard::response_to_char(key_code);
-               } else {
+                } else {
                     return Ps2Keyboard::response_to_shifted_char(key_code);
                 }
             }();

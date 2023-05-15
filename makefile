@@ -1,6 +1,8 @@
 # $@ = target file
 # $< = first dependency
 # $^ = all dependencies
+# disk:
+#    qemu-img create -f raw img/disk.img 10M
 
 OBJ_FOLDER = obj
 SRC_FOLDER = src
@@ -66,7 +68,7 @@ ${DEBUG_FOLDER}/${OS_IMAGE}: ${SRC_FOLDER}/boot/boot.bin ${DEBUG_FOLDER}/${KERNE
 		cat $^ > $@
 
 object-file-structure:
-		mkdir ${OBJ_FOLDER}; find ${SRC_FOLDER} -type d -exec mkdir -p -- ${OBJ_FOLDER}/{} \;
+	mkdir ${OBJ_FOLDER}; find ${SRC_FOLDER} -type d -exec mkdir -p -- ${OBJ_FOLDER}/{} \;
 
 debug-file-structure:
 	  mkdir ${DEBUG_FOLDER}; find ${SRC_FOLDER} -type d -exec mkdir -p -- ${DEBUG_FOLDER}/{} \;

@@ -32,6 +32,18 @@ auto PCIState::config_read_word(u8 const bus, u8 const slot,
     return ret;
 }
 
+auto PCIState::config_read_byte(u8 const bus, u8 const slot,
+                                u8 const func_number, Register const offset) -> u8 {
+    auto word = config_read_word(bus, slot, func_number, offset);
+    auto offset_u8 = static_cast<u8>(offset);
+
+    if (offset_u8 & 0b1) {
+        return word >> 8;
+    } else {
+        return word & 0xFF;
+    }
+}
+
 auto PCIState::check_vendor(u8 const bus, 
                             u8 const slot) -> Nullable<u16, NO_VENDOR> {
     return config_read_word(bus, slot, 0, Register::VendorId);
