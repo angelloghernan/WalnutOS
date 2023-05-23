@@ -11,19 +11,25 @@ namespace pci {
     auto constexpr static NO_DEVICE = 0xFFFF_u16;
 
     enum class Register : u8 {
-        VendorId      = 0x0,
-        DeviceId      = 0x2,
-        Command       = 0x4,
-        Status        = 0x6,
-        RevisionId    = 0x8,
-        ProgIF        = 0x9,
-        Subclass      = 0xA,
-        ClassCode     = 0xB,
-        CacheLineSize = 0xC,
-        LatencyTimer  = 0xD,
-        HeaderType    = 0xE,
-        BIST          = 0xF,
-    };   
+        VendorId       = 0x0,
+        DeviceId       = 0x2,
+        Command        = 0x4,
+        Status         = 0x6,
+        RevisionId     = 0x8,
+        ProgIF         = 0x9,
+        Subclass       = 0xA,
+        ClassCode      = 0xB,
+        CacheLineSize  = 0xC,
+        LatencyTimer   = 0xD,
+        HeaderType     = 0xE,
+        BIST           = 0xF,
+        GDBaseAddress0 = 0x10,
+        GDBaseAddress1 = 0x14,
+        GDBaseAddress2 = 0x18,
+        GDBaseAddress3 = 0x1C,
+        GDBaseAddress4 = 0x20,
+        GDBaseAddress5 = 0x24,
+    };
 
     enum class HeaderType : u8 {
         GeneralDevice = 0x0,

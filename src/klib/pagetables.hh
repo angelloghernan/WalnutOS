@@ -5,13 +5,13 @@
 #include "nullable.hh"
 #include "result.hh"
 
-static auto constexpr const PAGESIZE = 4096;
-static auto constexpr const PTE_P   = 0b001;
-static auto constexpr const PTE_W   = 0b010;
-static auto constexpr const PTE_U   = 0b100;
-static auto constexpr const PTE_PWU = PTE_P | PTE_W | PTE_U;
-static auto constexpr const PTE_PW  = PTE_P | PTE_W;
-static auto constexpr const PTE_PU  = PTE_P | PTE_U;
+auto static constexpr PAGESIZE = 4096;
+auto static constexpr PTE_P   = 0b001;
+auto static constexpr PTE_W   = 0b010;
+auto static constexpr PTE_U   = 0b100;
+auto static constexpr PTE_PWU = PTE_P | PTE_W | PTE_U;
+auto static constexpr PTE_PW  = PTE_P | PTE_W;
+auto static constexpr PTE_PU  = PTE_P | PTE_U;
 
 namespace pagetables {
     void enable_paging();
