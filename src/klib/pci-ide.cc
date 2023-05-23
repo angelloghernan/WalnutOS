@@ -44,8 +44,32 @@ void IDEController::detect_drives() {
             interrupts::sleep(1);
 
             if (read(channel, Register::Status) == 0) {
+                terminal.print_line("Drive is inactive");
                 continue;
-            }   
+            }
+
+            bool had_error = false;
+
+            while (true) {
+                auto status = read(channel, Register::Status);
+                if (status & static_cast<u8>(Status::Error)) {
+                    terminal.print_line("Drive i: ", i, " j: ", j, " had an error");
+                    had_error = true;
+                    break;
+                }
+
+                auto busy = status & static_cast<u8>(Status::Busy);
+                auto ready = status & static_cast<u8>(Status::DataRequestReady);
+
+                if (!busy && ready) {
+                    terminal.print_line("Drive is ready");
+                    break;
+                }
+            }
+
+            if (!had_error) {
+                // ...
+            }
         }
     }
 }

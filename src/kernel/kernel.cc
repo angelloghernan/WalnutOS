@@ -12,6 +12,7 @@
 #include "../klib/ps2/keyboard.hh"
 #include "../klib/circular_buffer.hh"
 #include "../klib/pci.hh"
+#include "../klib/pci-ide.hh"
 
 using pagetables::PageDirectory;
 using pagetables::PageTable;
@@ -39,6 +40,8 @@ extern "C" void kernel_main() {
 
     idt.init();
     Idt::enable_interrupts();
+
+    pci::IDEController ide_controller;
 
     // QEMU: 
     // Slot 0 is Natoma (chipset)

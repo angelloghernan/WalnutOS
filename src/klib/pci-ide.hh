@@ -98,8 +98,8 @@ namespace pci {
         };
 
         enum class ChannelType : u8 {
-            Primary   = 1,
-            Secondary = 2,
+            Primary   = 0x0,
+            Secondary = 0x1,
         };
 
         enum class IdentityField : u8 {
