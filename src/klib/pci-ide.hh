@@ -6,9 +6,9 @@ namespace pci {
     class IDEController {
       public:
         struct channel_register {
-            u8 io_base;
-            u8 control;
-            u8 bus_master_ide;
+            u16 io_base;
+            u16 control;
+            u16 bus_master_ide;
             bool no_interrupts;
         };
 
@@ -117,9 +117,9 @@ namespace pci {
         };
 
         enum class ControlBits : u8 {
-            HighOrderByte   = 0b10000000, // 1 = Use 48-LBA addressing
-            SoftwareReset   = 0b00100000, // 1 = Reset the device
-            InterruptEnable = 0b00010000, // 1 = Disable interrupts
+            HighOrderByte    = 0b10000000, // 1 = Use 48-LBA addressing
+            SoftwareReset    = 0b00000100, // 1 = Reset the device
+            InterruptDisable = 0b00000010, // 1 = Disable interrupts
         };
 
         struct device {
@@ -140,6 +140,10 @@ namespace pci {
 
         void enable_hob(ChannelType channel_type);
         void disable_hob(ChannelType channel_type);
+
+        void detect_drives();
+
+        IDEController();
         
       private:
         Array<channel_register, 2> channel_registers;
