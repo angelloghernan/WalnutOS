@@ -31,6 +31,15 @@ namespace ports {
         return ret;
     }
 
+    void insw(u16 port, uptr buffer, u32 count) {
+        asm volatile (
+            "rep insw"
+            : "+D"(buffer), "+c"(count)
+            : "d"(port)
+            : "memory"
+        );
+    }
+
     void io_wait() {
         outb(0x80, 0);
     }
