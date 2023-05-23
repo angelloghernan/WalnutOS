@@ -1,9 +1,17 @@
 #pragma once
 #include "int.hh"
+#include "array.hh"
 
 namespace pci {
     class IDEController {
       public:
+        struct channel_register {
+            u8 io_base;
+            u8 control;
+            u8 bus_master_ide;
+            bool no_interrupts;
+        };
+
         enum class Mode : u8 {
             Native,
             Compatibility,
@@ -67,6 +75,13 @@ namespace pci {
             DevAddress  = 0x0D,
         };
 
+        enum class RegisterType : u8 {
+            HighLevel,
+            LowLevel,
+            DeviceControlOrStatus,
+            BusMasterIDE,
+        };
+
         enum class ATAPICommand : u8 {
             Read = 0xA8,
             Eject = 0x1B,
@@ -82,6 +97,11 @@ namespace pci {
             Slave  = 0x1,
         };
 
+        enum class ChannelType : u8 {
+            Primary   = 1,
+            Secondary = 2,
+        };
+
         enum class IdentityField : u8 {
             DeviceType     = 0,
             Cylinders      = 2,
@@ -95,10 +115,37 @@ namespace pci {
             CommandSets    = 164,
             MaxLBAExt      = 200,
         };
+
+        enum class ControlBits : u8 {
+            HighOrderByte   = 0b10000000, // 1 = Use 48-LBA addressing
+            SoftwareReset   = 0b00100000, // 1 = Reset the device
+            InterruptEnable = 0b00010000, // 1 = Disable interrupts
+        };
+
+        struct device {
+            u32             size;
+            Array<char, 41> model;
+            ChannelType     channel_type;
+            ControlType     control_type;
+            InterfaceType   interface_type;
+            bool            reserved;
+            u8              drive_signature;
+            u8              capabilities;
+        };
+
+        auto read(ChannelType channel, Register reg) -> u8;
+        void write(ChannelType channel, Register reg, u8 data);
         
       private:
+        Array<channel_register, 2> channel_registers;
+        Array<device, 4> devices;
+        Array<u8, 2048> buffer;
+        Array<u8, 12> atapi_packet;
+        volatile bool irq_invoked;
         u8 bus;
         u8 slot;
         Mode mode;
+        
+        auto register_type(Register reg) -> RegisterType;
     };
 };
