@@ -11,6 +11,7 @@
 using namespace ps2;
 
 Ps2Keyboard keyboard;
+usize timer = 0;
 
 void end_of_interrupt(u8 vector_code) {
     if (vector_code - 0x20 >= 8) {
@@ -21,6 +22,19 @@ void end_of_interrupt(u8 vector_code) {
 
 extern "C" void exception_handler(regstate& regs) {
     end_of_interrupt(regs.vector_code);
+}
+
+extern "C" void timer_handler(regstate& regs) {
+    ++timer;
+    end_of_interrupt(regs.vector_code);
+}
+
+void interrupts::sleep(usize miliseconds) {
+    auto time = timer;
+    while (timer < time + miliseconds) {
+        // TODO: do something other than waiting
+        ports::io_wait();
+    }
 }
 
 extern "C" void keyboard_handler() {

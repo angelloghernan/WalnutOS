@@ -1,5 +1,6 @@
 #include "pci-ide.hh"
 #include "ports.hh"
+#include "idt.hh"
 
 using namespace pci;
 using enum IDEController::ChannelType;
@@ -14,7 +15,8 @@ IDEController::IDEController() {
     channel_registers[1].control = 0x376;
     channel_registers[1].bus_master_ide = 8;
 
-    auto constexpr en_interrupt = static_cast<u8>(ControlBits::InterruptDisable);
+    auto constexpr en_interrupt 
+        = static_cast<u8>(ControlBits::InterruptDisable);
 
     write(ChannelType::Primary, Register::Control, en_interrupt);
     write(ChannelType::Secondary, Register::Control, en_interrupt);
@@ -34,13 +36,13 @@ void IDEController::detect_drives() {
 
             write(channel, Register::HDDevSel, select_master);
 
-            // TODO: write an OS sleep function...
+            interrupts::sleep(1);
 
             write(channel, Register::Command, 
                   static_cast<u8>(Command::Identify));
 
-            // TODO: write an OS sleep function...
-            
+            interrupts::sleep(1);
+
             if (read(channel, Register::Status) == 0) {
                 continue;
             }   

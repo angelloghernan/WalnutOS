@@ -3,6 +3,10 @@
 #include "array.hh"
 #include "ps2/keyboard.hh"
 
+namespace interrupts {
+    void sleep(usize miliseconds);
+};
+
 class alignas(8) IdtEntry {
   public:
     IdtEntry() : _isr_low(0), _kernel_cs(0), _reserved(0), _attributes(0), _isr_high(0) {}
@@ -124,4 +128,4 @@ public:
 private:
 } __attribute__((packed));
 */
-
+extern usize timer;
