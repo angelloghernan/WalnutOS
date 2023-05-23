@@ -135,6 +135,11 @@ namespace pci {
 
         auto read(ChannelType channel, Register reg) -> u8;
         void write(ChannelType channel, Register reg, u8 data);
+        void read_buffer(ChannelType channel, Register reg, 
+                         uptr buffer, u32 count);
+
+        void enable_hob(ChannelType channel_type);
+        void disable_hob(ChannelType channel_type);
         
       private:
         Array<channel_register, 2> channel_registers;
