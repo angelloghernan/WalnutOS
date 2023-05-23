@@ -53,12 +53,14 @@ extern "C" void kernel_main() {
             if (vendor.some()) {
                 auto class_code = pci_state.config_read_byte(i, j, 0, pci::Register::ClassCode);
                 auto subclass = pci_state.config_read_byte(i, j, 0, pci::Register::Subclass);
+                auto prog_if = pci_state.config_read_byte(i, j, 0, pci::Register::ProgIF);
                 if (class_code == 0x01 && subclass == 0x01) {
                     // Device is an IDE controller, which is what we were looking for
                     terminal.print_line(i, " ", j, " is the hard drive");   
                     break;
                 } else {
                     terminal.print_line(i, " " , j, " has class ", (void*)class_code, " and subclass ", (void*)subclass);
+                    terminal.print_line("Prog IF is ", (void*)prog_if);
                 }
             }
         }
