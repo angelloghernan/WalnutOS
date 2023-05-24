@@ -7,8 +7,6 @@ IO_WAIT       equ 0x80
 ICW_8086      equ 0x01
 
 [org 0x7c00] ; bootloader offset
-    xor ax, ax
-    mov es, ax
     mov bp, 0x9000 ; set the stack
     mov sp, bp
 
@@ -54,8 +52,10 @@ io_wait:
 
 [bits 16]
 load_kernel:
+    xor ax, ax
+    mov es, ax
     mov bx, KERNEL_OFFSET
-    mov al, 70
+    mov al, 128
     call disk_load
     ret
 

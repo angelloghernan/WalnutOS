@@ -7,22 +7,31 @@ BIOS_SERVICES_DISK equ 0x13
 ; Return number of sectors read in 'al'
 disk_load:
   push ax
-  mov ah, READ_DISK
   mov cl, 0x02 ; Read from sector 2 on disk
   mov ch, 0x00 ; Read from cylinder 1 on disk
   ; dl -- drive number, set by BIOS
   mov dh, 0x00 ; Read from head 0
+  continue:
+  mov ah, READ_DISK
+  mov al, 128
   int BIOS_SERVICES_DISK
-  pop dx
   sub dl, al
   ; jc disk_error
   je end
+  inc ch
+  mov cl, 0x00
+  mov ax, es
+  inc ax
+  mov es, ax
+  mov bx, 0x00
+  jmp continue
   ; jmp sector_error
   ; mov dl, al
   ; pop dx
   ; jmp disk_load
 
   end:
+  pop dx
   ret
 
 disk_error:

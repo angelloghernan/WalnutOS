@@ -11,11 +11,8 @@ DEFAULT_ENTRY_FILE = src/kernel/kernel.cc
 CPP_SOURCES := $(wildcard ${SRC_FOLDER}/klib/*.cc ${SRC_FOLDER}/klib/*/*.cc ${SRC_FOLDER}/kernel/*.cc)
 OS_IMAGE = os-image.bin
 KERNEL_IMAGE = kernel.bin
-QEMU_FLAGS = -device piix4-ide,bus=pci.0,id=piix4-ide \
-             -drive file=${OBJ_FOLDER}/${OS_IMAGE},if=none,format=raw,id=maindisk \
-             -device ide-hd,drive=maindisk,bus=piix4-ide.0 \
-             -drive file=img/disk.img,if=none,format=raw,id=bootdisk \
-             -device ide-hd,drive=bootdisk,bus=ide.0 \
+
+KERNEL_IMAGE_DIR = isodir/boot/${KERNEL_IMAGE}
 
 ifdef TEST-FILE
 	CPP_SOURCES := $(filter-out $(DEFAULT_ENTRY_FILE), $(CPP_SOURCES))
@@ -24,6 +21,14 @@ ifdef TEST-FILE
 	KERNEL_IMAGE := test-kernel-image.bin
 endif
 
+QEMU_FLAGS = -device piix4-ide,bus=pci.0,id=piix4-ide \
+	-drive file=${OBJ_FOLDER}/${OS_IMAGE},if=none,format=raw,id=maindisk \
+	-device ide-hd,drive=maindisk,bus=piix4-ide.0 \
+	-drive file=img/disk.img,if=none,format=raw,id=bootdisk \
+	-device ide-hd,drive=bootdisk,bus=ide.0 \
+
+BOOT_FOLDER = grub
+
 HEADERS = $(wildcard ${SRC_FOLDER}/kernel/*.hh ${SRC_FOLDER}/klib/*.hh ${SRC_FOLDER}/klib/*/*.hh)
 OBJ = ${CPP_SOURCES:%.cc=${OBJ_FOLDER}/%.o} src/klib/idt.o
 DEBUG_OBJ = ${CPP_SOURCES:%.cc=${DEBUG_FOLDER}/%.o} src/klib/idt.o
@@ -31,14 +36,14 @@ HEADER_SOURCES = ${CPP_SOURCES:%.cc=%.d}
 
 CC = i686-elf-g++ 
 CXXFLAGS += -g -std=c++20 -fmodules-ts -ffreestanding -nostdlib -lgcc -lsupc++ -Wall -flto -ffat-lto-objects \
-         				   -fno-threadsafe-statics -fno-stack-protector -fno-exceptions
+					   -fno-threadsafe-statics -fno-stack-protector -fno-exceptions
 DEBUG_FLAGS = -DDEBUG -O1
 RELEASE_FLAGS = -O3
 GDB = gdb
 
-CRTI_OBJ = ${SRC_FOLDER}/boot/crti.o
-CRTN_OBJ = ${SRC_FOLDER}/boot/crtn.o
-CRT0_OBJ = ${SRC_FOLDER}/boot/crt0.o
+CRTI_OBJ = ${SRC_FOLDER}/${BOOT_FOLDER}/crti.o
+CRTN_OBJ = ${SRC_FOLDER}/${BOOT_FOLDER}/crtn.o
+CRT0_OBJ = ${SRC_FOLDER}/${BOOT_FOLDER}/crt0.o
 CRTBEGIN_OBJ:=$(shell $(CC) $(CXXFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ:=$(shell $(CC) $(CXXFLAGS) -print-file-name=crtend.o)
 OBJ_LINK_LIST:= $(CRT0_OBJ) $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJ) $(CRTEND_OBJ) $(CRTN_OBJ)
@@ -46,13 +51,16 @@ DEBUG_OBJ_LINK_LIST:= $(CRT0_OBJ) $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(DEBUG_OBJ) $(CRT
 
 all: run
 
-${OBJ_FOLDER}/${OS_IMAGE}: ${SRC_FOLDER}/boot/boot.bin ${OBJ_FOLDER}/${KERNEL_IMAGE}
-		cat $^ > $@
+# ${OBJ_FOLDER}/${OS_IMAGE}: ${SRC_FOLDER}/boot/boot.bin ${OBJ_FOLDER}/${KERNEL_IMAGE}
+# cat $^ > $@
 
-${OBJ_FOLDER}/${KERNEL_IMAGE}: ${OBJ_LINK_LIST}
+${OBJ_FOLDER}/${OS_IMAGE}: ${SRC_FOLDER}/${BOOT_FOLDER}/crt0.o ${KERNEL_IMAGE_DIR}
+	grub-mkrescue -o ${OBJ_FOLDER}/${OS_IMAGE} isodir
+
+${KERNEL_IMAGE_DIR}: ${OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin  -o $@ --script=ldconfig.ld $^ --oformat binary
 
-${DEBUG_FOLDER}/${KERNEL_IMAGE}: ${DEBUG_OBJ_LINK_LIST}
+${DEBUG_FOLDER}/${KERNEL_IMAGE_DIR}: ${DEBUG_OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin  -o $@ --script=ldconfig.ld $^ --oformat binary
 
 ${OBJ_FOLDER}/kernel.elf: ${OBJ_LINK_LIST}
