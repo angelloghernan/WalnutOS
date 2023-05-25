@@ -29,6 +29,7 @@ section .text
 global _start
 _start:
     mov esp, stack_top
+    cli
     call _init
     call kernel_main
     call _fini

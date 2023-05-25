@@ -5,7 +5,11 @@ SECTIONS
         *(.multiboot)
         *(.text) 
   }
-  .rodata : ALIGN(4K) {
+
+  .init : { *(.init) }
+  .fini : { *(.fini) }
+
+  .rodata BLOCK(4K) : ALIGN(4K) {
         start_ctors = .;
         *(SORT(.ctors*))
         end_ctors = .;
@@ -17,14 +21,13 @@ SECTIONS
         *(.rodata*)
         *(.gnu.linkonce.r*)
   }
-  .data BLOCK(4K) : ALIGN(4K) { 
+  .data BLOCK(4K) : ALIGN(4K) {
         *(.data) 
         *(.gnu.linkonce.r*)
   }
+
   .bss BLOCK(4K) : ALIGN(4K) {
         *(COMMON)
         *(.bss)
   }
-  .init : { *(.init) }
-  .fini : { *(.fini) }
 }

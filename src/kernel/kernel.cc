@@ -26,6 +26,7 @@ static PageTable io_pt;
 alloc::BuddyAllocator simple_allocator;
 
 Idt idt;
+Idtr idtr;
 extern void* isr_stub_table[];
 extern Ps2Keyboard keyboard;
 
@@ -34,14 +35,18 @@ extern "C" void kernel_main() {
     terminal.clear();
     terminal.print_line("Press F1 to exit.");
     setup_pagedir();
+    terminal.print_line("Passed pagedir setup");
 
     // Remap master to 0x20, slave to 0x28
     Pic::remap(0x20, 0x28);
 
     idt.init();
-    Idt::enable_interrupts();
+    terminal.print_line("Passed pagedir setup");
 
-    pci::IDEController ide_controller;
+    // Idt::enable_interrupts();
+    __asm__ volatile ("sti");
+
+    // pci::IDEController ide_controller;
 
     // QEMU: 
     // Slot 0 is Natoma (chipset)
@@ -68,6 +73,8 @@ extern "C" void kernel_main() {
             }
         }
     }
+
+    terminal.print_line("Got past");
 
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);
@@ -162,10 +169,12 @@ void setup_pagedir() {
 }
 
 void Idt::init() {
-    static Idtr idtr;
-    idtr.set_base(reinterpret_cast<usize>(&_idt[0]));
+    idtr.set_base(reinterpret_cast<uptr>(&_idt[0]));
     idtr.set_limit(sizeof(IdtEntry) * 63);
     for (auto i = 0; i < 64; ++i) {
+        if (i == 0x20) {
+            terminal.print_line("Stub 0x20: ", isr_stub_table[i]);
+        }
         _idt[i].set(isr_stub_table[i], 0x8E);
     }
 

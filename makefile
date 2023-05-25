@@ -58,13 +58,13 @@ ${OBJ_FOLDER}/${OS_IMAGE}: ${SRC_FOLDER}/${BOOT_FOLDER}/crt0.o ${KERNEL_IMAGE_DI
 	grub-mkrescue -o ${OBJ_FOLDER}/${OS_IMAGE} isodir
 
 ${KERNEL_IMAGE_DIR}: ${OBJ_LINK_LIST}
-		i686-elf-ld -flto -use-linker-plugin  -o $@ --script=ldconfig.ld $^ --oformat binary
+		i686-elf-ld -flto -use-linker-plugin  -o $@ --script=ldconfig.ld $^
 
 ${DEBUG_FOLDER}/${KERNEL_IMAGE_DIR}: ${DEBUG_OBJ_LINK_LIST}
-		i686-elf-ld -flto -use-linker-plugin  -o $@ --script=ldconfig.ld $^ --oformat binary
+		i686-elf-ld -flto -use-linker-plugin  -o $@ --script=ldconfig.ld $^
 
 ${OBJ_FOLDER}/kernel.elf: ${OBJ_LINK_LIST}
-		i686-elf-ld -flto -use-linker-plugin -o $@ --script=ldconfig.ld $^ 
+		i686-elf-ld -flto -use-linker-plugin -o $@ --script=ldconfig.ld $^
 
 ${DEBUG_FOLDER}/kernel.elf: ${DEBUG_OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin -o $@ --script=ldconfig.ld $^ 
@@ -93,7 +93,7 @@ run-debug-int: object-file-structure ${OBJ_FOLDER}/${OS_IMAGE}
 run-console: object-file-structure ${OBJ_FOLDER}/${OS_IMAGE}
 		qemu-system-i386 ${QEMU_FLAGS} -display curses
 
-gdb: ${DEBUG_FOLDER}/${OS_IMAGE} ${DEBUG_FOLDER}/kernel.elf
+gdb: ${OBJ_FOLDER}/${OS_IMAGE} ${OBJ_FOLDER}/kernel.elf
 		qemu-system-i386 ${QEMU_FLAGS} -S -s -no-reboot -no-shutdown & \
 		${GDB}
 

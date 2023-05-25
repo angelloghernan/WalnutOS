@@ -14,7 +14,7 @@ class alignas(8) IdtEntry {
         auto handler_address = reinterpret_cast<uptr>(handler);
         _isr_low = handler_address & 0xFFFF;
         // Kernel code selector is 0x08 offset (first after null)
-        _kernel_cs = 0x08;
+        _kernel_cs = 0x10;
         _reserved = 0;
         _attributes = flags;
         _isr_high = (handler_address >> 16) & 0xFFFF;
