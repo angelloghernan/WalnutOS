@@ -34,7 +34,7 @@ namespace pagetables {
             // start to occur 
             auto ptr = new_pt.unwrap_as<int*>();
             
-            for (auto i = 0; i < PAGESIZE / sizeof(int); ++i) {
+            for (u16 i = 0; i < PAGESIZE / sizeof(int); ++i) {
                 // We can assume PAGSIZE is divisible by 4 reasonably
                 *ptr = 0;
                 ++ptr;

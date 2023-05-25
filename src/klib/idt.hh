@@ -10,11 +10,11 @@ namespace interrupts {
 class alignas(8) IdtEntry {
   public:
     IdtEntry() : _isr_low(0), _kernel_cs(0), _reserved(0), _attributes(0), _isr_high(0) {}
-    void set(void* handler, u8 flags) {
+    void set(void* handler, u8 flags, u16 code_segment) {
         auto handler_address = reinterpret_cast<uptr>(handler);
         _isr_low = handler_address & 0xFFFF;
         // Kernel code selector is 0x08 offset (first after null)
-        _kernel_cs = 0x10;
+        _kernel_cs = code_segment;
         _reserved = 0;
         _attributes = flags;
         _isr_high = (handler_address >> 16) & 0xFFFF;
@@ -52,8 +52,8 @@ class alignas(16) Idt {
     static usize const MAX_NUM_DESCRIPTORS = 256;
     static usize const NUM_RESERVED        = 32;
 
-    inline void idt_set_descriptor(u8 vector, void* handler, u8 flags) {
-        _idt[vector].set(handler, flags);
+    inline void idt_set_descriptor(u8 vector, void* handler, u8 flags, u16 code_segment) {
+        _idt[vector].set(handler, flags, code_segment);
     }
 
     inline static void enable_interrupts() {

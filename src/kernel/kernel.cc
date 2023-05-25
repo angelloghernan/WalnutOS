@@ -43,10 +43,9 @@ extern "C" void kernel_main() {
     idt.init();
     terminal.print_line("Passed pagedir setup");
 
-    // Idt::enable_interrupts();
-    __asm__ volatile ("sti");
+    Idt::enable_interrupts();
 
-    // pci::IDEController ide_controller;
+    pci::IDEController ide_controller;
 
     // QEMU: 
     // Slot 0 is Natoma (chipset)
@@ -67,14 +66,12 @@ extern "C" void kernel_main() {
                     terminal.print_line(i, " ", j, " is the hard drive");   
                     break;
                 } else {
-                    terminal.print_line(i, " " , j, " has class ", (void*)class_code, " and subclass ", (void*)subclass);
-                    terminal.print_line("Prog IF is ", (void*)prog_if);
+                    terminal.print_line(i, " " , j, " has class ", class_code, " and subclass ", subclass);
+                    terminal.print_line("Prog IF is ", prog_if);
                 }
             }
         }
     }
-
-    terminal.print_line("Got past");
 
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);
@@ -172,10 +169,9 @@ void Idt::init() {
     idtr.set_base(reinterpret_cast<uptr>(&_idt[0]));
     idtr.set_limit(sizeof(IdtEntry) * 63);
     for (auto i = 0; i < 64; ++i) {
-        if (i == 0x20) {
-            terminal.print_line("Stub 0x20: ", isr_stub_table[i]);
-        }
-        _idt[i].set(isr_stub_table[i], 0x8E);
+        auto const ptr = reinterpret_cast<uptr>(isr_stub_table[i]) - kernel::KERNEL_START;
+        auto const code_segment = (ptr / kernel::SEGMENT_SIZE) + kernel::KERNEL_CS_SEG_START;
+        _idt[i].set(isr_stub_table[i], 0x8E, code_segment);
     }
 
     // _idt[0x21].set(reinterpret_cast<void*>(keyboard_handler), 0x8E);
