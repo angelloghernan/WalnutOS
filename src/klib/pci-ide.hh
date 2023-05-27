@@ -123,20 +123,20 @@ namespace pci {
         };
 
         struct device {
-            u32             size;
-            Array<char, 41> model;
+            u32             size;           // size in sectors
+            u32             command_sets;   // supported command sets
+            u16             drive_signature;
+            u16             capabilities;
+            Array<char, 41> model;          // drive model name (string)
             ChannelType     channel_type;
             ControlType     control_type;
             InterfaceType   interface_type;
             bool            reserved;
-            u8              drive_signature;
-            u8              capabilities;
         };
 
         auto read(ChannelType channel, Register reg) -> u8;
         void write(ChannelType channel, Register reg, u8 data);
-        void read_buffer(ChannelType channel, Register reg, 
-                         uptr buffer, u32 count);
+        void read_buffer(ChannelType channel, Register reg, u32 count);
 
         void enable_hob(ChannelType channel_type);
         void disable_hob(ChannelType channel_type);

@@ -7,6 +7,7 @@ using enum IDEController::ChannelType;
 using enum IDEController::Register;
 
 IDEController::IDEController() {
+    // TODO: Change to check for BARs depending on compat. mode?
     channel_registers[0].io_base = 0x1F0;
     channel_registers[0].control = 0x3F6;
     channel_registers[0].bus_master_ide = 0;
@@ -32,7 +33,11 @@ void IDEController::detect_drives() {
 
             u8 const select_master = static_cast<u8>(0xA0) | (j << 4);
 
+            // Channel is either primary (0) or secondary (1)
             auto const channel = static_cast<ChannelType>(i);
+
+            // Control type is either Master (0) or Slave (1)
+            auto const control_type = static_cast<ControlType>(j);
 
             write(channel, Register::HDDevSel, select_master);
 
@@ -42,9 +47,11 @@ void IDEController::detect_drives() {
                   static_cast<u8>(Command::Identify));
 
             interrupts::sleep(1);
+            auto const drive = i == 0 ? str("Master drive") : str("Slave drive");
+            auto const channel_type = j == 0 ? str("primary") : str("secondary");
 
             if (read(channel, Register::Status) == 0) {
-                terminal.print_line("Drive is inactive");
+                terminal.print_line(drive, " ", channel_type, " channel is inactive");
                 continue;
             }
 
@@ -53,7 +60,7 @@ void IDEController::detect_drives() {
             while (true) {
                 auto status = read(channel, Register::Status);
                 if (status & static_cast<u8>(Status::Error)) {
-                    terminal.print_line("Drive i: ", i, " j: ", j, " had an error");
+                    terminal.print_line("Drive ", i, " ", j, " had an error");
                     had_error = true;
                     break;
                 }
@@ -62,14 +69,53 @@ void IDEController::detect_drives() {
                 auto ready = status & static_cast<u8>(Status::DataRequestReady);
 
                 if (!busy && ready) {
-                    terminal.print_line("Drive is ready");
+                    terminal.print_line(drive, " ", channel_type, " is active and ready");
                     break;
                 }
             }
 
+            auto if_type = InterfaceType::ATA;
+
             if (!had_error) {
-                // ...
+                auto c_lower = read(channel, Register::LBA1);
+                auto c_higher = read(channel, Register::LBA2);
+                terminal.print_line("Interface type is ", 
+                                    (void*)(c_lower), ", ", (void*)(c_higher));
+
+                if ((c_lower == 0x69 && c_higher == 0x96) ||
+                    c_lower == 0x14) {
+                    if_type = InterfaceType::ATAPI;
+                } else {
+                    terminal.print_line("Unknown interface type on ", drive, " ", channel_type);
+                    continue;
+                }
             }
+
+            read_buffer(channel, Register::Data, 256);
+
+            auto const buf_ptr = buffer.data();
+
+            devices[count].reserved = true;
+            devices[count].interface_type = if_type;
+            devices[count].channel_type = channel;
+            devices[count].control_type = control_type;
+            devices[count].drive_signature = *((u16*)(buf_ptr + static_cast<u8>(IdentityField::DeviceType)));
+            devices[count].capabilities = *((u16*)(buf_ptr + static_cast<u8>(IdentityField::Capabilities)));
+            devices[count].command_sets = *((u32*)(buf_ptr + static_cast<u8>(IdentityField::CommandSets)));
+
+            terminal.print_line("Printing out model name");
+
+            for (auto k = 0; k < 40; k += 2) {
+                devices[count].model[k] = buffer[static_cast<u8>(IdentityField::Model) + k + 1];
+                devices[count].model[k + 1] = buffer[static_cast<u8>(IdentityField::Model) + k];
+                terminal.put_char(devices[count].model[k]);
+                terminal.put_char(devices[count].model[k + 1]);
+            }
+
+            terminal.put_char('\n');
+            devices[count].model.last() = '\0';
+
+            ++count;
         }
     }
 }
@@ -165,7 +211,6 @@ void IDEController::write(ChannelType const channel_type,
 
 void IDEController::read_buffer(ChannelType const channel_type, 
                                 Register const reg, 
-                                uptr const buffer, 
                                 u32 const count) {
 
     auto const u8_channel = static_cast<u8>(channel_type);
@@ -176,6 +221,8 @@ void IDEController::read_buffer(ChannelType const channel_type,
 
     auto const reg_type = register_type(reg);
     
+    auto const buf_ptr = reinterpret_cast<uptr>(&buffer[0]);
+    
     if (reg_type == RegisterType::HighLevel) {
         enable_hob(channel_type);
     }
@@ -183,19 +230,19 @@ void IDEController::read_buffer(ChannelType const channel_type,
     switch (reg_type) {
         case RegisterType::LowLevel:
             ports::insw(channel.io_base + u8_reg, 
-                        buffer, count / 2);
+                        buf_ptr, count / 2);
           break;
         case RegisterType::HighLevel:
             ports::insw(channel.io_base + u8_reg - 0x06, 
-                        buffer, count / 2);
+                        buf_ptr, count / 2);
           break;
         case RegisterType::DeviceControlOrStatus:
             ports::insw(channel.control + u8_reg - 0x0A, 
-                        buffer, count / 2);
+                        buf_ptr, count / 2);
           break;
         case RegisterType::BusMasterIDE:
             ports::insw(channel.bus_master_ide + u8_reg - 0x0E, 
-                        buffer, count / 2);
+                        buf_ptr, count / 2);
           break;
     }
     
