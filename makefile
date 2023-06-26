@@ -21,11 +21,12 @@ ifdef TEST-FILE
 	KERNEL_IMAGE := test-kernel-image.bin
 endif
 
-QEMU_FLAGS = -device piix4-ide,bus=pci.0,id=piix4-ide \
-	-drive file=${OBJ_FOLDER}/${OS_IMAGE},if=none,format=raw,id=maindisk \
-	-device ide-hd,drive=maindisk,bus=piix4-ide.0 \
-	-drive file=img/disk.img,if=none,format=raw,id=bootdisk \
-	-device ide-hd,drive=bootdisk,bus=ide.0 \
+QEMU_FLAGS = -device piix4-ide,bus=pci.0,id=ide-two \
+    -device piix4-ide,bus=pci.0,id=piix4-ide \
+	-drive file=${OBJ_FOLDER}/${OS_IMAGE},if=none,format=raw,id=bootdisk\
+	-device ide-hd,drive=bootdisk,bus=piix4-ide.0 \
+	-drive file=img/disk.img,if=none,format=raw,id=maindisk\
+	-device ide-hd,drive=maindisk,bus=ide-two.0
 
 BOOT_FOLDER = grub
 

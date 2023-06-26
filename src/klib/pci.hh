@@ -134,6 +134,9 @@ namespace pci {
                               u8 func_number, Register offset) -> u16;
         auto config_read_byte(u8 const bus, u8 const slot,
                               u8 const func_number, Register const offset) -> u8;
+        auto config_read_u32(u8 const bus, u8 const slot, 
+                             u8 const func_number, Register const offset) -> u32;
+
         auto check_vendor(u8 bus, u8 slot) -> Nullable<u16, NO_VENDOR>;
         auto check_device_id(u8 const bus,
                              u8 const slot) -> Nullable<u16, NO_DEVICE>;

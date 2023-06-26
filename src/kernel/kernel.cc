@@ -35,13 +35,11 @@ extern "C" void kernel_main() {
     terminal.clear();
     terminal.print_line("Press F1 to exit.");
     setup_pagedir();
-    terminal.print_line("Passed pagedir setup");
 
     // Remap master to 0x20, slave to 0x28
     Pic::remap(0x20, 0x28);
 
     idt.init();
-    terminal.print_line("Passed pagedir setup");
 
     Idt::enable_interrupts();
 
@@ -61,13 +59,18 @@ extern "C" void kernel_main() {
                 auto class_code = pci_state.config_read_byte(i, j, 0, pci::Register::ClassCode);
                 auto subclass = pci_state.config_read_byte(i, j, 0, pci::Register::Subclass);
                 auto prog_if = pci_state.config_read_byte(i, j, 0, pci::Register::ProgIF);
+                auto base_addr = pci_state.config_read_u32(i, j, 0, pci::Register::GDBaseAddress2);
+                auto device_id = pci_state.config_read_word(i, j, 0, pci::Register::DeviceId);
+                auto vendor_id = pci_state.config_read_word(i, j, 0, pci::Register::VendorId);
+
+                terminal.print_line(i, " ", j, " device id ", (void*)device_id, " vendor ", (void*)(vendor_id));
+
                 if (class_code == 0x01 && subclass == 0x01) {
                     // Device is an IDE controller, which is what we were looking for
-                    terminal.print_line(i, " ", j, " is the hard drive");   
-                    break;
+                    terminal.print_line(i, " ", j, " is the boot drive controller");
+                    terminal.print_line(i, " ", j, " has base addr ", (void*)(base_addr));
                 } else {
                     terminal.print_line(i, " " , j, " has class ", class_code, " and subclass ", subclass);
-                    terminal.print_line("Prog IF is ", prog_if);
                 }
             }
         }

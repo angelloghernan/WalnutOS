@@ -1,6 +1,7 @@
 #include "pci-ide.hh"
 #include "ports.hh"
 #include "idt.hh"
+#include "assert.hh"
 
 using namespace pci;
 using enum IDEController::ChannelType;
@@ -85,10 +86,14 @@ void IDEController::detect_drives() {
                 if ((c_lower == 0x69 && c_higher == 0x96) ||
                     c_lower == 0x14) {
                     if_type = InterfaceType::ATAPI;
+                    terminal.print_line("ATAPI type drive");
                 } else {
                     terminal.print_line("Unknown interface type on ", drive, " ", channel_type);
-                    continue;
+                    // continue;
                 }
+
+                write(channel, Register::Command, static_cast<u8>(Command::IdentifyPacket));
+                interrupts::sleep(1);
             }
 
             read_buffer(channel, Register::Data, 256);
@@ -103,7 +108,13 @@ void IDEController::detect_drives() {
             devices[count].capabilities = *((u16*)(buf_ptr + static_cast<u8>(IdentityField::Capabilities)));
             devices[count].command_sets = *((u32*)(buf_ptr + static_cast<u8>(IdentityField::CommandSets)));
 
-            terminal.print_line("Printing out model name");
+            if (devices[count].command_sets & (1 << 26)) {
+                // Using extended (48-bit) addressing
+                devices[count].size = *((u32*)(buf_ptr + static_cast<u8>(IdentityField::MaxLBAExt)));
+            } else {
+                // Using standard (32-bit) addressing
+                devices[count].size = *((u32*)(buf_ptr + static_cast<u8>(IdentityField::MaxLBA)));
+            }
 
             for (auto k = 0; k < 40; k += 2) {
                 devices[count].model[k] = buffer[static_cast<u8>(IdentityField::Model) + k + 1];
@@ -114,6 +125,7 @@ void IDEController::detect_drives() {
 
             terminal.put_char('\n');
             devices[count].model.last() = '\0';
+            terminal.print_line("Has size: ", devices[count].size, " bytes");
 
             ++count;
         }

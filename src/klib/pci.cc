@@ -32,10 +32,19 @@ auto PCIState::config_read_word(u8 const bus, u8 const slot,
     return ret;
 }
 
+auto PCIState::config_read_u32(u8 const bus, u8 const slot, 
+                               u8 const func_number, Register const offset) -> u32 {
+    auto const offset_u8 = static_cast<u8>(offset);
+    auto const word_lo = config_read_word(bus, slot, func_number, offset);
+    auto const word_hi = config_read_word(bus, slot, func_number, static_cast<Register>(offset_u8 + 1));
+
+    return u32(word_hi << 16) | u32(word_lo);
+}
+
 auto PCIState::config_read_byte(u8 const bus, u8 const slot,
                                 u8 const func_number, Register const offset) -> u8 {
-    auto word = config_read_word(bus, slot, func_number, offset);
-    auto offset_u8 = static_cast<u8>(offset);
+    auto const word = config_read_word(bus, slot, func_number, offset);
+    auto const offset_u8 = static_cast<u8>(offset);
 
     if (offset_u8 & 0b1) {
         return word >> 8;
