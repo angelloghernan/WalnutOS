@@ -11,8 +11,8 @@
 #include "../klib/ps2/ps2.hh"
 #include "../klib/ps2/keyboard.hh"
 #include "../klib/circular_buffer.hh"
-#include "../klib/pci.hh"
-#include "../klib/pci-ide.hh"
+#include "../klib/pci/pci.hh"
+#include "../klib/pci/pci-ide.hh"
 
 using pagetables::PageDirectory;
 using pagetables::PageTable;
