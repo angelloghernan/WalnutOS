@@ -125,7 +125,8 @@ void IDEController::detect_drives() {
 
             terminal.put_char('\n');
             devices[count].model.last() = '\0';
-            terminal.print_line("Has size: ", devices[count].size, " bytes");
+            terminal.print_line("Has size: ", devices[count].size, " sectors, or ", 
+                                devices[count].size * 512, " bytes");
 
             ++count;
         }

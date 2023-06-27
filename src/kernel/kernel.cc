@@ -67,10 +67,10 @@ extern "C" void kernel_main() {
 
                 if (class_code == 0x01 && subclass == 0x01) {
                     // Device is an IDE controller, which is what we were looking for
-                    terminal.print_line(i, " ", j, " is the boot drive controller");
-                    terminal.print_line(i, " ", j, " has base addr ", (void*)(base_addr));
+                    // terminal.print_line(i, " ", j, " is the boot drive controller");
+                    // terminal.print_line(i, " ", j, " has base addr ", (void*)(base_addr));
                 } else {
-                    terminal.print_line(i, " " , j, " has class ", class_code, " and subclass ", subclass);
+                    // terminal.print_line(i, " " , j, " has class ", class_code, " and subclass ", subclass);
                 }
             }
         }
