@@ -75,11 +75,10 @@ namespace pci {
             DevAddress  = 0x0D,
         };
 
-        enum class RegisterType : u8 {
-            HighLevel,
-            LowLevel,
-            DeviceControlOrStatus,
-            BusMasterIDE,
+        enum class BusMasterRegister : u8 {
+            Command     = 0x0,
+            Status      = 0x2,
+            PRDTAddress = 0x4,
         };
 
         enum class ATAPICommand : u8 {
@@ -145,7 +144,7 @@ namespace pci {
 
         void detect_drives();
 
-        IDEController();
+        IDEController(u32 bar_4);
         
       private:
         Array<channel_register, 2> channel_registers;
@@ -156,7 +155,15 @@ namespace pci {
         u8 bus;
         u8 slot;
         Mode mode;
+
+        enum class RegisterType : u8 {
+            HighLevel,
+            LowLevel,
+            DeviceControlOrStatus,
+            BusMasterIDE,
+        };
+
         
         auto register_type(Register reg) -> RegisterType;
     };
-};
+}; // namespace pci

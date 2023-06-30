@@ -7,15 +7,15 @@ using namespace pci;
 using enum IDEController::ChannelType;
 using enum IDEController::Register;
 
-IDEController::IDEController() {
+IDEController::IDEController(u32 bar_4) {
     // TODO: Change to check for BARs depending on compat. mode?
     channel_registers[0].io_base = 0x1F0;
     channel_registers[0].control = 0x3F6;
-    channel_registers[0].bus_master_ide = 0;
+    channel_registers[0].bus_master_ide = bar_4;
 
     channel_registers[1].io_base = 0x170;
     channel_registers[1].control = 0x376;
-    channel_registers[1].bus_master_ide = 8;
+    channel_registers[1].bus_master_ide = bar_4 + 8;
 
     auto constexpr disable_interrupt
         = static_cast<u8>(ControlBits::InterruptDisable);
@@ -121,10 +121,11 @@ void IDEController::detect_drives() {
                 terminal.print_line("32-bit");
                 devices[count].size = *((u32*)(buf_ptr + static_cast<u8>(IdentityField::MaxLBA)));
             }
-
+            /*
             terminal.print_line("Cylinders: ", *((u32*)(buf_ptr + static_cast<u8>(IdentityField::Cylinders))));
             terminal.print_line("Heads: ", *((u32*)(buf_ptr + static_cast<u8>(IdentityField::Heads))));
             terminal.print_line("Sectors: ", *((u32*)(buf_ptr + static_cast<u8>(IdentityField::Sectors))));
+            */
             
             terminal.print("Name: ");
 
