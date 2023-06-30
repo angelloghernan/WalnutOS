@@ -17,7 +17,7 @@ class Result {
         return result;
     }
 
-    auto constexpr static Err(E&& err) -> Result<T, E> {
+    auto constexpr static Err(E const&& err) -> Result<T, E> {
         auto result = Result();
         result.m_is_success = false;
         result.m_data.err = err;
@@ -31,7 +31,7 @@ class Result {
         return result;
     }
 
-    auto constexpr static Ok(T&& data) -> Result<T, E> {
+    auto constexpr static Ok(T const&& data) -> Result<T, E> {
         auto result = Result();
         result.m_is_success = true;
         result.m_data.data = data;
@@ -71,8 +71,9 @@ class Result {
     constexpr Result() {}
 
     bool m_is_success;
-    union {
+    union data_internal {
         T data;
         E err;
+        constexpr data_internal() {}
     } m_data;
 };

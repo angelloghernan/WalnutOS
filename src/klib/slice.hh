@@ -21,6 +21,9 @@ class Slice {
     auto constexpr begin() -> iterator<T> { return iterator<T>(&_values[0]); }
     auto constexpr end() -> iterator<T> { return iterator<T>(&_values[_size]); }
 
+    auto constexpr begin() const -> const_iterator<T> { return const_iterator<T>(&_values[0]); }
+    auto constexpr end() const -> const_iterator<T> { return const_iterator<T>(&_values[_size]); }
+
     auto constexpr operator==(Slice const& other) -> bool {
         if (other.len() != len()) {
             return false;
@@ -35,6 +38,8 @@ class Slice {
         return true;
     }
 
+    [[nodiscard]] auto constexpr operator[](usize idx) -> T& { return _values[idx]; }
+    [[nodiscard]] auto constexpr operator[](usize idx) const -> T const& { return _values[idx]; }
 
   private:
     T* _values;
