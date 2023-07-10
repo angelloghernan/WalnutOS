@@ -16,7 +16,7 @@ class Slice {
     template<usize S>
     constexpr Slice(Array<T, S> const& array) : _values(array.data()), _size(S) {}
 
-    auto constexpr len() const -> bool { return _size; }
+    auto constexpr len() const -> usize { return _size; }
 
     auto constexpr begin() -> iterator<T> { return iterator<T>(&_values[0]); }
     auto constexpr end() -> iterator<T> { return iterator<T>(&_values[_size]); }
@@ -38,6 +38,8 @@ class Slice {
         return true;
     }
 
+    [[nodiscard]] auto constexpr empty() -> bool { return _size == 0; }
+    
     [[nodiscard]] auto constexpr operator[](usize idx) -> T& { return _values[idx]; }
     [[nodiscard]] auto constexpr operator[](usize idx) const -> T const& { return _values[idx]; }
 

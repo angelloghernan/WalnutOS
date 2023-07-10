@@ -14,7 +14,7 @@ namespace alloc {
 
     class BuddyAllocator {
       public:
-        auto kalloc(usize size) -> Nullable<uptr, 0>;
+        [[nodiscard]] auto kalloc(usize size) -> Nullable<uptr, 0>;
         void kfree(uptr ptr);
         BuddyAllocator();
       private:

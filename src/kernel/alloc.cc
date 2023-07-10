@@ -36,7 +36,7 @@ BuddyAllocator::BuddyAllocator() {
 // Once we do, we need to continually split this block until we split to the size we want.
 // Finally, return the block.
 // If we don't find a block of an appropriate size at all, return null.
-auto BuddyAllocator::kalloc(usize const size) -> Nullable<uptr, 0> {
+[[nodiscard]] auto BuddyAllocator::kalloc(usize const size) -> Nullable<uptr, 0> {
     auto const adjusted_size = size < (1 << SMALLEST_BLOCK_SIZE) ?
                                1 << SMALLEST_BLOCK_SIZE :
                                size;

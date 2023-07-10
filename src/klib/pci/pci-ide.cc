@@ -2,6 +2,7 @@
 #include "../ports.hh"
 #include "../idt.hh"
 #include "../assert.hh"
+#include "../pagetables.hh"
 
 using namespace pci;
 using enum IDEController::ChannelType;
@@ -29,6 +30,7 @@ IDEController::IDEController(u32 bar_4) {
 void IDEController::detect_drives() {
     u8 count = 0;
     for (u8 i = 0; i < 2; ++i) {
+        auto found_drive = false;
         for (u8 j = 0; j < 2; ++j) {
             devices[count].reserved = false;
 
@@ -59,15 +61,15 @@ void IDEController::detect_drives() {
             bool had_error = false;
 
             while (true) {
-                auto status = read(channel, Register::Status);
+                auto const status = read(channel, Register::Status);
                 if (status & static_cast<u8>(Status::Error)) {
                     terminal.print_line("Drive ", i, " ", j, " had an error");
                     had_error = true;
                     break;
                 }
 
-                auto busy = status & static_cast<u8>(Status::Busy);
-                auto ready = status & static_cast<u8>(Status::DataRequestReady);
+                auto const busy = status & static_cast<u8>(Status::Busy);
+                auto const ready = status & static_cast<u8>(Status::DataRequestReady);
 
                 if (!busy && ready) {
                     break;
@@ -121,11 +123,6 @@ void IDEController::detect_drives() {
                 terminal.print_line("32-bit");
                 devices[count].size = *((u32*)(buf_ptr + static_cast<u8>(IdentityField::MaxLBA)));
             }
-            /*
-            terminal.print_line("Cylinders: ", *((u32*)(buf_ptr + static_cast<u8>(IdentityField::Cylinders))));
-            terminal.print_line("Heads: ", *((u32*)(buf_ptr + static_cast<u8>(IdentityField::Heads))));
-            terminal.print_line("Sectors: ", *((u32*)(buf_ptr + static_cast<u8>(IdentityField::Sectors))));
-            */
             
             terminal.print("Name: ");
 
@@ -153,18 +150,33 @@ void IDEController::detect_drives() {
             terminal.print_line("");
 
             ++count;
+            found_drive = true;
         }
+
+//        if (found_drive) {
+//            PRDT::ChannelType channel = i == 0 ?
+//                                        PRDT::ChannelType::Primary :
+//                                        PRDT::ChannelType::Secondary;
+//            auto const result = 
+//                prdts[i].initialize(PAGESIZE / sizeof(PRD_Entry), 
+//                                    channel_registers[i].bus_master_ide, channel);
+//            assert(result.is_ok(), "Failed to allocate memory for PRD table");
+//        }
+
     }
 }
 
-void IDEController::read_drive_dma() {
-    
+void IDEController::read_drive_dma(ChannelType channel_type) {
+    auto const u8_channel = static_cast<u8>(channel_type);
+    auto const& channel = channel_registers[u8_channel];
+
+    write(channel_type, Register::Command, static_cast<u8>(Command::ReadDMAExt));
 }
 
 void IDEController::enable_hob(ChannelType channel_type) {
     auto const u8_channel = static_cast<u8>(channel_type);
     auto const& channel = channel_registers[u8_channel];
-    auto en_hob = u8(ControlBits::HighOrderByte) | channel.no_interrupts;
+    u8 en_hob = u8(ControlBits::HighOrderByte) | channel.no_interrupts;
 
     write(channel_type, Register::Control, en_hob);
 }

@@ -54,7 +54,6 @@ class Result {
         return m_data.data;
     }
 
-
     auto constexpr matches() const -> bool {
         return m_is_success;
     }
@@ -66,7 +65,25 @@ class Result {
     auto constexpr is_ok() const -> bool {
         return m_is_success;
     }
+
+    template<typename F>
+    auto constexpr ok_or_else(F lambda) && -> T {
+        if (is_ok()) {
+            return m_data.data;
+        } else {
+            return lambda();
+        }
+    } 
     
+    template<typename F>
+    auto constexpr ok_or_else(F lambda) & -> T& {
+        if (is_ok()) {
+            return m_data.data;
+        } else {
+            return lambda();
+        }
+    }
+
   private:
     constexpr Result() {}
 

@@ -2,9 +2,6 @@
 #include "int.hh"
 #include "concepts.hh"
 
-auto static constexpr None = false;
-auto static constexpr Some = true;
-
 template<typename O>
 concept Optionable = requires(O optionable){
     { optionable.is_sentinel() } -> concepts::is_type<bool>;
@@ -64,7 +61,7 @@ class Option<O> {
 
     auto constexpr none() const -> bool { return _val.is_sentinel(); }
     auto constexpr some() const -> bool { return !_val.is_sentinel(); }
-    auto constexpr matches() const -> bool { return _val.is_sentinel() ? Some : None; }
+    auto constexpr matches() const -> bool { return _val.is_sentinel() ? true : false; }
 
     auto constexpr unwrap() -> O& { return _val; }
     auto constexpr unwrap() const -> O const& { return _val; }
@@ -93,7 +90,7 @@ class Option<T&> {
 
     auto constexpr none() const -> bool { return !_val; }
     auto constexpr some() const -> bool { return _val; }
-    auto constexpr matches() const -> bool { return _val ? Some : None; }
+    auto constexpr matches() const -> bool { return _val ? true : false; }
 
     auto constexpr unwrap() -> T& { return *_val; }
     auto constexpr unwrap() const -> T const& { return *_val; }

@@ -68,11 +68,10 @@ namespace pagetables {
     auto PageDirectory::va_to_pa(uptr const address) const -> Nullable<uptr, uptr(-1)> {
         usize const pd_idx = va_to_idx(address);
         auto const pt = _entries[pd_idx].get_pt();
-        switch(pt.matches()) {
-            case Some:
-                return pt.unwrap().va_to_pa(address);
-            case None:
-                return Nullable<uptr, uptr(-1)>();
+        if (pt.some()) {
+            return pt.unwrap().va_to_pa(address);
+        } else {
+            return Nullable<uptr, uptr(-1)>();
         }
     }
 

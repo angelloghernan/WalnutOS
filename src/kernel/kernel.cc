@@ -43,7 +43,6 @@ extern "C" void kernel_main() {
 
     Idt::enable_interrupts();
 
-    pci::IDEController ide_controller;
 
     // QEMU: 
     // Slot 0 is Natoma (chipset)
@@ -52,6 +51,8 @@ extern "C" void kernel_main() {
     // Slot 3 is an Ethernet device
     // Slot 4 should be the PCI IDE controller
     pci::PCIState pci_state;
+    auto bar_4 = 0;
+
     for (auto i = 0; i < 10; ++i) {
         for (auto j = 0; j < 10; ++j) {
             auto vendor = pci_state.check_vendor(i, j);
@@ -59,13 +60,15 @@ extern "C" void kernel_main() {
                 auto class_code = pci_state.config_read_byte(i, j, 0, pci::Register::ClassCode);
                 auto subclass = pci_state.config_read_byte(i, j, 0, pci::Register::Subclass);
                 auto prog_if = pci_state.config_read_byte(i, j, 0, pci::Register::ProgIF);
-                auto base_addr = pci_state.config_read_u32(i, j, 0, pci::Register::GDBaseAddress2);
+                bar_4 = pci_state.config_read_u32(i, j, 0, pci::Register::GDBaseAddress4);
                 auto device_id = pci_state.config_read_word(i, j, 0, pci::Register::DeviceId);
                 auto vendor_id = pci_state.config_read_word(i, j, 0, pci::Register::VendorId);
 
-                terminal.print_line(i, " ", j, " device id ", (void*)device_id, " vendor ", (void*)(vendor_id));
+                terminal.print_line(i, " ", j, " device id ", 
+                                    (void*)device_id, " vendor ", (void*)(vendor_id));
 
                 if (class_code == 0x01 && subclass == 0x01) {
+                    pci::IDEController ide_controller(bar_4);
                     // Device is an IDE controller, which is what we were looking for
                     // terminal.print_line(i, " ", j, " is the boot drive controller");
                     // terminal.print_line(i, " ", j, " has base addr ", (void*)(base_addr));
@@ -75,6 +78,7 @@ extern "C" void kernel_main() {
             }
         }
     }
+    
 
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);

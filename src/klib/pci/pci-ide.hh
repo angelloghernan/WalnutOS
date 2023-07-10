@@ -1,6 +1,7 @@
 #pragma once
 #include "../int.hh"
 #include "../array.hh"
+#include "prdt.hh"
 
 namespace pci {
     class IDEController {
@@ -53,6 +54,9 @@ namespace pci {
             Packet           = 0xA0,
             IdentifyPacket   = 0xA1,
             Identify         = 0xEC,
+            ReadFPDMAQueued  = 0x60,
+            WriteFPDMAQueued = 0x61,
+            SetFeatures      = 0xEF,
         };
 
         enum class Register : u8 {
@@ -137,7 +141,7 @@ namespace pci {
         void write(ChannelType channel, Register reg, u8 data);
         void read_buffer(ChannelType channel, Register reg, u32 count);
 
-        void read_drive_dma();
+        void read_drive_dma(ChannelType channel);
 
         void enable_hob(ChannelType channel_type);
         void disable_hob(ChannelType channel_type);
@@ -149,6 +153,7 @@ namespace pci {
       private:
         Array<channel_register, 2> channel_registers;
         Array<device, 4> devices;
+        Array<PRDT, 2> prdts;
         Array<u8, 2048> buffer;
         Array<u8, 12> atapi_packet;
         volatile bool irq_invoked;
