@@ -42,4 +42,16 @@ namespace util {
 
         return minimum;
     }
-};
+
+    template<typename T>
+    inline void memset(uptr ptr, T value, usize count) {
+        auto const t_ptr = reinterpret_cast<T*>(ptr);
+        for (usize i = 0; i < count; ++i) {
+            *t_ptr = value;
+        }
+    }
+}; // namespace util
+
+// This is outside of the util namespace on purpose. "memset" is used by the compiler.
+// Prefer to use util::memset as it can take advantage of greater-sized integers.
+void* memset(void* ptr, int ch, size_t count);

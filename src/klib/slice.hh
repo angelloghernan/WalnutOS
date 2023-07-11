@@ -43,6 +43,13 @@ class Slice {
     [[nodiscard]] auto constexpr operator[](usize idx) -> T& { return _values[idx]; }
     [[nodiscard]] auto constexpr operator[](usize idx) const -> T const& { return _values[idx]; }
 
+    [[nodiscard]] auto constexpr to_raw_ptr() -> T* { return _values; }
+    [[nodiscard]] auto constexpr to_raw_ref() -> T& { return *_values; }
+
+    [[nodiscard]] auto constexpr to_uptr() const -> uptr { return reinterpret_cast<uptr>(_values); }
+    [[nodiscard]] auto constexpr to_raw_ptr() const -> T const* { return _values; }
+    [[nodiscard]] auto constexpr to_raw_ref() const -> T const& { return *_values; }
+
   private:
     T* _values;
     usize _size;
