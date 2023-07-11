@@ -29,6 +29,9 @@ namespace x86 {
 
     inline void wrmsr(u32 const msr_id, u32 const lo, u32 const hi) {
         asm volatile ( "wrmsr" : : "a" (lo), "d" (hi), "c" (msr_id));
-    }  
+    }
 
+    inline void pause() {
+        asm volatile("pause" : : : "memory");
+    }
 }

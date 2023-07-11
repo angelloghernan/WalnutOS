@@ -1,9 +1,6 @@
 #pragma once
 #include "../klib/int.hh"
 
-static auto constexpr Ok = true;
-static auto constexpr Err = false;
-
 struct Null { private: u8 nan[0]; };
 
 template<typename T, typename E>
