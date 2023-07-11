@@ -17,7 +17,11 @@ class Array {
         return array;
     }
 
+    // Return the number of elements in the array.
     [[nodiscard]] auto constexpr len() const -> usize { return S; }
+
+    // Return the size in bytes.
+    [[nodiscard]] auto constexpr size() const -> usize { return S * sizeof(T); }
 
     [[nodiscard]] auto constexpr data() -> T* { return &m_arr[0]; }
     [[nodiscard]] auto constexpr data() const -> T const* { return &m_arr[0]; }

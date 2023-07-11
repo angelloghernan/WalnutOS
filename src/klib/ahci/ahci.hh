@@ -27,15 +27,15 @@ namespace ahci {
         struct port_regs {
             u32 cmdlist_addr;        // PxCLB -- Port x Command List Base Address
             u32 reserved;            // IMPORTANT: this assumes we are using 32-bit. if porting to 64-bit, change
-            u32 fis_base_addr;       // PxFIS -- Port x FIS Base Address
+            u32 rfis_base_addr;      // PxRFIS -- Port x RFIS Base Address -- the base address of rfis_state
             u32 reserved1;           // IMPORTANT: see above
             u32 interrupt_status;    // PxIS 
             u32 interrupt_enable;    // PxIE
             u32 command_and_status;  // PxCMD -- Port x Command and Status
             u32 reserved2;           // 0x2C - 0x2F are reserved
-            u32 port_tfd;            // PxTFD -- Port x Task File Data
-            u32 port_sig;            // PxSIG -- Port x Signature
-            u32 post_sstatus;        // PxSSTS -- Port x SATA Status, 0 = no device detected
+            u32 tfd;                 // PxTFD -- Port x Task File Data
+            u32 sig;                 // PxSIG -- Port x Signature
+            u32 sstatus;             // PxSSTS -- Port x SATA Status, 0 = no device detected
             u32 scontrol;            // PxSCTL -- Port x SATA Control
             u32 serror;              // PxSERR -- Port x SATA Error
             u32 ncq_active;          // PxSACT -- Port x SATA Active
@@ -70,15 +70,15 @@ namespace ahci {
             RFISRunning     = 0x4000,
             RFISEnable      = 0x10,
             RFISClear       = 0x8,
-            RFISPowerUp     = 0x6,
+            PowerUp         = 0x6,
             Start           = 0x1,
             
         };
 
         enum class RStatusMasks : u32 {
-            RStatusBusy     = 0x80,
-            RStatusDataReq  = 0x8,
-            RStatusError    = 0x1,
+            Busy    = 0x80,
+            DataReq = 0x8,
+            Error   = 0x1,
         };
 
         enum class InterruptMasks : u32 {
@@ -101,7 +101,7 @@ namespace ahci {
             u32 address;
             u32 reserved_64;     // IMPORTANT: If porting to 64-bits, change address to 64-bits
             u32 reserved;
-            u32 data_byte_count; // Bit 31: Interrupt on completion
+            u32 data_byte_count; // Bit 31: Interrupt on completion flag
                                  // The byte count is the number of bytes in the buffer + 1
                                  // Technically, the bits [30:22] are reserved, but we do not expect this to ever matter
         };
@@ -162,17 +162,22 @@ namespace ahci {
         void handle_interrupt();
         void handle_error_interrupt();
 
-        void clear(u32 slot);
+        void clear_slot(u16 slot);
         void push_buffer(u32 slot, uptr data, usize sz);
         void issue_meta(u32 slot, pci::IDEController::Command command, 
-                        u32 features, u32 count);
+                        u32 features, u32 count = -1);
 
         void issue_ncq(u32 slot, pci::IDEController::Command command,
                        usize sector, bool fua = false, u32 priority = 0);
 
         void acknowledge(u32 slot, u32 status = 0);
 
-        void await_basic(u32 slot);
+        void await_basic(u32 slot);    
+
+        auto static inline sstatus_active(u32 sstatus) -> bool {
+            return (sstatus & 0x03) == 3
+                || ((1U << ((sstatus & 0xF00) >> 8)) & 0x144) != 0;
+        }
         
       public:
         AHCIState(u32 pci_addr, u32 sata_port, volatile registers& dr);

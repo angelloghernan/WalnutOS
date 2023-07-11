@@ -50,6 +50,12 @@ namespace util {
             *t_ptr = value;
         }
     }
+    
+    inline auto kernel_to_physical_addr(uptr kernel_addr) -> uptr {
+        // This does nothing right now, but may save time if we make a higher-half kernel
+        return kernel_addr;
+    }
+
 }; // namespace util
 
 // This is outside of the util namespace on purpose. "memset" is used by the compiler.
