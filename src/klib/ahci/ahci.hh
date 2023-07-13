@@ -102,7 +102,7 @@ namespace ahci {
             u32 reserved_64;     // IMPORTANT: If porting to 64-bits, change address to 64-bits
             u32 reserved;
             u32 data_byte_count; // Bit 31: Interrupt on completion flag
-                                 // The byte count is the number of bytes in the buffer + 1
+                                 // The byte count is the number of bytes in the buffer - 1
                                  // Technically, the bits [30:22] are reserved, but we do not expect this to ever matter
         };
 
@@ -115,7 +115,7 @@ namespace ahci {
         
         struct command_header {
             u16 flags;
-            u16 number_buffers;
+            u16 num_buffers;
             u32 buffer_byte_pos;
             u32 command_table_address;
             u32 reserved_64; // IMPORTANT: When porting, change above u32 to u64
@@ -129,7 +129,7 @@ namespace ahci {
         struct alignas(1024) dma_state {
             Array<command_header, 32> ch;
             volatile rfis_state rfis;
-            Array<command_header, 32> ct;
+            Array<command_table, 32> ct;
         };
 
         auto static constexpr CFIS_COMMAND = 0x8027;
@@ -157,7 +157,7 @@ namespace ahci {
         // This is modifiable
         u16 _num_slots_available;
         u16 _slots_outstanding_mask;
-        Array<Option<u32&>, 32> _slot_status; // IMPORTANT: This should become atomic once multicore is set up
+        Array<Option<volatile u32&>, 32> _slot_status; // IMPORTANT: This should become atomic once multicore is set up
 
         void handle_interrupt();
         void handle_error_interrupt();
@@ -182,10 +182,15 @@ namespace ahci {
       public:
         AHCIState(u32 pci_addr, u32 sata_port, volatile registers& dr);
         AHCIState(AHCIState const&) = delete;
+
+        enum class IOError : u32 {
+            TryAgain = u32(-11),
+        };
         
         auto static find(u32 pci_addr = 0, u32 sata_port = 0) -> Option<AHCIState&>;
 
-        auto read(Slice<u8>& buf, usize offset) -> Result<u32, Null>;
-        auto write(Slice<u8> const& buf, usize offset) -> Result<u32, Null>;
+
+        auto read(Slice<u8>& buf, usize offset) -> Result<Null, IOError>;
+        auto write(Slice<u8> const& buf, usize offset) -> Result<Null, IOError>;
     };
 }; // namespace ahci

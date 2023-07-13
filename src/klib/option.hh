@@ -95,8 +95,8 @@ class Option<T&> {
     auto constexpr unwrap() -> T& { return *_val; }
     auto constexpr unwrap() const -> T const& { return *_val; }
 
-    void constexpr assign(T const& value) {
-        _val = &value;
+    void constexpr assign(T* const value) {
+        _val = value;
     }
 
     void constexpr make_none() { _val = nullptr; }
