@@ -21,6 +21,9 @@ class Nullable {
 
     [[gnu::always_inline]] auto constexpr unwrap() -> T& { return _data; }
     [[gnu::always_inline]] auto constexpr unwrap() const -> T const& { return _data; }
+
+    [[gnu::always_inline]] auto static constexpr Some(T const& value) -> Nullable<T, NullValue> { return Nullable(value); }
+    [[gnu::always_inline]] auto static constexpr None() -> Nullable<T, NullValue> { return Nullable(NullValue); }
     
     template<typename TNew>
     [[gnu::always_inline]] auto constexpr unwrap_as() -> TNew { return (TNew)(_data); }

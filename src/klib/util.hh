@@ -56,6 +56,10 @@ namespace util {
         return kernel_addr;
     }
 
+    inline auto physical_addr_to_kernel(uptr physical_addr) -> uptr {
+        return physical_addr;
+    }
+
 }; // namespace util
 
 // This is outside of the util namespace on purpose. "memset" is used by the compiler.

@@ -5,6 +5,7 @@
 #include "../slice.hh"
 #include "../result.hh"
 #include "../pci/pci-ide.hh"
+#include "../pci/pci.hh"
 
 namespace ahci {
     // The FIS type, or the type of packet transporting data between
@@ -24,7 +25,7 @@ namespace ahci {
     class AHCIState {
       private:
         // See page 23 of Serial ATA AHCI 1.3.1 specification for details (31 on PDF)
-        struct port_regs {
+        struct port_registers {
             u32 cmdlist_addr;        // PxCLB -- Port x Command List Base Address
             u32 reserved;            // IMPORTANT: this assumes we are using 32-bit. if porting to 64-bit, change
             u32 rfis_base_addr;      // PxRFIS -- Port x RFIS Base Address -- the base address of rfis_state
@@ -59,7 +60,7 @@ namespace ahci {
             u32 cap2;                // CAP2: HBA Capabilities extended
             u32 bohc;                // BOHC: BIOS/OS Handoff Control and Status
             Array<u32, 53> reserved; // Vendor specific registers
-            Array<port_regs, 32> port_regs;
+            Array<port_registers, 32> port_regs;
         };
 
         enum class PortCommandMasks : u32 {
@@ -148,7 +149,7 @@ namespace ahci {
         u32 _func;
         u32 _sata_port;
         volatile registers& _drive_registers;
-        volatile port_regs& _port_registers;
+        volatile port_registers& _port_registers;
         
         // These should remain constant after loading
         u32 _irq;
@@ -167,7 +168,7 @@ namespace ahci {
         void clear_slot(u16 slot);
         void push_buffer(u32 slot, uptr data, usize sz);
         void issue_meta(u32 slot, pci::IDEController::Command command, 
-                        u32 features, u32 count = -1);
+                        u32 features, u32 count = u32(-1));
 
         void issue_ncq(u32 slot, pci::IDEController::Command command,
                        usize sector, bool fua = false, u32 priority = 0);
@@ -189,7 +190,7 @@ namespace ahci {
             TryAgain = u32(-11),
         };
         
-        auto static find(u32 pci_addr = 0, u32 sata_port = 0) -> Option<AHCIState&>;
+        auto static find(pci::PCIState::bus_slot_addr = {}, u32 sata_port = 0) -> Option<AHCIState&>;
 
         auto read_or_write(pci::IDEController::Command command,
                            Slice<u8>& buf, usize offset) -> Result<Null, IOError>;

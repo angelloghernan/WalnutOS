@@ -3,6 +3,7 @@
 #include "../int.hh"
 #include "../nullable.hh"
 #include "../option.hh"
+#include "../pair.hh"
 
 namespace pci {
     auto constexpr static CONFIG_ADDRESS = 0xCF8;
@@ -163,6 +164,50 @@ namespace pci {
         static PCIState& get() {
             static PCIState state;
             return state;
+        }
+
+        struct bus_slot_addr {
+            u8 bus;
+            u8 slot;
+            u8 func;
+        };
+
+        // Supports at most 8 buses
+        auto static constexpr MAX_BUSES = 0x8;
+        auto static constexpr MAX_SLOTS = 32;
+        auto static constexpr MAX_FUNCS = 8;
+
+        inline void next_addr(Option<bus_slot_addr>& addr_opt) {
+            auto& addr = addr_opt.unwrap();
+            auto lthbc = this->config_read_u32(addr.bus, addr.slot, addr.func, 
+                                               Register::CacheLineSize);
+
+            while (true) {
+                if (addr.func == 0 && (lthbc == u32(-1) || !(lthbc & 0x800000))) {
+                    addr.slot += 1;
+                    if (addr.slot >= MAX_SLOTS) {
+                        addr.slot = 0;
+                        addr.bus = 0;
+                    }
+                } else {
+                    addr.func += 1;
+                    if (addr.func >= MAX_FUNCS) {
+                        addr.func = 0;
+                        addr.slot += 1;
+                    }
+                }
+
+                if (addr.bus >= MAX_BUSES) {
+                    addr_opt.make_none();
+                    return;
+                }
+
+                auto lthbc = this->config_read_u32(addr.bus, addr.slot, addr.func,
+                                                   Register::CacheLineSize);
+                if (lthbc != 0xFF) {
+                    return;
+                }
+            }
         }
 
       private:

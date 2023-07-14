@@ -4,8 +4,55 @@
 #include "../x86.hh"
 #include "../util.hh"
 #include "../console.hh"
+#include "../../kernel/kernel.hh"
+#include "../assert.hh"
 
 using namespace ahci;
+
+auto AHCIState::find(pci::PCIState::bus_slot_addr addr, 
+                     u32 slot) -> Option<AHCIState&> {
+
+    using bus_slot_addr = pci::PCIState::bus_slot_addr;
+
+    auto& pci = pci::PCIState::get();
+
+    auto addr_opt = Option<bus_slot_addr>(addr);
+
+    for (; addr_opt.some(); pci.next_addr(addr_opt)) {
+        auto& addr = addr_opt.unwrap();
+        if (pci.config_read_word(addr.bus, addr.slot, addr.func, 
+                                 pci::Register::Subclass) != 0x0106) {
+            continue;
+        }
+
+        auto const phys_addr = pci.config_read_u32(addr.bus, addr.slot, addr.func,
+                                                   pci::Register::GDBaseAddress5);
+        
+        if (phys_addr == 0) {
+            continue;
+        }
+
+        auto drive_regs 
+            = reinterpret_cast<volatile registers*>(util::physical_addr_to_kernel(phys_addr));
+
+        if (!(drive_regs->global_hba_control & u32(GHCMasks::AHCIEnable))) {
+            drive_regs->global_hba_control = u32(GHCMasks::AHCIEnable);
+        }
+
+        for (; slot < 32; ++slot) {
+            if ((drive_regs->port_mask & (1U << slot)) &&
+                drive_regs->port_regs[slot].sstatus) {
+                auto maybe_ahci_ptr = simple_allocator.kalloc(sizeof(AHCIState));
+                assert(maybe_ahci_ptr.some(), "Could not allocate enough space for AHCI pointer");
+
+                auto* ahci_ptr = reinterpret_cast<AHCIState*>(maybe_ahci_ptr.unwrap());
+                return Option<AHCIState&>(*ahci_ptr);
+            }
+        }
+    }
+    
+    return Option<AHCIState&>();
+}
 
 // Create a new object to keep track of AHCI-relevant state
 // `bus` / `slot` / `func_number`: the relevant PCI bus/slot/function for the
@@ -207,7 +254,7 @@ void AHCIState::issue_meta(u32 const slot, pci::IDEController::Command const com
     using enum pci::IDEController::Command;
 
     usize nsectors = _dma.ch[slot].buffer_byte_pos / SECTOR_SIZE;
-    if (command == SetFeatures && count != -1) {
+    if (command == SetFeatures && count != u32(-1)) {
         nsectors = count;
     }
 
@@ -228,6 +275,13 @@ void AHCIState::issue_meta(u32 const slot, pci::IDEController::Command const com
     --_num_slots_available;
 }
 
+void AHCIState::await_basic(u32 slot) {
+    while (_port_registers.command_mask & (1U << slot)) {
+        x86::pause();
+    }
+
+    this->acknowledge(slot, 0);
+}
 
 // Acknowledge a command waiting in `slot`
 void AHCIState::acknowledge(u32 slot, u32 result) {
@@ -259,6 +313,8 @@ auto AHCIState::read_or_write(pci::IDEController::Command const command,
     while (r == u32(IOError::TryAgain)) {
         x86::pause();
     }
+
+    _slot_status[0].make_none();
     
     return Result<Null, IOError>::Ok({});
 }

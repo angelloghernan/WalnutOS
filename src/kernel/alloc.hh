@@ -23,8 +23,8 @@ namespace alloc {
 
         // Number of blocks. 
         // The [i]th block is located at memory location 4096 * i + BLOCK_OFFSET.
-        // i.e., each block is 1000 bytes and we start at BLOCK_OFFSET.
-        auto static constexpr NUM_BLOCKS = 32_u8;
+        // i.e., each block is 1 page and we start at BLOCK_OFFSET.
+        auto static constexpr NUM_BLOCKS = 64_u8;
 
         // Number of lists.
         auto static constexpr NUM_LISTS = 9_u8;

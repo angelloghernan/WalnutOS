@@ -22,8 +22,7 @@ auto pci_address(u8 const bus, u8 const slot,
                   (ext_bus << 16)   |
                   (ext_slot << 11)  |
                   (ext_func << 8)   |
-                  (offset_u8); 
-
+                  (offset_u8);
     return address;
 }
 
@@ -46,6 +45,7 @@ void PCIState::config_write_u32(u8 const bus,
     ports::outl(CONFIG_ADDRESS, address);
     ports::outl(CONFIG_DATA, data);
 }
+
 void PCIState::config_write_word(u8 const bus, 
                                  u8 const slot, 
                                  u8 const func_number, 

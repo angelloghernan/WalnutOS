@@ -150,7 +150,7 @@ void IDEController::detect_drives() {
             terminal.print_line("");
 
             ++count;
-            found_drive = true;
+           // found_drive = true;
         }
 
 //        if (found_drive) {
@@ -168,7 +168,6 @@ void IDEController::detect_drives() {
 
 void IDEController::read_drive_dma(ChannelType channel_type) {
     auto const u8_channel = static_cast<u8>(channel_type);
-    auto const& channel = channel_registers[u8_channel];
 
     write(channel_type, Register::Command, static_cast<u8>(Command::ReadDMAExt));
 }
