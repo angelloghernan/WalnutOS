@@ -23,12 +23,10 @@ auto AHCIState::find(pci::PCIState::bus_slot_addr addr,
         auto subclass = pci.config_read_word(addr.bus, addr.slot, addr.func, 
                                              pci::Register::Subclass);
         if (subclass != 0x0106) {
-            if (subclass != pci::NO_DEVICE) {
-                terminal.print_line("Subclass: ", (void*)subclass);
-                terminal.print_line("BSF: ", addr.bus, " " , addr.slot, " ", addr.func);
-            }
             continue;
         }
+
+        terminal.print_line("1");
 
         auto const phys_addr = pci.config_read_u32(addr.bus, addr.slot, addr.func,
                                                    pci::Register::GDBaseAddress5);
@@ -37,6 +35,10 @@ auto AHCIState::find(pci::PCIState::bus_slot_addr addr,
         if (phys_addr == 0) {
             continue;
         }
+
+        auto result = kernel_pagedir.try_map(phys_addr, phys_addr, PTE_PWU);
+
+        assert(result.is_ok(), "Couldn't map AHCI!");
 
         auto drive_regs 
             = reinterpret_cast<volatile registers*>(util::physical_addr_to_kernel(phys_addr));
@@ -49,9 +51,12 @@ auto AHCIState::find(pci::PCIState::bus_slot_addr addr,
             if ((drive_regs->port_mask & (1U << slot)) &&
                 drive_regs->port_regs[slot].sstatus) {
                 auto maybe_ahci_ptr = simple_allocator.kalloc(sizeof(AHCIState));
-                assert(maybe_ahci_ptr.some(), "Could not allocate enough space for AHCI pointer");
+
+                assert(maybe_ahci_ptr.some(), 
+                       "Could not allocate enough space for AHCI pointer");
 
                 auto* ahci_ptr = reinterpret_cast<AHCIState*>(maybe_ahci_ptr.unwrap());
+                terminal.print_line("5");
                 return Option<AHCIState&>(*ahci_ptr);
             }
         }
@@ -226,8 +231,11 @@ void AHCIState::push_buffer(u32 const slot, uptr const data, usize const size) {
 // Must preceed with clear_slot(slot) and push_buffer(slot).
 // `fua`: If true, then don't acknowledge the write until data has been durably written to disk.
 // `priority`: 0 is normal priority, 2 is high priority
-void AHCIState::issue_ncq(u32 slot, pci::IDEController::Command command,
-                          usize sector, bool fua, u32 priority) {
+void AHCIState::issue_ncq(u32 const slot, 
+                          pci::IDEController::Command const command,
+                          usize const sector, 
+                          bool const fua, 
+                          u32 const priority) {
     using enum pci::IDEController::Command;
 
     usize const nsectors = _dma.ch[slot].buffer_byte_pos / SECTOR_SIZE;
@@ -255,8 +263,10 @@ void AHCIState::issue_ncq(u32 slot, pci::IDEController::Command command,
     --_num_slots_available;
 }
 
-void AHCIState::issue_meta(u32 const slot, pci::IDEController::Command const command,
-                           u32 const features, u32 const count) {
+void AHCIState::issue_meta(u32 const slot, 
+                           pci::IDEController::Command const command,
+                           u32 const features, 
+                           u32 const count) {
     using enum pci::IDEController::Command;
 
     usize nsectors = _dma.ch[slot].buffer_byte_pos / SECTOR_SIZE;
@@ -281,7 +291,7 @@ void AHCIState::issue_meta(u32 const slot, pci::IDEController::Command const com
     --_num_slots_available;
 }
 
-void AHCIState::await_basic(u32 slot) {
+void AHCIState::await_basic(u32 const slot) {
     while (_port_registers.command_mask & (1U << slot)) {
         x86::pause();
     }
@@ -290,7 +300,7 @@ void AHCIState::await_basic(u32 slot) {
 }
 
 // Acknowledge a command waiting in `slot`
-void AHCIState::acknowledge(u32 slot, u32 result) {
+void AHCIState::acknowledge(u32 const slot, u32 const result) {
     _slots_outstanding_mask ^= 1U << slot;
     ++_num_slots_available;
 

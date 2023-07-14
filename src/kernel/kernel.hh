@@ -1,9 +1,11 @@
 #pragma once
 
 #include "alloc.hh"
+#include "../klib/pagetables.hh"
 
 void setup_pagedir();
 extern alloc::BuddyAllocator simple_allocator;
+extern pagetables::PageDirectory kernel_pagedir;
 
 namespace kernel {
     auto constexpr SEGMENT_SIZE = 0x10000;

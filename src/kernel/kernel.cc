@@ -5,7 +5,6 @@
 #include "../klib/apic.hh"
 #include "../klib/idt.hh"
 #include "../klib/assert.hh"
-#include "../klib/pagetables.hh"
 #include "../kernel/kernel.hh"
 #include "../klib/result.hh"
 #include "../klib/ps2/ps2.hh"

@@ -25,7 +25,8 @@ QEMU_FLAGS = -device piix4-ide,bus=pci.0,id=piix4-ide \
 	-drive file=${OBJ_FOLDER}/${OS_IMAGE},if=none,format=raw,id=bootdisk\
 	-device ide-hd,drive=bootdisk,bus=piix4-ide.0 \
 	-drive file=img/disk.img,if=none,format=raw,id=maindisk\
-	-device ide-hd,drive=maindisk,bus=piix4-ide.1
+    -device ahci,id=ahci \
+	-device ide-hd,drive=maindisk,bus=ahci.0
 
 BOOT_FOLDER = grub
 
