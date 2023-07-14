@@ -21,6 +21,10 @@ namespace ahci {
         SET_DEVICE_BITS    = 0xA1, // 
     };
 
+    enum class IOError : i8 {
+        TryAgain = -11,
+    };
+
     // Made with help from Chickadee OS source (https://github.com/CS161/chickadee/)
     class AHCIState {
       private:
@@ -181,21 +185,21 @@ namespace ahci {
             return (sstatus & 0x03) == 3
                 || ((1U << ((sstatus & 0xF00) >> 8)) & 0x144) != 0;
         }
-        
-      public:
-        AHCIState(u8 bus, u8 slot, u8 func_number, u32 sata_port, volatile registers& dr);
-        AHCIState(AHCIState const&) = delete;
-
-        enum class IOError : u32 {
-            TryAgain = u32(-11),
-        };
-        
-        auto static find(pci::PCIState::bus_slot_addr = {}, u32 sata_port = 0) -> Option<AHCIState&>;
 
         auto read_or_write(pci::IDEController::Command command,
                            Slice<u8>& buf, usize offset) -> Result<Null, IOError>;
+        
+      public:
 
-        inline auto read(Slice<u8>& buf, usize offset) -> Result<Null, IOError> {
+        AHCIState(u8 bus, u8 slot, u8 func_number, u32 sata_port, volatile registers& dr);
+        AHCIState(AHCIState const&) = delete;
+
+        
+        [[nodiscard]] auto static find(pci::PCIState::bus_slot_addr = {}, 
+                                       u32 sata_port = 0) -> Option<AHCIState&>;
+
+
+        [[nodiscard]] inline auto read(Slice<u8>& buf, usize offset) -> Result<Null, IOError> {
             return read_or_write(pci::IDEController::Command::ReadFPDMAQueued, 
                                  buf, offset);
         }

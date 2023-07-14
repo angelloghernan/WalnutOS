@@ -20,13 +20,19 @@ auto AHCIState::find(pci::PCIState::bus_slot_addr addr,
 
     for (; addr_opt.some(); pci.next_addr(addr_opt)) {
         auto& addr = addr_opt.unwrap();
-        if (pci.config_read_word(addr.bus, addr.slot, addr.func, 
-                                 pci::Register::Subclass) != 0x0106) {
+        auto subclass = pci.config_read_word(addr.bus, addr.slot, addr.func, 
+                                             pci::Register::Subclass);
+        if (subclass != 0x0106) {
+            if (subclass != pci::NO_DEVICE) {
+                terminal.print_line("Subclass: ", (void*)subclass);
+                terminal.print_line("BSF: ", addr.bus, " " , addr.slot, " ", addr.func);
+            }
             continue;
         }
 
         auto const phys_addr = pci.config_read_u32(addr.bus, addr.slot, addr.func,
                                                    pci::Register::GDBaseAddress5);
+
         
         if (phys_addr == 0) {
             continue;

@@ -13,6 +13,7 @@
 #include "../klib/circular_buffer.hh"
 #include "../klib/pci/pci.hh"
 #include "../klib/pci/pci-ide.hh"
+#include "../klib/ahci/ahci.hh"
 
 using pagetables::PageDirectory;
 using pagetables::PageTable;
@@ -65,10 +66,10 @@ extern "C" void kernel_main() {
                 auto vendor_id = pci_state.config_read_word(i, j, 0, pci::Register::VendorId);
 
                 terminal.print_line(i, " ", j, " device id ", 
-                                    (void*)device_id, " vendor ", (void*)(vendor_id));
+                                    (void*)device_id, " vendor ", (void*)(vendor.unwrap()));
 
                 if (class_code == 0x01 && subclass == 0x01) {
-                    pci::IDEController ide_controller(bar_4);
+                    // pci::IDEController ide_controller(bar_4);
                     // Device is an IDE controller, which is what we were looking for
                     // terminal.print_line(i, " ", j, " is the boot drive controller");
                     // terminal.print_line(i, " ", j, " has base addr ", (void*)(base_addr));
@@ -78,7 +79,15 @@ extern "C" void kernel_main() {
             }
         }
     }
-    
+
+    // Time to test AHCIState, finally
+    auto maybe_ahci = ahci::AHCIState::find();
+
+    if (maybe_ahci.none()) {
+        terminal.print_line("No AHCI found");
+    } else {
+        terminal.print_line("Hooray");
+    }
 
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);

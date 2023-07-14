@@ -187,7 +187,7 @@ namespace pci {
                     addr.slot += 1;
                     if (addr.slot >= MAX_SLOTS) {
                         addr.slot = 0;
-                        addr.bus = 0;
+                        addr.bus += 1;
                     }
                 } else {
                     addr.func += 1;
