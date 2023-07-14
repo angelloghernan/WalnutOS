@@ -143,16 +143,18 @@ namespace ahci {
 
         // Actual variable layout:
         dma_state _dma;
-        u32 _pci_addr;
+        u32 _bus;
+        u32 _slot;
+        u32 _func;
         u32 _sata_port;
         volatile registers& _drive_registers;
         volatile port_regs& _port_registers;
         
         // These should remain constant after loading
-        u16 _irq;
+        u32 _irq;
         usize _num_sectors;
-        u16 _num_ncq_slots;
-        u16 _slots_full_mask;
+        u32 _num_ncq_slots;
+        u32 _slots_full_mask;
 
         // This is modifiable
         u16 _num_slots_available;
@@ -180,7 +182,7 @@ namespace ahci {
         }
         
       public:
-        AHCIState(u32 pci_addr, u32 sata_port, volatile registers& dr);
+        AHCIState(u8 bus, u8 slot, u8 func_number, u32 sata_port, volatile registers& dr);
         AHCIState(AHCIState const&) = delete;
 
         enum class IOError : u32 {
@@ -189,8 +191,19 @@ namespace ahci {
         
         auto static find(u32 pci_addr = 0, u32 sata_port = 0) -> Option<AHCIState&>;
 
+        auto read_or_write(pci::IDEController::Command command,
+                           Slice<u8>& buf, usize offset) -> Result<Null, IOError>;
 
-        auto read(Slice<u8>& buf, usize offset) -> Result<Null, IOError>;
-        auto write(Slice<u8> const& buf, usize offset) -> Result<Null, IOError>;
+        inline auto read(Slice<u8>& buf, usize offset) -> Result<Null, IOError> {
+            return read_or_write(pci::IDEController::Command::ReadFPDMAQueued, 
+                                 buf, offset);
+        }
+
+        auto write(Slice<u8> const& buf, usize offset) -> Result<Null, IOError> {
+            // const_cast is OK here since we won't be writing to this buffer
+            // when we use the write command
+            return read_or_write(pci::IDEController::Command::WriteFPDMAQueued, 
+                                 const_cast<Slice<u8>&>(buf), offset);
+        }
     };
 }; // namespace ahci

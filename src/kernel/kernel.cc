@@ -50,7 +50,7 @@ extern "C" void kernel_main() {
     // Slot 2 is QEMU Virtual Video Controller
     // Slot 3 is an Ethernet device
     // Slot 4 should be the PCI IDE controller
-    pci::PCIState pci_state;
+    auto& pci_state = pci::PCIState::get();
     auto bar_4 = 0;
 
     for (auto i = 0; i < 10; ++i) {

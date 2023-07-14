@@ -11,24 +11,33 @@ namespace pci {
     auto constexpr static NO_DEVICE = 0xFFFF_u16;
 
     enum class Register : u8 {
-        VendorId       = 0x0,
-        DeviceId       = 0x2,
-        Command        = 0x4,
-        Status         = 0x6,
-        RevisionId     = 0x8,
-        ProgIF         = 0x9,
-        Subclass       = 0xA,
-        ClassCode      = 0xB,
-        CacheLineSize  = 0xC,
-        LatencyTimer   = 0xD,
-        HeaderType     = 0xE,
-        BIST           = 0xF,
-        GDBaseAddress0 = 0x10,
-        GDBaseAddress1 = 0x14,
-        GDBaseAddress2 = 0x18,
-        GDBaseAddress3 = 0x1C,
-        GDBaseAddress4 = 0x20,
-        GDBaseAddress5 = 0x24,
+        VendorId             = 0x0,
+        DeviceId             = 0x2,
+        Command              = 0x4,
+        Status               = 0x6,
+        RevisionId           = 0x8,
+        ProgIF               = 0x9,
+        Subclass             = 0xA,
+        ClassCode            = 0xB,
+        CacheLineSize        = 0xC,
+        LatencyTimer         = 0xD,
+        HeaderType           = 0xE,
+        BIST                 = 0xF,
+        GDBaseAddress0       = 0x10,
+        GDBaseAddress1       = 0x14,
+        GDBaseAddress2       = 0x18,
+        GDBaseAddress3       = 0x1C,
+        GDBaseAddress4       = 0x20,
+        GDBaseAddress5       = 0x24,
+        CardBusCISPointer    = 0x28,
+        SubsystemVendorID    = 0x2C,
+        SubsystemID          = 0x2E,
+        ExpansionROMBaseAddr = 0x30,
+        CapabilitiesPointer  = 0x34,
+        InterruptLine        = 0x3C,
+        InterruptPIN         = 0x3D,
+        MinGrant             = 0x3E,
+        MaxLatency           = 0x3F,
     };
 
     enum class HeaderType : u8 {
@@ -132,10 +141,17 @@ namespace pci {
       public:
         auto config_read_word(u8 bus, u8 slot,
                               u8 func_number, Register offset) -> u16;
-        auto config_read_byte(u8 const bus, u8 const slot,
-                              u8 const func_number, Register const offset) -> u8;
-        auto config_read_u32(u8 const bus, u8 const slot, 
-                             u8 const func_number, Register const offset) -> u32;
+        auto config_read_byte(u8 bus, u8 slot,
+                              u8 func_number, Register const offset) -> u8;
+        auto config_read_u32(u8 bus, u8 slot, 
+                             u8 func_number, Register offset) -> u32;
+
+        void config_write_u32(u8 const bus, u8 const slot, 
+                               u8 const func_number, Register offset, u32 data);
+        void config_write_word(u8 const bus, u8 const slot, 
+                               u8 const func_number, Register offset, u16 data);
+        void config_write_byte(u8 const bus, u8 const slot, 
+                               u8 const func_number, Register offset, u8 data);
 
         auto check_vendor(u8 bus, u8 slot) -> Nullable<u16, NO_VENDOR>;
         auto check_device_id(u8 const bus,
@@ -144,7 +160,15 @@ namespace pci {
                                u8 const slot) -> HeaderType;
         auto get_status(u8 const bus, u8 const slot) -> Option<status_register>;
         void set_status(u8 const bus, u8 const slot, status_register status);
+        static PCIState& get() {
+            static PCIState state;
+            return state;
+        }
+
       private:
+        PCIState(const PCIState&) = delete;
+        PCIState& operator=(const PCIState&) = delete;
+        PCIState() {}
         // TODO(?): store header types and no longer assume Header Type 0 
         // (normal devices; not bridges)
     };

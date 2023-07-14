@@ -3,20 +3,24 @@
 #include "../pci/pci.hh"
 #include "../x86.hh"
 #include "../util.hh"
+#include "../console.hh"
 
 using namespace ahci;
 
 // Create a new object to keep track of AHCI-relevant state
-// `pci_addr`: the relevant PCI bus/slot/function for the AHCI controller
+// `bus` / `slot` / `func_number`: the relevant PCI bus/slot/function for the
+// AHCI controller
 // `sata_port`: the port for this device on the AHCI controller
 // `dr`: the drive registers, as pointed to by BAR 5 of the AHCI controller
 //
 // Recommended to call `find(addr, port)` unless one is already searching for 
 // PCI devices and wishes to avoid repeating work.
-AHCIState::AHCIState(u32 const pci_addr, 
+AHCIState::AHCIState(u8 const bus,
+                     u8 const slot,
+                     u8 const func_number,
                      u32 const sata_port, 
                      volatile registers& dr) 
-    : _pci_addr(pci_addr), _sata_port(sata_port),
+    : _bus(bus), _slot(slot), _func(func_number), _sata_port(sata_port),
       _drive_registers(dr), _port_registers(dr.port_regs[sata_port]),
      _num_ncq_slots(1), _num_slots_available(1), _slots_outstanding_mask(0) {
 
@@ -24,12 +28,12 @@ AHCIState::AHCIState(u32 const pci_addr,
         slot.make_none();
     }
 
+    auto& pci_state = pci::PCIState::get();
+
     {
         using enum pci::command_register::bit;
-
-        // Enable this PCI slot's bus master, memory space and I/O space
-        ports::outw(pci_addr + u32(pci::Register::Command), 
-                    u8(BusMaster) | u8(MemorySpace) | u8(IOSpace));
+        pci_state.config_write_word(bus, slot, func_number, pci::Register::Command,
+                                    u8(BusMaster) | u8(MemorySpace) | u8(IOSpace));
     }
 
     {
@@ -106,13 +110,45 @@ AHCIState::AHCIState(u32 const pci_addr,
     Array<u16, 256> id_buf;
     id_buf.filled(0_u16);
 
-    // Read into devid here
+    // Read into id_buf here
 
     // Fill out these functions
     this->clear_slot(0);
     this->push_buffer(0, uptr(&id_buf), id_buf.size());
     this->issue_meta(0, pci::IDEController::Command::Identify, 0);
     this->await_basic(0);
+
+    _num_sectors = id_buf[100] | (id_buf[101] << 16) | (uint64_t(id_buf[102]) << 32)
+        | (uint64_t(id_buf[103]) << 48);
+
+    // count slots
+    _num_ncq_slots = ((_drive_registers.capabilities >> 8) & 0x1F) + 1; // slots per controller
+    if ((id_buf[75] & 0x1F) + 1U < _num_ncq_slots) {         // slots per disk
+        _num_slots_available = (id_buf[75] & 0x1F) + 1;
+    }
+    _slots_full_mask = (_num_ncq_slots == 32 ? 0xFFFFFFFFU : (1U << _num_ncq_slots) - 1);
+    _num_slots_available = _num_ncq_slots;
+
+    // set features
+    this->clear_slot(0);
+    this->issue_meta(0, pci::IDEController::Command::SetFeatures, 0x02);  // write cache enable
+    this->await_basic(0);
+
+    this->clear_slot(0);
+    this->issue_meta(0, pci::IDEController::Command::SetFeatures, 0xAA);  // read lookahead enable
+    this->await_basic(0);
+
+    // determine IRQ
+    auto intr_pin = pci_state.config_read_byte(bus, slot, func_number, 
+                                               pci::Register::InterruptLine);
+    //_irq = machine_pci_irq(pci_addr_, intr_pin);
+    _irq = intr_pin;
+
+    terminal.print_line("IRQ: ", _irq);
+
+    // finally, clear pending interrupts again
+    _port_registers.interrupt_status = ~0U;
+    _drive_registers.interrupt_status = ~0U;
 }
 
 // Prepare `slot` to receive a command
@@ -166,6 +202,32 @@ void AHCIState::issue_ncq(u32 slot, pci::IDEController::Command command,
     --_num_slots_available;
 }
 
+void AHCIState::issue_meta(u32 const slot, pci::IDEController::Command const command,
+                           u32 const features, u32 const count) {
+    using enum pci::IDEController::Command;
+
+    usize nsectors = _dma.ch[slot].buffer_byte_pos / SECTOR_SIZE;
+    if (command == SetFeatures && count != -1) {
+        nsectors = count;
+    }
+
+    _dma.ct[slot].cfis[0] = CFIS_COMMAND | (u32(command) << 16) | (u32(features) << 24);
+    _dma.ct[slot].cfis[1] = 0;
+    _dma.ct[slot].cfis[2] = (u32(features) & 0xFF00) << 16;
+    _dma.ct[slot].cfis[3] = nsectors;
+
+    _dma.ch[slot].flags = 4 | u32(CHFlag::Clear);
+    _dma.ch[slot].buffer_byte_pos = 0;
+
+    // IMPORTANT: Uncomment once multicore and atomic are done
+    // std::atomic_thread_fence(std::memory_order_release);
+
+    _port_registers.command_mask = 1U << slot;    // tell interface command is available
+
+    _slots_outstanding_mask |= 1U << slot;
+    --_num_slots_available;
+}
+
 
 // Acknowledge a command waiting in `slot`
 void AHCIState::acknowledge(u32 slot, u32 result) {
@@ -178,7 +240,8 @@ void AHCIState::acknowledge(u32 slot, u32 result) {
     }
 }
 
-auto AHCIState::read(Slice<u8>& buf, usize const offset) -> Result<Null, IOError> {
+auto AHCIState::read_or_write(pci::IDEController::Command const command,
+                              Slice<u8>& buf, usize const offset) -> Result<Null, IOError> {
     // IMPORTANT: this whole function needs to protected by a lock when we add multicore
     
     // TODO: We should block here in a multicore/async environment, waiting for there to be
@@ -188,12 +251,14 @@ auto AHCIState::read(Slice<u8>& buf, usize const offset) -> Result<Null, IOError
 
     this->clear_slot(0);
     this->push_buffer(0, buf.to_uptr(), buf.len());
-    this->issue_ncq(0, pci::IDEController::Command::ReadFPDMAQueued, offset / SECTOR_SIZE);
+    this->issue_ncq(0, command, offset / SECTOR_SIZE);
 
     _slot_status[0].assign(&r);
 
-    // TODO: This should block instead of poll after we add wait queues
-    while (r == u32(IOError::TryAgain)) {}
+    // TODO: This should block instead of polling after we add wait queues
+    while (r == u32(IOError::TryAgain)) {
+        x86::pause();
+    }
     
     return Result<Null, IOError>::Ok({});
 }
