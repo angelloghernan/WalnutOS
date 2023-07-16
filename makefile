@@ -36,8 +36,8 @@ DEBUG_OBJ = ${CPP_SOURCES:%.cc=${DEBUG_FOLDER}/%.o} src/klib/idt.o
 HEADER_SOURCES = ${CPP_SOURCES:%.cc=%.d}
 
 CC = i686-elf-g++ 
-CXXFLAGS += -g -std=c++20 -fmodules-ts -ffreestanding -nostdlib -lgcc -lsupc++ -Wall -flto -ffat-lto-objects \
-					   -fno-threadsafe-statics -fno-stack-protector -fno-exceptions
+CXXFLAGS += -g -std=c++20 -fmodules-ts -ffreestanding -nostdlib -lgcc -lsupc++ -flto -ffat-lto-objects \
+					   -fno-threadsafe-statics -fno-stack-protector -fno-exceptions -Wall
 DEBUG_FLAGS = -DDEBUG -O1
 RELEASE_FLAGS = -O3
 GDB = gdb

@@ -23,7 +23,6 @@ PageDirectory kernel_pagedir;
 static PageTable starter_pt;
 static PageTable io_pt;
 
-alloc::BuddyAllocator simple_allocator;
 
 Idt idt;
 Idtr idtr;
@@ -64,7 +63,7 @@ extern "C" void kernel_main() {
                 auto device_id = pci_state.config_read_word(i, j, 0, pci::Register::DeviceId);
                 auto vendor_id = pci_state.config_read_word(i, j, 0, pci::Register::VendorId);
 
-                terminal.print_line(i, " ", j, " device id ", 
+                terminal.print_line(i, " ", j, " device id ",
                                     (void*)device_id, " vendor ", (void*)(vendor.unwrap()));
 
                 if (class_code == 0x01 && subclass == 0x01) {
@@ -82,11 +81,24 @@ extern "C" void kernel_main() {
     // Time to test AHCIState, finally
     auto maybe_ahci = ahci::AHCIState::find();
 
-    if (maybe_ahci.none()) {
-        terminal.print_line("No AHCI found");
-    } else {
-        terminal.print_line("Hooray");
-    }
+    assert(maybe_ahci.some(), "Unable to find hard disk");
+
+    auto& ahci = maybe_ahci.unwrap();
+
+    terminal.print_line("One");
+
+    str constexpr hello_ahci = "Hello, AHCI";
+    auto attempt = ahci.write(hello_ahci.as_slice().to_raw_bytes(), 0);
+
+    assert(attempt.is_ok(), "Failure 1");
+
+    Array<u8, hello_ahci.len()> buf;
+    Slice<u8> buf2(buf);
+    terminal.print_line("Two");
+
+    attempt = ahci.read(buf2, hello_ahci.len());
+    assert(attempt.is_ok(), "Failure 2");
+    terminal.print_line("Three");
 
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);

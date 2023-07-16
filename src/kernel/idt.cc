@@ -7,6 +7,7 @@
 #include "../klib/strings.hh"
 #include "../klib/ps2/keyboard.hh"
 #include "../klib/ports.hh"
+#include "../klib/x86.hh"
 
 using namespace ps2;
 
@@ -21,6 +22,9 @@ void end_of_interrupt(u8 vector_code) {
 }
 
 extern "C" void exception_handler(regstate& regs) {
+    terminal.print_line("Exception ", u32(regs.vector_code));
+//    terminal.print_line("Exception ", u32(regs.vector_code), 
+//                        " at EIP = ", (void*)(regs.reg_eip), " CR2 = ", x86::read_cr2());
     end_of_interrupt(regs.vector_code);
 }
 

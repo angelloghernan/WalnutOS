@@ -34,4 +34,10 @@ namespace x86 {
     inline void pause() {
         asm volatile("pause" : : : "memory");
     }
+
+    inline auto read_cr2() -> uptr {
+        uptr cr2;
+        asm volatile("movl %%cr2, %0" : "=r" (cr2));
+        return cr2;
+    }
 }

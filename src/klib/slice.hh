@@ -50,6 +50,11 @@ class Slice {
     [[nodiscard]] auto constexpr to_raw_ptr() const -> T const* { return _values; }
     [[nodiscard]] auto constexpr to_raw_ref() const -> T const& { return *_values; }
 
+    // unsafe -- if this is a const pointer, we must make sure that the contents are left unmodified
+    [[nodiscard]] auto constexpr to_raw_bytes() const -> Slice<u8> { 
+        return Slice<u8>((u8*)(_values), _size * sizeof(T));
+    }
+
   private:
     T* _values;
     usize _size;

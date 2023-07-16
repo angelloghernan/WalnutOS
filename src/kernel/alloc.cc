@@ -1,4 +1,5 @@
 #include "alloc.hh"
+#include "kernel.hh"
 #include "../klib/int.hh"
 #include "../klib/array.hh"
 #include "../klib/result.hh"
@@ -9,6 +10,7 @@
 
 using namespace alloc;
 
+BuddyAllocator simple_allocator;
 
 // The buddy allocator should begin in the following state:
 // All lists have no head (i.e. they are "none")
@@ -256,3 +258,4 @@ auto alloc::log2(u32 num) -> u8 {
     }
     return count;
 }
+

@@ -2,6 +2,7 @@
 #include "int.hh"
 #include "option.hh"
 #include "iterator.hh"
+#include "slice.hh"
 
 // str: A primitive type wrapping around string literals, allowing for easier iteration and slicing.
 // When passing size, it is the size of the entire string, *including a null character*.
@@ -26,6 +27,9 @@ struct str {
         }
     }
 
+    auto constexpr as_slice() const -> Slice<char const> {
+        return Slice<char const>(m_string, m_size);
+    }
 
   private:
     char const* m_string;

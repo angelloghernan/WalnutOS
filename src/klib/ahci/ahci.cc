@@ -26,8 +26,6 @@ auto AHCIState::find(pci::PCIState::bus_slot_addr addr,
             continue;
         }
 
-        terminal.print_line("1");
-
         auto const phys_addr = pci.config_read_u32(addr.bus, addr.slot, addr.func,
                                                    pci::Register::GDBaseAddress5);
 
@@ -56,7 +54,8 @@ auto AHCIState::find(pci::PCIState::bus_slot_addr addr,
                        "Could not allocate enough space for AHCI pointer");
 
                 auto* ahci_ptr = reinterpret_cast<AHCIState*>(maybe_ahci_ptr.unwrap());
-                terminal.print_line("5");
+                ::new (ahci_ptr) AHCIState(addr.bus, addr.slot, addr.func, 
+                                           slot, *drive_regs);
                 return Option<AHCIState&>(*ahci_ptr);
             }
         }
@@ -238,6 +237,8 @@ void AHCIState::issue_ncq(u32 const slot,
                           u32 const priority) {
     using enum pci::IDEController::Command;
 
+    terminal.print_line("Address of _dma: ", (void*)(&_dma));
+
     usize const nsectors = _dma.ch[slot].buffer_byte_pos / SECTOR_SIZE;
     _dma.ct[slot].cfis[0] = CFIS_COMMAND | (u32(command) << 16)
         | ((nsectors & 0xFF) << 24);
@@ -254,6 +255,8 @@ void AHCIState::issue_ncq(u32 const slot,
     // ensure all previous writes have made it out to memory
     // IMPORTANT: Add this back in when we have multicore and have implemented atomic
     // std::atomic_thread_fence(std::memory_order_release);
+    
+    terminal.print_line("Port registers address: ", (void*)(&_port_registers));
 
     _port_registers.ncq_active = 1U << slot;  // tell interface NCQ slot used
     _port_registers.command_mask = 1U << slot; // tell interface command available
@@ -318,14 +321,20 @@ auto AHCIState::read_or_write(pci::IDEController::Command const command,
     // a free slot using _slots_outstanding_mask
 
     volatile u32 r = u32(IOError::TryAgain);
+    terminal.print_line("Well 1");
 
     this->clear_slot(0);
+    terminal.print_line("Well 2");
     this->push_buffer(0, buf.to_uptr(), buf.len());
+    terminal.print_line("Well 3");
     this->issue_ncq(0, command, offset / SECTOR_SIZE);
+    terminal.print_line("Well 4");
 
     _slot_status[0].assign(&r);
+    terminal.print_line("Well 5");
 
     // TODO: This should block instead of polling after we add wait queues
+    // TODO: interrupts.
     while (r == u32(IOError::TryAgain)) {
         x86::pause();
     }

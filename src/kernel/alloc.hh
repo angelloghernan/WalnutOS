@@ -69,7 +69,25 @@ namespace alloc {
         [[gnu::always_inline]] auto constexpr addr_to_index(uptr addr) -> Nullable<u16, NULL_BLOCK>;
     };
 
-    auto round_up_pow2(u32 num) -> u32;
+}; // namespace alloc
+
+extern alloc::BuddyAllocator simple_allocator;
+
+namespace alloc {
+    auto round_up_pow2(u32 num) -> u32; // TODO: move to another suitable file? we want it inlined tho
     auto log2(u32 num) -> u8;
-};
+
+    template<typename T>
+    inline __attribute__((malloc)) auto knew(u16 align = 0) -> T* {
+        // align currently unused but may be used in the future
+        return simple_allocator.kalloc(sizeof(T)).unwrap_as<T*>();
+    }
+}; // namespace alloc
+
+// Placement new/delete operators (placement delete shouldn't be used, call the destructor)
+inline void* operator new(usize, void* ptr) noexcept { return ptr; }
+inline void* operator new[](usize, void* ptr) noexcept { return ptr; }
+
+inline void operator delete(void*, void*) noexcept {}
+inline void operator delete[](void*, void*) noexcept {}
 

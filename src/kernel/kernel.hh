@@ -4,7 +4,6 @@
 #include "../klib/pagetables.hh"
 
 void setup_pagedir();
-extern alloc::BuddyAllocator simple_allocator;
 extern pagetables::PageDirectory kernel_pagedir;
 
 namespace kernel {
