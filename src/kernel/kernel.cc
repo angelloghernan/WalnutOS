@@ -37,6 +37,7 @@ extern "C" void kernel_main() {
 
     // Remap master to 0x20, slave to 0x28
     Pic::remap(0x20, 0x28);
+    Pic::clear_masks();
 
     idt.init();
 
@@ -87,8 +88,9 @@ extern "C" void kernel_main() {
 
     terminal.print_line("One");
 
-    str constexpr hello_ahci = "Hello, AHCI";
-    auto attempt = ahci.write(hello_ahci.as_slice().to_raw_bytes(), 0);
+    Array<u8, 512> hello_ahci {'H', 'e', 'l', 'l', 'o', ' ', 'A', 'H', 'C', 'I'};
+
+    auto attempt = ahci.write(Slice<u8>(hello_ahci).to_raw_bytes(), 0);
 
     assert(attempt.is_ok(), "Failure 1");
 

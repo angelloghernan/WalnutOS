@@ -69,6 +69,11 @@ namespace pci {
             bytes |= 1 << b_u8;
         }
 
+        void clear_bit(bit const b) {
+            auto const b_u8 = static_cast<u8>(b);
+            bytes &= ~(1 << b_u8);
+        }
+
         auto get_bit(bit b) -> bool {
             auto b_u8 = static_cast<u8>(b);
             return bytes & (1 << b_u8);
@@ -161,6 +166,8 @@ namespace pci {
                                u8 const slot) -> HeaderType;
         auto get_status(u8 const bus, u8 const slot) -> Option<status_register>;
         void set_status(u8 const bus, u8 const slot, status_register status);
+        void enable_interrupts(u8 bus, u8 slot, u8 func_number);
+        void disable_interrupts(u8 bus, u8 slot, u8 func_number);
         static PCIState& get() {
             static PCIState state;
             return state;

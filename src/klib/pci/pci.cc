@@ -1,6 +1,7 @@
 #include "pci.hh"
 #include "../int.hh"
 #include "../option.hh"
+#include "../console.hh"
 
 using namespace pci;
 
@@ -105,6 +106,22 @@ auto PCIState::check_header_type(u8 const bus,
     }
 
     return static_cast<HeaderType>(byte);
+}
+
+void PCIState::enable_interrupts(u8 const bus, u8 const slot, 
+                                 u8 const func_number) {
+    command_register command;
+    command.bytes = config_read_word(bus, slot, func_number, 
+                                    Register::Command);
+
+    terminal.print_line("Bytes: ", (void*)command.bytes);
+
+    command.clear_bit(command_register::bit::InterruptDisable);
+
+    terminal.print_line("Bytes: ", (void*)command.bytes);
+
+    config_write_word(bus, slot, func_number,
+                      Register::Command, command.bytes);
 }
 
 auto PCIState::get_status(u8 const bus, u8 const slot) -> Option<status_register> {

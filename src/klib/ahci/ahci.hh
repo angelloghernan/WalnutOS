@@ -52,7 +52,7 @@ namespace ahci {
         };
 
         struct registers {
-            u32 capabilities;        // CAP: device_capabilities [R]
+            u32 capabilities;        // CAP: HBA capabilities [R]
             u32 global_hba_control;  // GHC: global HBA control [R/W]
             u32 interrupt_status;    // IS: interrupt status
             u32 port_mask;           // PI: addressable ports
@@ -87,15 +87,15 @@ namespace ahci {
         };
 
         enum class InterruptMasks : u32 {
-            DeviceToHost   = 0x1,
-            NCQComplete    = 0x8,
+            DeviceToHost   = 0x1U,
+            NCQComplete    = 0x8U,
             ErrorMask      = 0x7D800010U,
             FatalErrorMask = 0x78000000U, // HBFS|HBDS|IFS|TFES
         };
 
         enum class GHCMasks : u32 {
-            InterruptEnable = 0x2,
-            AHCIEnable      = 0x80000000,
+            InterruptEnable = 0x2U,
+            AHCIEnable      = 0x80000000U,
         };
 
         // DMA structures for device comm.
@@ -164,7 +164,7 @@ namespace ahci {
         // This is modifiable
         u16 _num_slots_available;
         u16 _slots_outstanding_mask;
-        Array<Option<volatile u32&>, 32> _slot_status; // IMPORTANT: This should become atomic once multicore is set up
+        Array<volatile u32*, 32> _slot_status; // IMPORTANT: This should become atomic once multicore is set up
 
         void handle_interrupt();
         void handle_error_interrupt();

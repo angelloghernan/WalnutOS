@@ -82,30 +82,30 @@ AHCIState::AHCIState(u8 const bus,
      _num_ncq_slots(1), _num_slots_available(1), _slots_outstanding_mask(0) {
 
     for (auto& slot : _slot_status) {
-        slot.make_none();
+        slot = nullptr;
     }
 
     auto& pci_state = pci::PCIState::get();
 
     {
         using enum pci::command_register::bit;
-        pci_state.config_write_word(bus, slot, func_number, pci::Register::Command,
-                                    u8(BusMaster) | u8(MemorySpace) | u8(IOSpace));
+        pci_state.config_write_word(bus, slot, func_number, 
+                                    pci::Register::Command, 0x7); // Enable I/O, mem, bus master
     }
 
     {
         using enum PortCommandMasks;
-        auto const mask = ~(u32(RFISEnable) | u32(RFISClear));
+        auto const mask = ~(u32(RFISEnable) | u32(Start));
 
         // Note: |=, +=, &=, etc are deprecated for volatile variables in C++20
-        _port_registers.command_mask = _port_registers.command_mask & mask;
+        _port_registers.command_and_status = _port_registers.command_and_status & mask;
 
-        while (_port_registers.command_mask & (u32(CommandRunning) | u32(RFISRunning))) {
+        while (_port_registers.command_and_status & (u32(CommandRunning) | u32(RFISRunning))) {
             x86::pause();
         }
     }
 
-    util::memset(uptr(&_dma), 0_u8, sizeof(_dma));
+    util::memset<u8>(uptr(&_dma), 0_u8, sizeof(_dma));
 
     for (auto i = 0; i < 32; ++i) {
         _dma.ch[i].command_table_address 
@@ -138,12 +138,12 @@ AHCIState::AHCIState(u8 const bus,
         = _drive_registers.global_hba_control | u32(GHCMasks::InterruptEnable);
 
 
-    _port_registers.command_mask 
-        = _port_registers.command_mask | u32(PortCommandMasks::RFISEnable);
+    _port_registers.command_and_status
+        = _port_registers.command_and_status | u32(PortCommandMasks::RFISEnable);
 
     auto const busy = u32(RStatusMasks::Busy) | u32(RStatusMasks::DataReq);
 
-    while ((_port_registers.command_and_status & busy) != 0 || 
+    while ((_port_registers.tfd & busy) != 0 || 
             !sstatus_active(_port_registers.sstatus)) {
         x86::pause();
     }
@@ -164,24 +164,24 @@ AHCIState::AHCIState(u8 const bus,
     _port_registers.command_and_status = 
         _port_registers.command_and_status | u32(PortCommandMasks::Start);
 
-    Array<u16, 256> id_buf;
-    id_buf.filled(0_u16);
+    auto id_buf = Array<u16, 256>::filled(0_u16);
 
-    // Read into id_buf here
-
-    // Fill out these functions
     this->clear_slot(0);
     this->push_buffer(0, uptr(&id_buf), id_buf.size());
     this->issue_meta(0, pci::IDEController::Command::Identify, 0);
     this->await_basic(0);
 
-    _num_sectors = id_buf[100] | (id_buf[101] << 16) | (uint64_t(id_buf[102]) << 32)
-        | (uint64_t(id_buf[103]) << 48);
+    terminal.print_line("id buf & 0x6: ", id_buf[53] & 0x6);
+
+    _num_sectors = id_buf[100] | (id_buf[101] << 16) | (u64(id_buf[102]) << 32)
+        | (u64(id_buf[103]) << 48);
+
+    terminal.print_line("Num sectors: ", _num_sectors);
 
     // count slots
     _num_ncq_slots = ((_drive_registers.capabilities >> 8) & 0x1F) + 1; // slots per controller
     if ((id_buf[75] & 0x1F) + 1U < _num_ncq_slots) {         // slots per disk
-        _num_slots_available = (id_buf[75] & 0x1F) + 1;
+        _num_ncq_slots = (id_buf[75] & 0x1F) + 1;
     }
     _slots_full_mask = (_num_ncq_slots == 32 ? 0xFFFFFFFFU : (1U << _num_ncq_slots) - 1);
     _num_slots_available = _num_ncq_slots;
@@ -196,12 +196,14 @@ AHCIState::AHCIState(u8 const bus,
     this->await_basic(0);
 
     // determine IRQ
-    auto intr_pin = pci_state.config_read_byte(bus, slot, func_number, 
-                                               pci::Register::InterruptLine);
+    auto intr_line = pci_state.config_read_byte(bus, slot, func_number, 
+                                                pci::Register::InterruptLine);
     //_irq = machine_pci_irq(pci_addr_, intr_pin);
-    _irq = intr_pin;
+    _irq = intr_line;
 
-    terminal.print_line("IRQ: ", _irq);
+    terminal.print_line("IRQ pin: ", intr_line);
+
+    pci_state.enable_interrupts(bus, slot, func_number);
 
     // finally, clear pending interrupts again
     _port_registers.interrupt_status = ~0U;
@@ -215,6 +217,7 @@ inline void AHCIState::clear_slot(u16 const slot) {
 }
 
 void AHCIState::push_buffer(u32 const slot, uptr const data, usize const size) {
+    terminal.print_line("Push buffer size ", size, " to slot ", slot);
     auto const phys_addr = util::kernel_to_physical_addr(data);
     
     auto const num_buffers = _dma.ch[slot].num_buffers;
@@ -240,10 +243,11 @@ void AHCIState::issue_ncq(u32 const slot,
     terminal.print_line("Address of _dma: ", (void*)(&_dma));
 
     usize const nsectors = _dma.ch[slot].buffer_byte_pos / SECTOR_SIZE;
+    terminal.print_line("nsectors: ", nsectors);
     _dma.ct[slot].cfis[0] = CFIS_COMMAND | (u32(command) << 16)
         | ((nsectors & 0xFF) << 24);
     _dma.ct[slot].cfis[1] = (sector & 0xFFFFFF)
-        | (uint32_t(fua) << 31) | 0x40000000U;
+        | (u32(fua) << 31) | 0x40000000U;
     _dma.ct[slot].cfis[2] = (sector >> 24) | ((nsectors & 0xFF00) << 16);
     _dma.ct[slot].cfis[3] = (slot << 3) | (priority << 14);
 
@@ -282,7 +286,7 @@ void AHCIState::issue_meta(u32 const slot,
     _dma.ct[slot].cfis[2] = (u32(features) & 0xFF00) << 16;
     _dma.ct[slot].cfis[3] = nsectors;
 
-    _dma.ch[slot].flags = 4 | u32(CHFlag::Clear);
+    _dma.ch[slot].flags = 4 | u16(CHFlag::Clear);
     _dma.ch[slot].buffer_byte_pos = 0;
 
     // IMPORTANT: Uncomment once multicore and atomic are done
@@ -307,9 +311,10 @@ void AHCIState::acknowledge(u32 const slot, u32 const result) {
     _slots_outstanding_mask ^= 1U << slot;
     ++_num_slots_available;
 
-    if (_slot_status[slot].some()) {
-        _slot_status[slot].unwrap() = result;
-        _slot_status[slot].make_none();
+    if (_slot_status[slot] != nullptr) {
+        terminal.print_line("Slot status done: ", (void*)_slot_status[slot], " ", result);
+        *_slot_status[slot] = result;
+        _slot_status[slot] = nullptr;
     }
 }
 
@@ -330,16 +335,16 @@ auto AHCIState::read_or_write(pci::IDEController::Command const command,
     this->issue_ncq(0, command, offset / SECTOR_SIZE);
     terminal.print_line("Well 4");
 
-    _slot_status[0].assign(&r);
+    _slot_status[0] = &r;
     terminal.print_line("Well 5");
 
     // TODO: This should block instead of polling after we add wait queues
-    // TODO: interrupts.
+    // interrupts.
     while (r == u32(IOError::TryAgain)) {
         x86::pause();
     }
 
-    _slot_status[0].make_none();
+    _slot_status[0] = nullptr;
     
     return Result<Null, IOError>::Ok({});
 }

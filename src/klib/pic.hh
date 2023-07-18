@@ -9,6 +9,7 @@ public:
 
     void static end_of_interrupt(u8 irq);
     void static remap(u16 master_offset, u16 slave_offset);
+    void static clear_masks();
 
     auto static get() -> Pic& {
         static Pic pic;
