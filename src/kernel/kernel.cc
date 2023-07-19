@@ -46,49 +46,13 @@ extern "C" void kernel_main() {
 
     Idt::enable_interrupts();
 
-
     // QEMU: 
     // Slot 0 is Natoma (chipset)
     // Slot 1 is ISA controller
     // Slot 2 is QEMU Virtual Video Controller
     // Slot 3 is an Ethernet device
     // Slot 4 should be the PCI IDE controller
-    auto& pci_state = pci::PCIState::get();
-    auto bar_4 = 0;
 
-    for (auto i = 0; i < 10; ++i) {
-        for (auto j = 0; j < 10; ++j) {
-            for (auto k = 0; k < 10; ++k) {
-                auto vendor_id = pci_state.config_read_word(i, j, k, pci::Register::VendorId);
-                if (vendor_id == pci::NO_VENDOR) {
-                    break;
-                }
-                if (vendor_id != pci::NO_VENDOR)  {
-                    auto class_code = pci_state.config_read_byte(i, j, k, pci::Register::ClassCode);
-                    auto subclass = pci_state.config_read_byte(i, j, k, pci::Register::Subclass);
-                    auto prog_if = pci_state.config_read_byte(i, j, k, pci::Register::ProgIF);
-                    bar_4 = pci_state.config_read_u32(i, j, k, pci::Register::GDBaseAddress4);
-                    auto device_id = pci_state.config_read_word(i, j, k, pci::Register::DeviceId);
-                    auto int_line = pci_state.config_read_byte(i, j, k, pci::Register::InterruptLine);
-
-                    terminal.print_line(i, " ", j, " device id ",
-                                        (void*)device_id, " vendor ", (void*)(vendor_id), 
-                                        " int line ", (void*)int_line);
-
-                    if (class_code == 0x01 && subclass == 0x01) {
-                        // pci::IDEController ide_controller(bar_4);
-                        // Device is an IDE controller, which is what we were looking for
-                        // terminal.print_line(i, " ", j, " is the boot drive controller");
-                        // terminal.print_line(i, " ", j, " has base addr ", (void*)(base_addr));
-                    } else {
-                        // terminal.print_line(i, " " , j, " has class ", class_code, " and subclass ", subclass);
-                    }
-                }
-            }
-        }
-    }
-
-    // Time to test AHCIState, finally
     sata_disk0 = ahci::AHCIState::find();
     terminal.print_line("Finished");
 
