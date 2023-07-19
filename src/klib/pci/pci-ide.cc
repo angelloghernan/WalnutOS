@@ -4,6 +4,7 @@
 #include "../assert.hh"
 #include "../pagetables.hh"
 
+using namespace wlib;
 using namespace pci;
 using enum IDEController::ChannelType;
 using enum IDEController::Register;

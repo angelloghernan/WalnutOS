@@ -14,6 +14,8 @@
 #include "../klib/pci/pci-ide.hh"
 #include "../klib/ahci/ahci.hh"
 
+using namespace wlib;
+
 using pagetables::PageDirectory;
 using pagetables::PageTable;
 using ps2::Ps2Keyboard;
@@ -102,16 +104,19 @@ extern "C" void kernel_main() {
 
     assert(attempt.is_ok(), "Failure 1");
 
-//    Array<u8, hello_ahci.len()> buf;
-//    Slice<u8> buf2(buf);
-//    terminal.print_line("Two");
-//
-//    attempt = sata_disk0->read(buf2, hello_ahci.len());
-//    assert(attempt.is_ok(), "Failure 2");
-//    terminal.print_line("Three");
+    Array<u8, hello_ahci.len()> buf;
+    Slice<u8> buf2(buf);
+    terminal.print_line("Two");
 
+    attempt = sata_disk0->read(buf2, 0);
+    assert(attempt.is_ok(), "Failure 2");
+    terminal.print_line("Three");
 
-//    terminal.print_line();
+    for (auto i = 0; i < 11; ++i) {
+        terminal.print(char(buf2[i]));
+    }
+
+    terminal.print_line();
 
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);

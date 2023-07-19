@@ -3,6 +3,7 @@
 #include "../ports.hh"
 #include "../util.hh"
 
+using namespace wlib;
 using namespace pci;
 
 auto PRDT::initialize(u16 const entry_count, 

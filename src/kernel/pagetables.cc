@@ -5,7 +5,7 @@
 #include "../kernel/kernel.hh"
 #include "../klib/result.hh"
 
-namespace pagetables {
+namespace wlib::pagetables {
     auto PageDirectory::map(uptr const virtual_addr, 
                             uptr const physical_addr, u8 const perm) -> Result<Null, Null> {
         auto const pd_idx = va_to_idx(virtual_addr);

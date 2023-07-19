@@ -8,7 +8,7 @@
 #include "../klib/assert.hh"
 #include "../klib/console.hh"
 
-using namespace alloc;
+using namespace wlib::alloc;
 
 BuddyAllocator simple_allocator;
 
@@ -239,7 +239,7 @@ void constexpr BuddyAllocator::block::set_order(u8 order) {
     order_and_free |= order << 1;
 }
 
-auto alloc::round_up_pow2(u32 num) -> u32 {
+auto wlib::alloc::round_up_pow2(u32 num) -> u32 {
     --num;
     num |= num >> 1;
     num |= num >> 2;
@@ -250,7 +250,7 @@ auto alloc::round_up_pow2(u32 num) -> u32 {
     return num;
 }
 
-auto alloc::log2(u32 num) -> u8 {
+auto wlib::alloc::log2(u32 num) -> u8 {
     auto count = u8(-1);
     while (num) {
         num >>= 1;

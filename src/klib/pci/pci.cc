@@ -3,6 +3,7 @@
 #include "../option.hh"
 #include "../console.hh"
 
+using namespace wlib;
 using namespace pci;
 
 auto pci_address(u8 const bus, u8 const slot, 

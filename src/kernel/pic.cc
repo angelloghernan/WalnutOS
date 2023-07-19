@@ -1,6 +1,7 @@
 #include "../klib/int.hh"
 #include "../klib/pic.hh"
 
+using namespace wlib;
 using namespace ports;
 
 void Pic::end_of_interrupt(u8 irq) {

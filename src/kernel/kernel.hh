@@ -4,7 +4,7 @@
 #include "../klib/pagetables.hh"
 
 void setup_pagedir();
-extern pagetables::PageDirectory kernel_pagedir;
+extern wlib::pagetables::PageDirectory kernel_pagedir;
 
 namespace kernel {
     auto constexpr SEGMENT_SIZE = 0x10000;

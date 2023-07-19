@@ -5,7 +5,8 @@
 #include "../circular_buffer.hh"
 #include "../console.hh"
 #include "ps2.hh"
-namespace ps2 {
+
+namespace wlib::ps2 {
     enum class ScanCodeSet : u8;
     enum class KeyboardCommand : u8;
     enum class KeyboardResponse : u8;
@@ -314,4 +315,4 @@ namespace ps2 {
         ExPlayUp            = 0xA2,
         ExStopUp            = 0xA4,
     };
-};
+}; // namespace wlib::ps2

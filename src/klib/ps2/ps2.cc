@@ -3,7 +3,9 @@
 #include "../console.hh"
 #include "../idt.hh"
 
+using namespace wlib;
 using namespace ports;
+using namespace ps2;
 
 void Ps2Controller::enable_first() {
     outb(CMD_STATUS_REGISTER, ENABLE_FIRST_PORT);

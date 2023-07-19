@@ -2,8 +2,9 @@
 #include "../klib/assert.hh"
 #include "../klib/array.hh"
 
-console::Console terminal;
-namespace console {
+wlib::console::Console terminal;
+
+namespace wlib::console {
     void Console::put_char(char const ch) {
         if (ch == '\n') {
             new_line();

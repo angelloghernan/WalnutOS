@@ -9,6 +9,7 @@
 #include "../pic.hh"
 #include "../idt.hh"
 
+using namespace wlib;
 using namespace ahci;
 
 void AHCIState::handle_interrupt() {

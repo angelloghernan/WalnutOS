@@ -5,16 +5,16 @@
 #include "../klib/concepts.hh"
 #include "../klib/nullable.hh"
 
-namespace alloc {
+namespace wlib::alloc {
     template<typename A>
     concept KernelAllocator = requires(A allocator) {
-        { allocator.kalloc() } -> concepts::is_type<Nullable<uptr, 0>>;
-        { allocator.kfree() } -> concepts::is_type<void>;
+        { allocator.kalloc() } -> wlib::concepts::is_type<wlib::Nullable<uptr, 0>>;
+        { allocator.kfree() } -> wlib::concepts::is_type<void>;
     };
 
     class BuddyAllocator {
       public:
-        [[nodiscard]] auto kalloc(usize size) -> Nullable<uptr, 0>;
+        [[nodiscard]] auto kalloc(usize size) -> wlib::Nullable<uptr, 0>;
         void kfree(uptr ptr);
         BuddyAllocator();
       private:
@@ -39,8 +39,8 @@ namespace alloc {
         auto static constexpr LARGEST_BLOCK_SIZE = 17_u8;
 
         struct block {
-            Nullable<u16, NULL_BLOCK> next;
-            Nullable<u16, NULL_BLOCK> prev;
+            wlib::Nullable<u16, NULL_BLOCK> next;
+            wlib::Nullable<u16, NULL_BLOCK> prev;
             u8 order_and_free;
 
             [[gnu::always_inline]] auto constexpr is_free() -> bool;
@@ -69,11 +69,11 @@ namespace alloc {
         [[gnu::always_inline]] auto constexpr addr_to_index(uptr addr) -> Nullable<u16, NULL_BLOCK>;
     };
 
-}; // namespace alloc
+}; // namespace wlib::alloc
 
-extern alloc::BuddyAllocator simple_allocator;
+extern wlib::alloc::BuddyAllocator simple_allocator;
 
-namespace alloc {
+namespace wlib::alloc {
     auto round_up_pow2(u32 num) -> u32; // TODO: move to another suitable file? we want it inlined tho
     auto log2(u32 num) -> u8;
 

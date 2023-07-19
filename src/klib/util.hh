@@ -1,67 +1,68 @@
 #pragma once
 #include "slice.hh"
 #include "option.hh"
+namespace wlib {
+    namespace util {
+        template<typename T>
+        inline auto max(T const& lhs, T const& rhs) -> T {
+            return lhs > rhs ? lhs : rhs;
+        };
 
-namespace util {
-    template<typename T>
-    inline auto max(T const& lhs, T const& rhs) -> T {
-        return lhs > rhs ? lhs : rhs;
-    };
+        template<typename T>
+        inline auto max(Slice<T> const& slice) -> Option<T> {
+            if (slice.empty()) {
+                return Option<T> {};
+            }
 
-    template<typename T>
-    inline auto max(Slice<T> const& slice) -> Option<T> {
-        if (slice.empty()) {
-            return Option<T> {};
+            auto maximum = slice[0];
+
+            for (auto i = 1; i < slice.len(); ++i) {
+                maximum = slice[i] > maximum ? slice[i] : maximum;
+            }
+
+            return maximum;
         }
 
-        auto maximum = slice[0];
-
-        for (auto i = 1; i < slice.len(); ++i) {
-            maximum = slice[i] > maximum ? slice[i] : maximum;
+        template<typename T>
+        inline auto min(T const& lhs, T const& rhs) -> T {
+            return lhs < rhs ? lhs : rhs;
         }
 
-        return maximum;
-    }
+        template<typename T>
+        inline auto min(Slice<T> const& slice) -> Option<T> {
+            if (slice.empty()) {
+                return Option<T> {};
+            }
 
-    template<typename T>
-    inline auto min(T const& lhs, T const& rhs) -> T {
-        return lhs < rhs ? lhs : rhs;
-    }
+            auto minimum = slice[0];
 
-    template<typename T>
-    inline auto min(Slice<T> const& slice) -> Option<T> {
-        if (slice.empty()) {
-            return Option<T> {};
+            for (auto i = 1; i < slice.len(); ++i) {
+                minimum = slice[i] < minimum ? slice[i] : minimum;
+            }
+
+            return minimum;
         }
 
-        auto minimum = slice[0];
-
-        for (auto i = 1; i < slice.len(); ++i) {
-            minimum = slice[i] < minimum ? slice[i] : minimum;
+        template<typename T>
+        inline void memset(uptr ptr, T value, usize count) {
+            auto const t_ptr = reinterpret_cast<T*>(ptr);
+            for (usize i = 0; i < count; ++i) {
+                *t_ptr = value;
+            }
+        }
+        
+        inline auto kernel_to_physical_addr(uptr kernel_addr) -> uptr {
+            // This does nothing right now, but may save time if we make a higher-half kernel
+            return kernel_addr;
         }
 
-        return minimum;
-    }
-
-    template<typename T>
-    inline void memset(uptr ptr, T value, usize count) {
-        auto const t_ptr = reinterpret_cast<T*>(ptr);
-        for (usize i = 0; i < count; ++i) {
-            *t_ptr = value;
+        inline auto physical_addr_to_kernel(uptr physical_addr) -> uptr {
+            return physical_addr;
         }
-    }
-    
-    inline auto kernel_to_physical_addr(uptr kernel_addr) -> uptr {
-        // This does nothing right now, but may save time if we make a higher-half kernel
-        return kernel_addr;
-    }
 
-    inline auto physical_addr_to_kernel(uptr physical_addr) -> uptr {
-        return physical_addr;
-    }
+    }; // namespace util
+}; // namespace wlib
 
-}; // namespace util
-
-// This is outside of the util namespace on purpose. "memset" is used by the compiler.
+// This is outside of any namespace on purpose. "memset" is used by the compiler.
 // Prefer to use util::memset as it can take advantage of greater-sized integers.
 void* memset(void* ptr, int ch, size_t count);

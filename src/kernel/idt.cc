@@ -10,6 +10,7 @@
 #include "../klib/x86.hh"
 #include "../klib/ahci/ahci.hh"
 
+using namespace wlib;
 using namespace ps2;
 
 Ps2Keyboard keyboard;

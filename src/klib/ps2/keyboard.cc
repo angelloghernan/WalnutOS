@@ -4,6 +4,7 @@
 #include "../array.hh"
 #include "ps2.hh"
 
+using namespace wlib;
 using namespace ps2;
 
 static constexpr Array<char const, 256> key_table {

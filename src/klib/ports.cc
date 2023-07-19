@@ -1,6 +1,6 @@
 #include "ports.hh"
 
-namespace ports {
+namespace wlib::ports {
     void outb(u16 port, u8 val) {
         asm volatile ( "outb %0, %1" : : "a"(val), "Nd"(port) );
     }
