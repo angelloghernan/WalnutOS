@@ -92,6 +92,23 @@ class Option<T&> {
     auto constexpr some() const -> bool { return _val; }
     auto constexpr matches() const -> bool { return _val ? true : false; }
 
+    auto operator*() -> T& {
+        return _val;
+    }
+
+    auto operator*() const -> T const& {
+        return *_val;
+    }
+
+    auto operator->() -> T* {
+        return _val;
+    }
+
+    // debating whether i should delete the indirection operator
+    auto operator->() const -> T const* {
+        return _val;
+    }
+
     auto constexpr unwrap() -> T& { return *_val; }
     auto constexpr unwrap() const -> T const& { return *_val; }
 

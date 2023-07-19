@@ -166,8 +166,6 @@ namespace ahci {
         u16 _slots_outstanding_mask;
         Array<volatile u32*, 32> _slot_status; // IMPORTANT: This should become atomic once multicore is set up
 
-        void handle_interrupt();
-        void handle_error_interrupt();
 
         void clear_slot(u16 slot);
         void push_buffer(u32 slot, uptr data, usize sz);
@@ -190,10 +188,23 @@ namespace ahci {
                            Slice<u8>& buf, usize offset) -> Result<Null, IOError>;
         
       public:
-
         AHCIState(u8 bus, u8 slot, u8 func_number, u32 sata_port, volatile registers& dr);
         AHCIState(AHCIState const&) = delete;
 
+        inline auto irq() -> u32 { return _irq; }
+
+        void handle_interrupt();
+        void handle_error_interrupt();
+
+        inline void enable_interrupts() {
+            _drive_registers.global_hba_control 
+                = _drive_registers.global_hba_control | u32(GHCMasks::InterruptEnable);
+        }
+
+        inline void disable_interrupts() {
+            _drive_registers.global_hba_control 
+                = _drive_registers.global_hba_control & (~u32(GHCMasks::InterruptEnable));
+        }
         
         [[nodiscard]] auto static find(pci::PCIState::bus_slot_addr = {}, 
                                        u32 sata_port = 0) -> Option<AHCIState&>;
@@ -212,3 +223,5 @@ namespace ahci {
         }
     };
 }; // namespace ahci
+
+extern Option<ahci::AHCIState&> sata_disk0;
