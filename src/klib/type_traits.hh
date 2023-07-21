@@ -42,7 +42,7 @@ namespace wlib::type_traits {
 
     #if defined(__clang__)
         template<typename T>
-        inline constexpr bool is_trivially_destructible = false;
+        inline constexpr bool is_trivially_destructible = false; // clangd doesn't like to cooperate
     #else
         template<typename T, typename ...Args>
         inline constexpr bool is_trivially_destructible = __has_trivial_destructor(T) && is_destructible<T>; 
