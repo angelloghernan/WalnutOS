@@ -3,6 +3,7 @@
 #include "../klib/console.hh"
 #include "../klib/nullable.hh"
 #include "../kernel/kernel.hh"
+#include "../kernel/alloc.hh"
 #include "../klib/result.hh"
 
 namespace wlib::pagetables {

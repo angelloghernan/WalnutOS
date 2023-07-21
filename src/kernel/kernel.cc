@@ -13,9 +13,12 @@
 #include "../klib/pci/pci.hh"
 #include "../klib/pci/pci-ide.hh"
 #include "../klib/ahci/ahci.hh"
+#include "alloc.hh"
+#include "ext2/blocks.hh"
 
 using namespace wlib;
 
+using kernel::ext2::Superblock;
 using pagetables::PageDirectory;
 using pagetables::PageTable;
 using ps2::Ps2Keyboard;
@@ -54,40 +57,24 @@ extern "C" void kernel_main() {
     // Slot 4 should be the PCI IDE controller
 
     sata_disk0 = ahci::AHCIState::find();
-    terminal.print_line("Finished");
 
     assert(sata_disk0.some(), "Unable to find hard disk");
 
-    sata_disk0->enable_interrupts();
+    sata_disk0.unwrap().enable_interrupts();
 
-    terminal.print_line("One");
+    Superblock superblock;
 
-    Array<u8, 512> hello_ahci {'H', 'e', 'l', 'l', 'o', ',', ' ', 'A', 'H', 'C', 'I'};
+    auto result = superblock.cache_read();
 
-    auto attempt = sata_disk0->write(Slice<u8>(hello_ahci).to_raw_bytes(), 0);
-
-    assert(attempt.is_ok(), "Failure 1");
-
-    Array<u8, hello_ahci.len()> buf;
-    Slice<u8> buf2(buf);
-    terminal.print_line("Two");
-
-    attempt = sata_disk0->read(buf2, 0);
-    assert(attempt.is_ok(), "Failure 2");
-    terminal.print_line("Three");
-
-    for (auto i = 0; i < 11; ++i) {
-        terminal.print(char(buf2[i]));
-    }
-
-    terminal.print_line();
-
+    assert(result.is_ok(), "Error reading ext2 superblock");
+ 
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);
 
     bool left_shift_pressed = false;
     bool right_shift_pressed = false;
     bool extended = false;
+
 
     while (true) {
         using enum ps2::KeyboardResponse;

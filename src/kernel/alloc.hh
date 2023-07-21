@@ -4,6 +4,7 @@
 #include "../klib/bitmap.hh"
 #include "../klib/concepts.hh"
 #include "../klib/nullable.hh"
+#include "kernel.hh"
 
 namespace wlib::alloc {
     template<typename A>

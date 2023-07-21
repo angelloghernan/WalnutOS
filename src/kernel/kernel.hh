@@ -1,6 +1,5 @@
 #pragma once
 
-#include "alloc.hh"
 #include "../klib/pagetables.hh"
 
 void setup_pagedir();
