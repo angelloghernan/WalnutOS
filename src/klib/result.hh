@@ -99,6 +99,26 @@ namespace wlib {
             }
         }
 
+        #if defined(__clang__)
+            constexpr ~Result() {
+                if (m_is_success) {
+                    m_data.data.~T();
+                } else {
+                    m_data.err.~E();
+                }
+            }
+        #else
+            constexpr ~Result() requires (!type_traits::is_trivially_constructible<T>) {
+                if (m_is_success) {
+                    m_data.data.~T();
+                } else {
+                    m_data.err.~E();
+                }
+            }
+
+            constexpr ~Result() = default;
+        #endif
+
       private:
         constexpr Result() {}
         constexpr Result(bool success) : m_is_success(success) {}

@@ -1,6 +1,7 @@
 #pragma once
 #include "../../klib/int.hh"
 #include "../../klib/array.hh"
+#include "../../klib/dynarray.hh"
 
 namespace kernel::ext2 {
     class GroupDescriptor {
@@ -20,7 +21,7 @@ namespace kernel::ext2 {
         auto read_32(Field32 field) -> u32;
         auto read_16(Field16 field) -> u16;
       private:
-        wlib::Array<u8, 32> _cache;
+        wlib::Array<u8, 32> _data;
     };
 
     // Group Descriptor Table
@@ -29,7 +30,9 @@ namespace kernel::ext2 {
     // Its location can only be known by reading the Superblock first.
     class GroupDescriptorTable {
       public:
+        auto static load() -> wlib::Option<GroupDescriptorTable>;
         
       private:
+        wlib::DynArray<GroupDescriptor> _cache;
     };
 }; // namespace kernel::ext2

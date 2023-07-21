@@ -133,13 +133,21 @@ namespace wlib {
         void constexpr operator=(T const& value) { _val = &value; }
         bool constexpr operator==(Option<T&> const& value) { return _val == value._val; }
 
-        constexpr ~Option() requires(!type_traits::is_trivially_constructible<T>) {
+    #if defined(__clang__)
+        constexpr ~Option() {
+            if (_val != nullptr) {
+                _val->~T();
+            }
+        }
+    #else
+        constexpr ~Option() requires(!type_traits::is_trivially_destructible<T>) {
             if (_val != nullptr) {
                 _val->~T();
             } 
         }
 
         constexpr ~Option() = default;
+    #endif
 
 
       private:
