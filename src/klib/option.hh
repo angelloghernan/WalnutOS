@@ -42,13 +42,22 @@ namespace wlib {
 
         bool constexpr operator==(Option<T>& value) { return _val == value.val; }
 
-        constexpr ~Option() requires(!type_traits::is_trivially_constructible<T>) {
-            if (_present) {
-                _val.~T();
-            } 
-        }
+        #if defined(__clang__)
+            constexpr ~Option() {
+                if (_val != nullptr) {
+                    _val->~T();
+                }
+            }
+        #else
+            constexpr ~Option() requires(!type_traits::is_trivially_destructible<T>) {
+                if (_present) {
+                    _val.~T();
+                } 
+            }
 
-        constexpr ~Option() = default;
+            constexpr ~Option() = default;
+        #endif
+
 
       private:
         T _val;
@@ -133,21 +142,21 @@ namespace wlib {
         void constexpr operator=(T const& value) { _val = &value; }
         bool constexpr operator==(Option<T&> const& value) { return _val == value._val; }
 
-    #if defined(__clang__)
-        constexpr ~Option() {
-            if (_val != nullptr) {
-                _val->~T();
+        #if defined(__clang__)
+            constexpr ~Option() {
+                if (_val != nullptr) {
+                    _val->~T();
+                }
             }
-        }
-    #else
-        constexpr ~Option() requires(!type_traits::is_trivially_destructible<T>) {
-            if (_val != nullptr) {
-                _val->~T();
-            } 
-        }
+        #else
+            constexpr ~Option() requires(!type_traits::is_trivially_destructible<T>) {
+                if (_val != nullptr) {
+                    _val->~T();
+                } 
+            }
 
-        constexpr ~Option() = default;
-    #endif
+            constexpr ~Option() = default;
+        #endif
 
 
       private:

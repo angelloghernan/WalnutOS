@@ -108,7 +108,7 @@ namespace wlib {
                 }
             }
         #else
-            constexpr ~Result() requires (!type_traits::is_trivially_constructible<T>) {
+            constexpr ~Result() requires (!type_traits::is_trivially_destructible<T>) {
                 if (m_is_success) {
                     m_data.data.~T();
                 } else {
