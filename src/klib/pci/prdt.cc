@@ -1,5 +1,6 @@
 #include "prdt.hh"
 #include "../../kernel/kernel.hh"
+#include "../../kernel/alloc.hh"
 #include "../ports.hh"
 #include "../util.hh"
 

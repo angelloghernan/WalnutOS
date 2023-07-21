@@ -8,7 +8,7 @@ OBJ_FOLDER = obj
 SRC_FOLDER = src
 DEBUG_FOLDER = debug
 DEFAULT_ENTRY_FILE = src/kernel/kernel.cc
-CPP_SOURCES := $(wildcard ${SRC_FOLDER}/klib/*.cc ${SRC_FOLDER}/klib/*/*.cc ${SRC_FOLDER}/kernel/*.cc)
+CPP_SOURCES := $(wildcard ${SRC_FOLDER}/klib/*.cc ${SRC_FOLDER}/klib/*/*.cc ${SRC_FOLDER}/kernel/*.cc ${SRC_FOLDER}/kernel/*/*.cc)
 OS_IMAGE = os-image.bin
 KERNEL_IMAGE = kernel.bin
 
@@ -30,14 +30,14 @@ QEMU_FLAGS = -device piix4-ide,bus=pci.0,id=piix4-ide \
 
 BOOT_FOLDER = grub
 
-HEADERS = $(wildcard ${SRC_FOLDER}/kernel/*.hh ${SRC_FOLDER}/klib/*.hh ${SRC_FOLDER}/klib/*/*.hh)
+HEADERS = $(wildcard ${SRC_FOLDER}/kernel/*.hh ${SRC_FOLDER}/kernel/*/*.hh ${SRC_FOLDER}/klib/*.hh ${SRC_FOLDER}/klib/*/*.hh)
 OBJ = ${CPP_SOURCES:%.cc=${OBJ_FOLDER}/%.o} src/klib/idt.o
 DEBUG_OBJ = ${CPP_SOURCES:%.cc=${DEBUG_FOLDER}/%.o} src/klib/idt.o
 HEADER_SOURCES = ${CPP_SOURCES:%.cc=%.d}
 
 CC = i686-elf-g++ 
 CXXFLAGS += -g -std=c++20 -fmodules-ts -ffreestanding -nostdlib -lgcc -lsupc++ -flto -ffat-lto-objects \
-					   -fno-threadsafe-statics -fno-stack-protector -fno-exceptions -Wall
+					   -fno-threadsafe-statics -fno-stack-protector -fno-exceptions -fno-use-cxa-atexit -Wall
 DEBUG_FLAGS = -DDEBUG -O1
 RELEASE_FLAGS = -O3
 GDB = gdb

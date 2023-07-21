@@ -18,4 +18,19 @@ namespace wlib::type_traits {
 
     template<bool B, typename T, typename F>
     using conditional_t = typename conditional<B,T,F>::type;
+
+    template<typename T>
+    struct remove_reference { typedef T type; };
+
+    template<typename T>
+    struct remove_reference<T&> { typedef T type; };
+
+    template<typename T>
+    struct remove_reference<T&&> { typedef T type; };
+
+    template<typename T>
+    using remove_reference_t = typename remove_reference<T>::type;
+
+    template<typename T, typename ...Args>
+    inline constexpr bool is_trivially_constructible = __is_trivially_constructible(T, Args...);
 };

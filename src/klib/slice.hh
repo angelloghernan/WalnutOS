@@ -17,6 +17,10 @@ namespace wlib {
         template<usize S>
         constexpr Slice(Array<T, S> const& array) : _values(array.data()), _size(S) {}
 
+        template<usize S>
+        constexpr Slice(Array<T, S> const& array, usize off) : 
+                        _values((T*)(uptr(array.data()) + off)), _size(S - off) {}
+
         auto constexpr len() const -> usize { return _size; }
 
         auto constexpr begin() -> iterator<T> { return iterator<T>(&_values[0]); }

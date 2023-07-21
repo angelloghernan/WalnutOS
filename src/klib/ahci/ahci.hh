@@ -24,6 +24,7 @@ namespace wlib {
 
         enum class IOError : i8 {
             TryAgain = -11,
+            DeviceError = -10,
         };
 
         // Made with help from Chickadee OS source (https://github.com/CS161/chickadee/)
@@ -176,7 +177,7 @@ namespace wlib {
             void issue_ncq(u32 slot, pci::IDEController::Command command,
                            usize sector, bool fua = false, u32 priority = 0);
 
-            void acknowledge(u32 slot, u32 status = 0);
+            void acknowledge(u32 slot, u32 status);
 
             void await_basic(u32 slot);    
 

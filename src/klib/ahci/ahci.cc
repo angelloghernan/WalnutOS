@@ -4,10 +4,11 @@
 #include "../x86.hh"
 #include "../util.hh"
 #include "../console.hh"
-#include "../../kernel/kernel.hh"
 #include "../assert.hh"
 #include "../pic.hh"
 #include "../idt.hh"
+#include "../../kernel/alloc.hh"
+#include "../../kernel/kernel.hh"
 
 using namespace wlib;
 using namespace ahci;
@@ -25,7 +26,6 @@ void AHCIState::handle_interrupt() {
 
     for (auto slot = 0; acks != 0; ++slot, acks >>= 1) {
         if (acks & 1) {
-            terminal.print_line("ACK slot ", slot);
             acknowledge(slot, 0);
         }
     }
@@ -38,7 +38,22 @@ void AHCIState::handle_interrupt() {
 }
 
 void AHCIState::handle_error_interrupt() {
-    // TODO
+    for (int slot = 0; slot < 32; ++slot) {
+        if (_slots_outstanding_mask & (1U << slot)) {
+            acknowledge(slot, u32(IOError::DeviceError));
+        }
+    }
+
+    _port_registers.command_and_status =
+        _port_registers.command_and_status & ~u32(PortCommandMasks::Start);
+    while (_port_registers.command_and_status & u32(PortCommandMasks::CommandRunning)) {
+        x86::pause();
+    }
+    _port_registers.serror = ~0U;
+    _port_registers.command_and_status =
+        _port_registers.command_and_status | u32(PortCommandMasks::Start);
+
+    // TODO: Issue "READ LOG EXT" to find info on error?
 }
 
 auto AHCIState::find(pci::PCIState::bus_slot_addr addr, 
@@ -261,7 +276,6 @@ void AHCIState::issue_ncq(u32 const slot,
     using enum pci::IDEController::Command;
 
     usize const nsectors = _dma.ch[slot].buffer_byte_pos / SECTOR_SIZE;
-    terminal.print_line("nsectors: ", nsectors);
     _dma.ct[slot].cfis[0] = CFIS_COMMAND | (u32(command) << 16)
         | ((nsectors & 0xFF) << 24);
     _dma.ct[slot].cfis[1] = (sector & 0xFFFFFF)
@@ -324,12 +338,10 @@ void AHCIState::await_basic(u32 const slot) {
 
 // Acknowledge a command waiting in `slot`
 void AHCIState::acknowledge(u32 const slot, u32 const result) {
-    terminal.print_line("ACKING slot ", slot);
     _slots_outstanding_mask ^= 1U << slot;
     ++_num_slots_available;
 
     if (_slot_status[slot] != nullptr) {
-        terminal.print_line("Writing result to ", _slot_status[slot]);
         *_slot_status[slot] = result;
         _slot_status[slot] = nullptr;
     }
@@ -338,34 +350,29 @@ void AHCIState::acknowledge(u32 const slot, u32 const result) {
 auto AHCIState::read_or_write(pci::IDEController::Command const command,
                               Slice<u8>& buf, usize const offset) -> Result<Null, IOError> {
     // IMPORTANT: this whole function needs to protected by a lock when we add multicore
+    // up until we start polling (which should block instead)
     
     // TODO: We should block here in a multicore/async environment, waiting for there to be
     // a free slot using _slots_outstanding_mask
-    
-    Idt::disable_interrupts();
-    volatile u32 r = u32(IOError::TryAgain);
-    _slot_status[0] = &r;
-    terminal.print_line("Well 1");
 
-    this->clear_slot(0);
-    terminal.print_line("Well 2");
-    this->push_buffer(0, buf.to_uptr(), buf.len());
-    terminal.print_line("Well 3");
-    this->issue_ncq(0, command, offset / SECTOR_SIZE);
-    terminal.print_line("Well 4");
+    volatile u32 r;
 
-    terminal.print_line("Address of r is ", (void*)(&r));
-    terminal.print_line("Well 5");
+    {
+        InterruptGuard guard;
+        
+        r = u32(IOError::TryAgain);
+        _slot_status[0] = &r;
 
-    Idt::enable_interrupts();
+        this->clear_slot(0);
+        this->push_buffer(0, buf.to_uptr(), buf.len());
+        this->issue_ncq(0, command, offset / SECTOR_SIZE);
+    }
 
     // TODO: This should block instead of polling after we add wait queues
     // interrupts.
     while (r == u32(IOError::TryAgain)) {
         x86::pause();
     }
-
-    terminal.print_line("Well 6");
 
     _slot_status[0] = nullptr;
     

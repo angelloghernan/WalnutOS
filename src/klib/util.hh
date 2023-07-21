@@ -1,6 +1,8 @@
 #pragma once
 #include "slice.hh"
 #include "option.hh"
+#include "type_traits.hh"
+
 namespace wlib::util {
     template<typename T>
     inline auto max(T const& lhs, T const& rhs) -> T {
@@ -49,6 +51,11 @@ namespace wlib::util {
             *t_ptr = value;
         }
     }
+
+    template<typename T>
+    inline auto move(T&& arg) -> type_traits::remove_reference_t<T> {
+        return static_cast<type_traits::remove_reference_t<T>>(arg);
+    }
     
     inline auto kernel_to_physical_addr(uptr kernel_addr) -> uptr {
         // This does nothing right now, but may save time if we make a higher-half kernel
@@ -58,7 +65,7 @@ namespace wlib::util {
     inline auto physical_addr_to_kernel(uptr physical_addr) -> uptr {
         return physical_addr;
     }
-}; // namespace wlib
+}; // namespace wlib::util
 
 // This is outside of any namespace on purpose. "memset" is used by the compiler.
 // Prefer to use util::memset as it can take advantage of greater-sized integers.

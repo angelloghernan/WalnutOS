@@ -1,5 +1,6 @@
 #pragma once
 #include "../klib/int.hh"
+#include "../klib/util.hh"
 
 namespace wlib {
     struct Null { private: u8 nan[0]; };
@@ -9,31 +10,39 @@ namespace wlib {
       public:
 
         auto constexpr static Err(E const& err) -> Result<T, E> {
-            auto result = Result();
+            Result result;
             result.m_is_success = false;
             result.m_data.err = err;
-            return result;
+            return util::move(result);
         }
 
-        auto constexpr static Err(E const&& err) -> Result<T, E> {
-            auto result = Result();
+        auto constexpr static Err(E&& err) -> Result<T, E> {
+            Result result;
             result.m_is_success = false;
-            result.m_data.err = err;
-            return result;
+            result.m_data.err = util::move(err);
+            return util::move(result);
         }
 
         auto constexpr static Ok(T const& data) -> Result<T, E> {
-            auto result = Result();
+            Result result;
             result.m_is_success = true;
             result.m_data.data = data;
-            return result;
+            return util::move(result);
         }
 
-        auto constexpr static Ok(T const&& data) -> Result<T, E> {
-            auto result = Result();
+        auto constexpr static Ok(T&& data) -> Result<T, E> {
+            Result result;
             result.m_is_success = true;
-            result.m_data.data = data;
-            return result;
+            result.m_data.data = util::move(data);
+            return util::move(result);
+        }
+
+        auto constexpr static Ok() -> Result<T, E> {
+            return Result(true);
+        }
+
+        auto constexpr static Err() -> Result<T, E> {
+            return Result(false);
         }
 
         auto constexpr as_err() -> E& {
@@ -64,6 +73,14 @@ namespace wlib {
             return m_is_success;
         }
 
+        void constexpr into_err() {
+            m_is_success = false;
+        }
+
+        void constexpr into_ok() {
+            m_is_success = true;
+        }
+
         template<typename F>
         auto constexpr ok_or_else(F lambda) && -> T {
             if (is_ok()) {
@@ -84,6 +101,7 @@ namespace wlib {
 
       private:
         constexpr Result() {}
+        constexpr Result(bool success) : m_is_success(success) {}
 
         bool m_is_success;
         union data_internal {

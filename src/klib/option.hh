@@ -1,6 +1,7 @@
 #pragma once
 #include "int.hh"
 #include "concepts.hh"
+#include "type_traits.hh"
 
 namespace wlib {
     template<typename O>
@@ -41,6 +42,13 @@ namespace wlib {
 
         bool constexpr operator==(Option<T>& value) { return _val == value.val; }
 
+        constexpr ~Option() requires(!type_traits::is_trivially_constructible<T>) {
+            if (_present) {
+                _val.~T();
+            } 
+        }
+
+        constexpr ~Option() = default;
 
       private:
         T _val;
@@ -51,6 +59,7 @@ namespace wlib {
     Option(T) -> Option<T>;
 
 
+    // unused
     template <Optionable O>
     class Option<O> {
       public:
@@ -123,6 +132,14 @@ namespace wlib {
         void constexpr operator=(T& value) { _val = &value; }
         void constexpr operator=(T const& value) { _val = &value; }
         bool constexpr operator==(Option<T&> const& value) { return _val == value._val; }
+
+        constexpr ~Option() requires(!type_traits::is_trivially_constructible<T>) {
+            if (_val != nullptr) {
+                _val->~T();
+            } 
+        }
+
+        constexpr ~Option() = default;
 
 
       private:
