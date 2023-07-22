@@ -2,6 +2,7 @@
 #include "int.hh"
 #include "concepts.hh"
 #include "type_traits.hh"
+#include "util_move.hh"
 
 namespace wlib {
     template<typename O>
@@ -12,10 +13,21 @@ namespace wlib {
 
     template <typename T>
     class Option {
+        struct empty { u8 empty[0]; };
       public:
         constexpr Option(T const& value) : _val(value), _present(true) {}
 
+        constexpr Option(T&& value) : _val(util::move(value)), _present(true) {}
+
         constexpr Option() : _present(false) {}
+    
+        auto static constexpr None() -> Option {
+            return Option();
+        }
+
+        auto static constexpr Some(T const& value) -> Option {
+            return Option(value);
+        }
 
         auto constexpr none() const -> bool { return !_present; }
         auto constexpr some() const -> bool { return _present; }
@@ -44,8 +56,8 @@ namespace wlib {
 
         #if defined(__clang__)
             constexpr ~Option() {
-                if (_val != nullptr) {
-                    _val->~T();
+                if (_present) {
+                    _val.~T();
                 }
             }
         #else
@@ -60,7 +72,10 @@ namespace wlib {
 
 
       private:
-        T _val;
+        union {
+            T _val;
+            empty emp;  
+        };
         bool _present;
     };
 

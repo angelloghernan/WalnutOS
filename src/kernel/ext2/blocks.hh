@@ -21,7 +21,7 @@ namespace kernel::ext2 {
             Log2BlockSizeMinus10 = 24,
             Log2FragmentSizeMinus10 = 28,
             NumBlockGroupBlocks = 32,
-            NumFragGroupBlocks = 36,
+            NumBlockGroupFragments = 36,
             NumBlockGroupInodes = 40,
             LastMountTime = 44,
             LastWrittenTime = 48,
@@ -29,8 +29,6 @@ namespace kernel::ext2 {
             ForcedFsckInterval = 68,
             OperatingSystemID = 72,
             MajorVersion = 76,
-            ReservedBlocksUserID = 80,
-            ReservedBlocksGroupID = 84,
             // TODO: Extended superblock fields
         };
         
@@ -42,6 +40,19 @@ namespace kernel::ext2 {
             FileSystemState = 58,
             ErrorHandlingMethod = 60,
             MinorVersion = 62,
+            ReservedBlocksUserID = 80,
+            ReservedBlocksGroupID = 82,
+        };
+
+        enum class FileSystemState : u16 {
+            Clean = 1,
+            Error = 2,
+        };
+
+        enum class ErrorHandlingMethod : u16 {
+            Continue = 1,
+            RemountReadOnly = 2,
+            InducePanic = 3,
         };
 
         // TODO for extended superblock fields
@@ -63,8 +74,19 @@ namespace kernel::ext2 {
             return read_16(Field16::Ext2Signature) == EXT2_CHECKSUM;
         }
 
+        [[nodiscard]] auto num_block_groups() -> u32 {
+            auto num_blocks_per = read_32(Field32::NumBlockGroupBlocks);
+            auto num_blocks = read_32(Field32::TotalBlocks);
+            return num_blocks / num_blocks_per;
+        }
+
         // Whenever ext2 is not already present on the mounted disk, this should be called
-        // in order to set up the disk for use with ext2
+        // in order to set up the disk for use with ext2. We set up the block group descriptor
+        // table and the root directory accordingly.
+        //
+        // As you would expect, _all existing data on the disk is liable to being overwritten_.
+        // As such, this should only be called under the assumption that this disk is totally
+        // unformatted.
         [[nodiscard]] auto format_superblock() -> wlib::Result<wlib::Null, wlib::ahci::IOError>;
 
         // Read a 32-bit field from the superblock.

@@ -188,6 +188,7 @@ namespace wlib {
 
             auto read_or_write(pci::IDEController::Command command,
                                Slice<u8>& buf, usize offset) -> Result<Null, IOError>;
+
             
           public:
             AHCIState(u8 bus, u8 slot, u8 func_number, u32 sata_port, volatile registers& dr);
@@ -197,6 +198,8 @@ namespace wlib {
 
             void handle_interrupt();
             void handle_error_interrupt();
+
+            auto inline num_sectors() -> usize { return _num_sectors; }
 
             inline void enable_interrupts() {
                 _drive_registers.global_hba_control 
@@ -217,7 +220,7 @@ namespace wlib {
                                      buf, offset);
             }
 
-            auto write(Slice<u8> const& buf, usize offset) -> Result<Null, IOError> {
+            [[nodiscard]] inline auto write(Slice<u8> const& buf, usize offset) -> Result<Null, IOError> {
                 // const_cast is OK here since we won't be writing to this buffer
                 // when we use the write command
                 return read_or_write(pci::IDEController::Command::WriteFPDMAQueued, 

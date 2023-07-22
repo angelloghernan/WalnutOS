@@ -52,9 +52,19 @@ namespace wlib::util {
         }
     }
 
-    template<typename T>
-    inline auto move(T&& arg) -> type_traits::remove_reference_t<T> {
-        return static_cast<type_traits::remove_reference_t<T>>(arg);
+    template<typename T, typename U>
+    [[nodiscard]] constexpr inline auto bit_cast(U const& u) -> T {
+        #if (__has_builtin(__builtin_bit_cast))
+            return __builtin_bit_cast(T, u);
+        #else
+            T result;
+            auto const u_ptr = (char*)(&u);
+            auto const t_ptr = (char*)(&result);
+            for (auto i = 0; i < sizeof(U); ++i) {
+                t_ptr[i] = u_ptr[i];
+            } 
+            return result;
+        #endif
     }
     
     inline auto kernel_to_physical_addr(uptr kernel_addr) -> uptr {

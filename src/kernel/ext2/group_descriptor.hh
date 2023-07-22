@@ -2,6 +2,7 @@
 #include "../../klib/int.hh"
 #include "../../klib/array.hh"
 #include "../../klib/dynarray.hh"
+#include "../../klib/util_move.hh"
 
 namespace kernel::ext2 {
     class GroupDescriptor {
@@ -30,9 +31,11 @@ namespace kernel::ext2 {
     // Its location can only be known by reading the Superblock first.
     class GroupDescriptorTable {
       public:
-        auto static load() -> wlib::Option<GroupDescriptorTable>;
-        
+        auto static load(uptr size, usize location) -> wlib::Option<GroupDescriptorTable>;
       private:
+        GroupDescriptorTable(wlib::DynArray<GroupDescriptor>&& cache) 
+            : _cache(wlib::util::move(cache)) {}
+
         wlib::DynArray<GroupDescriptor> _cache;
     };
 }; // namespace kernel::ext2

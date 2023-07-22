@@ -1,6 +1,6 @@
 #pragma once
 #include "../klib/int.hh"
-#include "../klib/util.hh"
+#include "../klib/util_move.hh"
 
 namespace wlib {
     struct Null { private: u8 nan[0]; };

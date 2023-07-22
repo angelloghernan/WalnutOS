@@ -30,7 +30,7 @@ namespace wlib {
                 return Option<DynArray>();
             }
             
-            return DynArray(ptr, size);
+            return DynArray((T*)(ptr.unwrap()), size);
         }
 
         void fill(T const& element) {

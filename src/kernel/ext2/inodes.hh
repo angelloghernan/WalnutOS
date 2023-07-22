@@ -9,71 +9,72 @@ namespace kernel::ext2 {
     class INode {
       public:
         enum class Field32 : u8 {
-            SizeLower32 = 4,
-            LastAccessTime = 8,
-            CreationTime = 12,
-            LastModificationTime = 16,
-            DeletionTime = 20,
-            DiskSectorCount = 28,
-            Flags = 32,
-            OSSpecificValue1 = 36,
-            DirectBlockPtr0 = 40,
-            DirectBlockPtr1 = 44,
-            DirectBlockPtr2 = 48,
-            DirectBlockPtr3 = 52,
-            DirectBlockPtr4 = 56,
-            DirectBlockPtr5 = 60,
-            DirectBlockPtr6 = 64,
-            DirectBlockPtr7 = 68,
-            DirectBlockPtr8 = 72,
-            DirectBlockPtr9 = 76,
-            DirectBlockPtr10 = 80,
-            DirectBlockPtr11 = 84,
+            SizeLower32            = 4,
+            LastAccessTime         = 8,
+            CreationTime           = 12,
+            LastModificationTime   = 16,
+            DeletionTime           = 20,
+            DiskSectorCount        = 28,
+            Flags                  = 32,
+            OSSpecificValue1       = 36,
+            DirectBlockPtr0        = 40,
+            DirectBlockPtr1        = 44,
+            DirectBlockPtr2        = 48,
+            DirectBlockPtr3        = 52,
+            DirectBlockPtr4        = 56,
+            DirectBlockPtr5        = 60,
+            DirectBlockPtr6        = 64,
+            DirectBlockPtr7        = 68,
+            DirectBlockPtr8        = 72,
+            DirectBlockPtr9        = 76,
+            DirectBlockPtr10       = 80,
+            DirectBlockPtr11       = 84,
             SinglyIndirectBlockPtr = 88,
             DoublyIndirectBlockPtr = 92,
             TriplyIndirectBlockPtr = 96,
-            GenerationNumber = 100,
+            GenerationNumber       = 100,
             ExtendedAttributeBlock = 104,
-            SizeUpper32OrACL = 108,
-            FragmentBlockAddr = 112,
+            SizeUpper32OrACL       = 108,
+            FragmentBlockAddr      = 112,
             // 116-127 are OS-specific values
         };
 
         enum class Field16 : u8 {
             TypeAndPermissions = 0,
-            UserID = 2,
-            GroupID = 24,
-            HardLinkCount = 26,
+            UserID             = 2,
+            GroupID            = 24,
+            HardLinkCount      = 26,
         };
 
         // A mask on the upper 4 bits of the permission/type field16
         // on inodes. To be used with PermissionMask.
         enum class TypeMask : u16 {
-            FIFO = 0x1000,
+            FIFO            = 0x1000,
             CharacterDevice = 0x2000,
-            Directory = 0x4000,
-            BlockDevice = 0x6000,
-            RegularFile = 0x8000,
-            SymbolicLink = 0xA000,
-            UnixSocket = 0xC000,
+            Directory       = 0x4000,
+            BlockDevice     = 0x6000,
+            RegularFile     = 0x8000,
+            SymbolicLink    = 0xA000,
+            UnixSocket      = 0xC000,
         };
 
         // A mask on the lower 12 bits of the permission/type field16
         // on inodes. To be used with TypeMask.
         enum class PermissionMask : u16 {
             OtherExecute = 0x0001,
-            OtherWrite = 0x0002,
-            OtherRead = 0x0004,
+            OtherWrite   = 0x0002,
+            OtherRead    = 0x0004,
             GroupExecute = 0x0008,
-            GroupWrite   = 0x010,
-            GroupRead    = 0x020,
-            UserExecute  = 0x040,
-            UserWrite    = 0x080,
-            UserRead     = 0x100,
-            StickyBit    = 0x200, // For files: Keep in main memory (ignored in Linux)
-                                  // For directories: Only owner, root user can rename or delete contained files
-            SetGroupID = 0x400,
-            SetUserID = 0x800,
+            GroupWrite   = 0x0100,
+            GroupRead    = 0x0200,
+            UserExecute  = 0x0400,
+            UserWrite    = 0x0800,
+            UserRead     = 0x1000,
+            StickyBit    = 0x2000, // For files: Keep in main memory (ignored in Linux)
+                                   // For directories: Only owner, root user can rename or 
+                                   // delete contained files
+            SetGroupID   = 0x4000,
+            SetUserID    = 0x8000,
         };
 
         enum class Flags : u32 {

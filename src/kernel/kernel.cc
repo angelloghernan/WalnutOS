@@ -67,6 +67,14 @@ extern "C" void kernel_main() {
     auto result = superblock.cache_read();
 
     assert(result.is_ok(), "Error reading ext2 superblock");
+
+    if (superblock.has_signature()) {
+        terminal.print_line("Successfully detected ext2 signature");
+    }
+
+    result = superblock.format_superblock();
+
+    assert(result.is_ok(), "Error formating disk with superblock");
  
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);
