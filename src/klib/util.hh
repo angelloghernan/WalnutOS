@@ -45,7 +45,7 @@ namespace wlib::util {
     }
 
     template<typename T>
-    inline void memset(uptr ptr, T value, usize count) {
+    inline void memset(void* ptr, T value, usize count) {
         auto const t_ptr = reinterpret_cast<T*>(ptr);
         for (usize i = 0; i < count; ++i) {
             *t_ptr = value;

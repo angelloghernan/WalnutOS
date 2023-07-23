@@ -1,5 +1,6 @@
 #pragma once
 #include "../../klib/int.hh"
+#include "../../klib/strings.hh"
 
 namespace kernel::ext2 {
     struct directory_entry {
@@ -13,10 +14,16 @@ namespace kernel::ext2 {
             Socket = 6,
             SymbolicLink = 7,
         };
+
+        void write_name(wlib::str string) {
+            for (usize i = 0; i < string.len(); ++i) {
+                name[i] = string[i];
+            }
+        }
         u32 inode;
         u16 total_size;
         u8 name_length;
         TypeIndicator type_indicator;
-        u8 name[];
+        char name[];
     };
 }; // namespace kernel::ext2

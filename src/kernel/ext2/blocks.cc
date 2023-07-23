@@ -21,16 +21,15 @@ auto Superblock::cache_read() -> Result<Null, ahci::IOError> {
 
 auto Superblock::format_superblock() -> Result<Null, ahci::IOError> {
     auto const total_num_blocks = sata_disk0.unwrap().num_sectors() / 2 - 1;
-    auto constexpr inodes_per_block = WNOS_BLOCK_SIZE / sizeof(INode);
 
     auto constexpr entries_per_block = WNOS_BLOCK_SIZE / sizeof(GroupDescriptor);
     auto const max_num_block_groups = total_num_blocks / WNOS_BLOCK_GROUP_BLOCKS;
 
-    auto constexpr num_reserved = 1;
+    auto constexpr num_reserved = 1; // one reserved for the superblock
     auto const block_group_dt_size = (max_num_block_groups / entries_per_block 
                                       + (max_num_block_groups % entries_per_block > 0));
     auto const real_blocks = total_num_blocks - num_reserved - block_group_dt_size;
-    auto const total_inodes = real_blocks / WNOS_BLOCK_GROUP_BLOCKS * inodes_per_block;
+    auto const total_inodes = real_blocks / WNOS_BLOCK_GROUP_BLOCKS * WNOS_INODES_PER_BLOCK_GROUP;
 
     terminal.print_line("real num blocks: ", real_blocks);
 
@@ -45,9 +44,9 @@ auto Superblock::format_superblock() -> Result<Null, ahci::IOError> {
     *(u32*)(&_cache[u8(Field32::SuperblockNumber)]) = 0;
     *(u32*)(&_cache[u8(Field32::Log2BlockSizeMinus10)]) = 0; // (Using a block size of 1024)
     *(u32*)(&_cache[u8(Field32::Log2FragmentSizeMinus10)]) = 0; // Fragments apparently never implemented?
-    *(u32*)(&_cache[u8(Field32::NumBlockGroupBlocks)]) = 10; // Using 10kb for now (because why not)
+    *(u32*)(&_cache[u8(Field32::NumBlockGroupBlocks)]) = WNOS_BLOCK_GROUP_BLOCKS; // Using 10kb for now (because why not)
     *(u32*)(&_cache[u8(Field32::NumBlockGroupFragments)]) = 1; // ??? Unsure
-    *(u32*)(&_cache[u8(Field32::NumBlockGroupInodes)]) = inodes_per_block;  
+    *(u32*)(&_cache[u8(Field32::NumBlockGroupInodes)]) = WNOS_INODES_PER_BLOCK_GROUP;  
     *(u32*)(&_cache[u8(Field32::LastMountTime)]) = 0; // TODO: get time somehow
     *(u32*)(&_cache[u8(Field32::LastWrittenTime)]) = 0; // TODO
     *(u16*)(&_cache[u8(Field16::NumMountsSinceFsck)]) = 1;

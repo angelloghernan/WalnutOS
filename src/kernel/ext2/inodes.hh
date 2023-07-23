@@ -91,8 +91,18 @@ namespace kernel::ext2 {
             JournalFileData          = 0x00040000,
         };
 
-        auto read_32(Field32 field) -> u32;
-        auto read_16(Field16 field) -> u16;
+        inline auto read_32(Field32 field) -> u32 {
+            return *(u32*)(&_data[u8(field)]);
+        }
+        inline auto read_16(Field16 field) -> u16 {
+            return *(u16*)(&_data[u8(field)]);
+        }
+        inline void write_32(Field32 field, u32 data) {
+            *(u32*)(&_data[u8(field)]) = data;
+        }
+        inline void write_16(Field16 field, u16 data) {
+            *(u16*)(&_data[u8(field)]) = data;
+        }
       private:
         wlib::Array<u8, 128> _data;
     };

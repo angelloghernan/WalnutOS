@@ -8,7 +8,7 @@ namespace wlib {
     template<typename T, usize S>
     class Array { 
       public:
-        auto static constexpr filled(T const& element) -> Array {
+        [[nodiscard]] auto static constexpr filled(T const& element) -> Array {
             Array array;
 
             for (usize i = 0; i < S; ++i) {
@@ -16,6 +16,12 @@ namespace wlib {
             }
 
             return array;
+        }
+
+        void constexpr fill(T const& element) {
+            for (usize i = 0; i < S; ++i) {
+                m_arr[i] = element;
+            }
         }
 
         // Return the number of elements in the array.

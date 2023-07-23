@@ -98,4 +98,21 @@ namespace kernel::ext2 {
         auto constexpr static EXT2_CHECKSUM = 0xEF53_u16;
         wlib::Array<u8, 1024> _cache;
     };
+
+    class Bitmap {
+      public:
+        [[nodiscard]] inline auto block_is_free(u16 block_idx) -> bool {
+            return cache[block_idx / 8] & u8(block_idx & 0xFF);
+        }
+
+        inline void set_block(u16 block_idx, bool free) {
+            cache[block_idx / 8] |= (1 << u8(block_idx & 0xFF));
+        }
+
+        inline void set_blocks(u16 block_byte, u8 mask) {
+            cache[block_byte] = mask;
+        }
+
+        wlib::Array<u8, 1024> cache;
+    };
 }; // namespace kernel::ext2
