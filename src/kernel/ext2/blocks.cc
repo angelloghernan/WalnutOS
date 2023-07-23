@@ -1,4 +1,7 @@
 #include "blocks.hh"
+#include "ext2.hh"
+#include "inodes.hh"
+#include "group_descriptor.hh"
 #include "../../klib/ahci/ahci.hh"
 #include "../kernel.hh"
 
@@ -17,18 +20,34 @@ auto Superblock::cache_read() -> Result<Null, ahci::IOError> {
 }
 
 auto Superblock::format_superblock() -> Result<Null, ahci::IOError> {
-    *(u32*)(&_cache[u8(Field32::TotalINodes)]) = sata_disk0.unwrap().num_sectors() / 2 / 10 * 64;
-    *(u32*)(&_cache[u8(Field32::TotalBlocks)]) = sata_disk0.unwrap().num_sectors() / 2;
+    auto const total_num_blocks = sata_disk0.unwrap().num_sectors() / 2 - 1;
+    auto constexpr inodes_per_block = WNOS_BLOCK_SIZE / sizeof(INode);
+
+    auto constexpr entries_per_block = WNOS_BLOCK_SIZE / sizeof(GroupDescriptor);
+    auto const max_num_block_groups = total_num_blocks / WNOS_BLOCK_GROUP_BLOCKS;
+
+    auto constexpr num_reserved = 1;
+    auto const block_group_dt_size = (max_num_block_groups / entries_per_block 
+                                      + (max_num_block_groups % entries_per_block > 0));
+    auto const real_blocks = total_num_blocks - num_reserved - block_group_dt_size;
+    auto const total_inodes = real_blocks / WNOS_BLOCK_GROUP_BLOCKS * inodes_per_block;
+
+    terminal.print_line("real num blocks: ", real_blocks);
+
+    terminal.print_line("block group dt size: ", block_group_dt_size);
+
+    *(u32*)(&_cache[u8(Field32::TotalINodes)]) = total_inodes;
+    *(u32*)(&_cache[u8(Field32::TotalBlocks)]) = real_blocks;
     *(u32*)(&_cache[u8(Field32::SuperUserBlocks)]) = 0;
     // Subtracting four for 1. the superblock 2. an inode table 3. block group table 4. reserved boot sector
-    *(u32*)(&_cache[u8(Field32::TotalUnallocatedBlocks)]) = sata_disk0.unwrap().num_sectors() / 2 - 4;
-    *(u32*)(&_cache[u8(Field32::TotalUnallocatedInodes)]) = sata_disk0.unwrap().num_sectors() / 2 - 4;
-    *(u32*)(&_cache[u8(Field32::SuperblockNumber)]) = 1; // Located at [1024, 2047], one block past [0, 1023]
+    *(u32*)(&_cache[u8(Field32::TotalUnallocatedBlocks)]) = real_blocks;
+    *(u32*)(&_cache[u8(Field32::TotalUnallocatedInodes)]) = total_inodes - 1; // subtract one for root dir
+    *(u32*)(&_cache[u8(Field32::SuperblockNumber)]) = 0;
     *(u32*)(&_cache[u8(Field32::Log2BlockSizeMinus10)]) = 0; // (Using a block size of 1024)
     *(u32*)(&_cache[u8(Field32::Log2FragmentSizeMinus10)]) = 0; // Fragments apparently never implemented?
     *(u32*)(&_cache[u8(Field32::NumBlockGroupBlocks)]) = 10; // Using 10kb for now (because why not)
     *(u32*)(&_cache[u8(Field32::NumBlockGroupFragments)]) = 1; // ??? Unsure
-    *(u32*)(&_cache[u8(Field32::NumBlockGroupInodes)]) = 64; // must be a multiple of 8; 1024 = block size, 128 = inode sz
+    *(u32*)(&_cache[u8(Field32::NumBlockGroupInodes)]) = inodes_per_block;  
     *(u32*)(&_cache[u8(Field32::LastMountTime)]) = 0; // TODO: get time somehow
     *(u32*)(&_cache[u8(Field32::LastWrittenTime)]) = 0; // TODO
     *(u16*)(&_cache[u8(Field16::NumMountsSinceFsck)]) = 1;

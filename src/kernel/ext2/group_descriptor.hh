@@ -7,22 +7,13 @@
 namespace kernel::ext2 {
     class GroupDescriptor {
       public:
-        enum class Field32 : u8 {
-            BlockUsageBlockAddr = 0,
-            InodeUsageBlockAddr = 4,
-            InodeTableBlockAddr = 8,
-        };
-
-        enum class Field16 : u8 {
-            NumUnallocatedBlocks = 12,
-            NumUnallocatedInodes = 14,
-            NumDirectories = 16,
-        };
-
-        auto read_32(Field32 field) -> u32;
-        auto read_16(Field16 field) -> u16;
-      private:
-        wlib::Array<u8, 32> _data;
+        u32 block_bitmap_block_addr;
+        u32 inode_bitmap_block_addr;
+        u32 inode_table_block_addr;
+        u16 num_unallocated_blocks;
+        u16 num_unallocated_inodes;
+        u16 num_directories;
+        wlib::Array<u8, 14> _reserved;
     };
 
     // Group Descriptor Table

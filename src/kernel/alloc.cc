@@ -100,6 +100,7 @@ BuddyAllocator::BuddyAllocator() {
 // While its buddy is free, we need to coalesce with the buddy, removing the buddy from the list at every step
 // Finally, we put the block in the new list.
 void BuddyAllocator::kfree(uptr const ptr) {
+    terminal.print_line("free");
     assert(ptr % (1 << SMALLEST_BLOCK_SIZE) == 0 &&
            ptr >= BLOCK_OFFSET, "Attempted to free a wild pointer");
     

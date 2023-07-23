@@ -170,7 +170,7 @@ namespace wlib {
 
 
             void clear_slot(u16 slot);
-            void push_buffer(u32 slot, uptr data, usize sz);
+            void push_buffer(u32 slot, void* data, usize sz);
             void issue_meta(u32 slot, pci::IDEController::Command command, 
                             u32 features, u32 count = u32(-1));
 

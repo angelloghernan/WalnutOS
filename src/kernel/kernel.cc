@@ -15,6 +15,7 @@
 #include "../klib/ahci/ahci.hh"
 #include "alloc.hh"
 #include "ext2/blocks.hh"
+#include "ext2/ext2.hh"
 
 using namespace wlib;
 
@@ -72,7 +73,7 @@ extern "C" void kernel_main() {
         terminal.print_line("Successfully detected ext2 signature");
     }
 
-    result = superblock.format_superblock();
+    result = kernel::ext2::format_disk(&superblock);
 
     assert(result.is_ok(), "Error formating disk with superblock");
  

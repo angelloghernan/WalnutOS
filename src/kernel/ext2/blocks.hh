@@ -75,8 +75,8 @@ namespace kernel::ext2 {
         }
 
         [[nodiscard]] auto num_block_groups() -> u32 {
-            auto num_blocks_per = read_32(Field32::NumBlockGroupBlocks);
-            auto num_blocks = read_32(Field32::TotalBlocks);
+            auto const num_blocks_per = read_32(Field32::NumBlockGroupBlocks);
+            auto const num_blocks = read_32(Field32::TotalBlocks);
             return num_blocks / num_blocks_per;
         }
 

@@ -209,15 +209,22 @@ AHCIState::AHCIState(u8 const bus,
     _port_registers.command_and_status = 
         _port_registers.command_and_status | u32(PortCommandMasks::Start);
 
-    auto id_buf = Array<u16, 256>::filled(0_u16);
+    Array<volatile u16, 256> id_buf;
+
+    for (usize i = 0; i < id_buf.len(); ++i) {
+        id_buf[i] = 0;
+    }
 
     this->clear_slot(0);
-    this->push_buffer(0, uptr(&id_buf), id_buf.size());
+    this->push_buffer(0, (void*)&id_buf, id_buf.size());
     this->issue_meta(0, pci::IDEController::Command::Identify, 0);
     this->await_basic(0);
 
-    _num_sectors = id_buf[100] | (id_buf[101] << 16) | (u64(id_buf[102]) << 32)
-        | (u64(id_buf[103]) << 48);
+    _num_sectors = id_buf[100] | (id_buf[101] << 16);
+    terminal.print_line("id buf 100: ", id_buf[100]);
+
+
+    // | (u64(id_buf[102]) << 32) | (u64(id_buf[103]) << 48);
 
     // count slots
     _num_ncq_slots = ((_drive_registers.capabilities >> 8) & 0x1F) + 1; // slots per controller
@@ -252,8 +259,8 @@ inline void AHCIState::clear_slot(u16 const slot) {
     _dma.ch[slot].buffer_byte_pos = 0;
 }
 
-void AHCIState::push_buffer(u32 const slot, uptr const data, usize const size) {
-    auto const phys_addr = util::kernel_to_physical_addr(data);
+void AHCIState::push_buffer(u32 const slot, void* data, usize const size) {
+    auto const phys_addr = util::kernel_to_physical_addr(uptr(data));
     
     auto const num_buffers = _dma.ch[slot].num_buffers;
 
@@ -364,7 +371,7 @@ auto AHCIState::read_or_write(pci::IDEController::Command const command,
         _slot_status[0] = &r;
 
         this->clear_slot(0);
-        this->push_buffer(0, buf.to_uptr(), buf.len());
+        this->push_buffer(0, (void*)(buf.to_raw_ptr()), buf.len());
         this->issue_ncq(0, command, offset / SECTOR_SIZE);
     }
 
