@@ -1,5 +1,5 @@
-#include "../klib/int.hh"
-#include "../klib/pic.hh"
+#include "klib/int.hh"
+#include "klib/pic.hh"
 
 using namespace wlib;
 using namespace ports;

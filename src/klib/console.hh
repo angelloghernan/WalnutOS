@@ -1,7 +1,7 @@
 #pragma once
-#include "strings.hh"
-#include "int.hh"
-#include "ports.hh"
+#include "klib/strings.hh"
+#include "klib/int.hh"
+#include "klib/ports.hh"
 
 namespace wlib::console {
     enum class Color : u8 {

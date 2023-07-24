@@ -1,10 +1,10 @@
-#include "../klib/pagetables.hh"
-#include "../klib/int.hh"
-#include "../klib/console.hh"
-#include "../klib/nullable.hh"
-#include "../kernel/kernel.hh"
-#include "../kernel/alloc.hh"
-#include "../klib/result.hh"
+#include "klib/pagetables.hh"
+#include "klib/int.hh"
+#include "klib/console.hh"
+#include "klib/nullable.hh"
+#include "kernel/kernel.hh"
+#include "kernel/alloc.hh"
+#include "klib/result.hh"
 
 namespace wlib::pagetables {
     auto PageDirectory::map(uptr const virtual_addr, 

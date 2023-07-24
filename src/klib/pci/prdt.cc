@@ -1,8 +1,8 @@
-#include "prdt.hh"
-#include "../../kernel/kernel.hh"
-#include "../../kernel/alloc.hh"
-#include "../ports.hh"
-#include "../util.hh"
+#include "kernel/kernel.hh"
+#include "kernel/alloc.hh"
+#include "klib/ports.hh"
+#include "klib/util.hh"
+#include "klib/pci/prdt.hh"
 
 using namespace wlib;
 using namespace pci;

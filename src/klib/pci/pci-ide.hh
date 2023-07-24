@@ -1,7 +1,7 @@
 #pragma once
-#include "../int.hh"
-#include "../array.hh"
-#include "prdt.hh"
+#include "klib/int.hh"
+#include "klib/array.hh"
+#include "klib/pci/prdt.hh"
 
 namespace wlib {
     namespace pci {

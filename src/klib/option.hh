@@ -1,8 +1,8 @@
 #pragma once
-#include "int.hh"
-#include "concepts.hh"
-#include "type_traits.hh"
-#include "util_move.hh"
+#include "klib/int.hh"
+#include "klib/concepts.hh"
+#include "klib/type_traits.hh"
+#include "klib/util_move.hh"
 
 namespace wlib {
     template<typename O>

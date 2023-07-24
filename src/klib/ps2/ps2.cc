@@ -1,7 +1,7 @@
-#include "ps2.hh"
-#include "../result.hh"
-#include "../console.hh"
-#include "../idt.hh"
+#include "klib/ps2/ps2.hh"
+#include "klib/result.hh"
+#include "klib/console.hh"
+#include "klib/idt.hh"
 
 using namespace wlib;
 using namespace ports;

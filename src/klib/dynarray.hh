@@ -1,9 +1,9 @@
 #pragma once
-#include "int.hh"
-#include "option.hh"
-#include "slice.hh"
-#include "util.hh"
-#include "../kernel/alloc.hh"
+#include "klib/int.hh"
+#include "klib/option.hh"
+#include "klib/slice.hh"
+#include "klib/util.hh"
+#include "kernel/alloc.hh"
 
 namespace wlib {
     // DynArray -- Like a regular vector, but with a fixed size. 

@@ -1,6 +1,6 @@
 #pragma once
-#include "../../klib/int.hh"
-#include "../../klib/array.hh"
+#include "klib/int.hh"
+#include "klib/array.hh"
 
 namespace kernel::ext2 {
     // INode -- A link to a file, directory, symbolic link, etc. Contains metadata

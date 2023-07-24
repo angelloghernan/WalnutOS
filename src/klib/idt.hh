@@ -1,7 +1,7 @@
 #pragma once
-#include "int.hh"
-#include "array.hh"
-#include "ps2/keyboard.hh"
+#include "klib/int.hh"
+#include "klib/array.hh"
+#include "klib/ps2/keyboard.hh"
 
 namespace wlib {
     namespace interrupts {

@@ -1,8 +1,8 @@
 #pragma once
-#include "../int.hh"
-#include "../ports.hh"
-#include "../result.hh"
-#include "../console.hh"
+#include "klib/int.hh"
+#include "klib/ports.hh"
+#include "klib/result.hh"
+#include "klib/console.hh"
 
 
 namespace wlib::ps2 {

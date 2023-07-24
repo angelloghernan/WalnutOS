@@ -1,10 +1,10 @@
 #pragma once
-#include "../klib/option.hh"
-#include "../klib/array.hh"
-#include "../klib/bitmap.hh"
-#include "../klib/concepts.hh"
-#include "../klib/nullable.hh"
-#include "kernel.hh"
+#include "klib/option.hh"
+#include "klib/array.hh"
+#include "klib/bitmap.hh"
+#include "klib/concepts.hh"
+#include "klib/nullable.hh"
+#include "kernel/kernel.hh"
 
 namespace wlib::alloc {
     template<typename A>

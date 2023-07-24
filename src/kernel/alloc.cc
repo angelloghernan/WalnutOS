@@ -1,12 +1,12 @@
-#include "alloc.hh"
-#include "kernel.hh"
-#include "../klib/int.hh"
-#include "../klib/array.hh"
-#include "../klib/result.hh"
-#include "../klib/pagetables.hh"
-#include "../klib/concepts.hh"
-#include "../klib/assert.hh"
-#include "../klib/console.hh"
+#include "kernel/alloc.hh"
+#include "kernel/kernel.hh"
+#include "klib/int.hh"
+#include "klib/array.hh"
+#include "klib/result.hh"
+#include "klib/pagetables.hh"
+#include "klib/concepts.hh"
+#include "klib/assert.hh"
+#include "klib/console.hh"
 
 using namespace wlib::alloc;
 

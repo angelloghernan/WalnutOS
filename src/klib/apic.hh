@@ -1,8 +1,9 @@
 #pragma once
-#include "../klib/x86.hh"
-#include "../klib/int.hh"
-#include "../klib/option.hh"
-#include "../klib/array.hh"
+#include "klib/x86.hh"
+#include "klib/int.hh"
+#include "klib/option.hh"
+#include "klib/array.hh"
+
 namespace wlib::apic {
     class LocalApic {
       public:

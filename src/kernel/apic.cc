@@ -1,6 +1,6 @@
-#include "../klib/apic.hh"
-#include "../klib/x86.hh"
-#include "../klib/console.hh"
+#include "klib/apic.hh"
+#include "klib/x86.hh"
+#include "klib/console.hh"
 
 
 namespace wlib::apic {

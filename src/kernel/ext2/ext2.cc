@@ -1,11 +1,11 @@
-#include "inodes.hh"
-#include "blocks.hh"
-#include "group_descriptor.hh"
-#include "directory_entry.hh"
-#include "ext2.hh"
-#include "../../klib/ahci/ahci.hh"
-#include "../../klib/dynarray.hh"
-#include "../../klib/array.hh"
+#include "klib/ahci/ahci.hh"
+#include "klib/dynarray.hh"
+#include "klib/array.hh"
+#include "kernel/ext2/inodes.hh"
+#include "kernel/ext2/blocks.hh"
+#include "kernel/ext2/group_descriptor.hh"
+#include "kernel/ext2/directory_entry.hh"
+#include "kernel/ext2/ext2.hh"
 
 using namespace wlib;
 

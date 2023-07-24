@@ -1,6 +1,6 @@
 #pragma once
-#include "int.hh"
-#include "array.hh"
+#include "klib/int.hh"
+#include "klib/array.hh"
 
 namespace wlib {
     template<typename T>

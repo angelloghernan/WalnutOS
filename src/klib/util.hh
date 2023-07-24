@@ -1,7 +1,7 @@
 #pragma once
-#include "slice.hh"
-#include "option.hh"
-#include "type_traits.hh"
+#include "klib/slice.hh"
+#include "klib/option.hh"
+#include "klib/type_traits.hh"
 
 namespace wlib::util {
     template<typename T>

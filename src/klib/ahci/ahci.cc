@@ -1,14 +1,14 @@
-#include "ahci.hh"
-#include "../ports.hh"
-#include "../pci/pci.hh"
-#include "../x86.hh"
-#include "../util.hh"
-#include "../console.hh"
-#include "../assert.hh"
-#include "../pic.hh"
-#include "../idt.hh"
-#include "../../kernel/alloc.hh"
-#include "../../kernel/kernel.hh"
+#include "klib/ahci/ahci.hh"
+#include "klib/ports.hh"
+#include "klib/pci/pci.hh"
+#include "klib/x86.hh"
+#include "klib/util.hh"
+#include "klib/console.hh"
+#include "klib/assert.hh"
+#include "klib/pic.hh"
+#include "klib/idt.hh"
+#include "kernel/alloc.hh"
+#include "kernel/kernel.hh"
 
 using namespace wlib;
 using namespace ahci;
@@ -152,7 +152,7 @@ AHCIState::AHCIState(u8 const bus,
         }
     }
 
-    util::memset<u8>(uptr(&_dma), 0_u8, sizeof(_dma));
+    util::memset<u8>((void*)(&_dma), 0_u8, sizeof(_dma));
 
     for (auto i = 0; i < 32; ++i) {
         _dma.ch[i].command_table_address 

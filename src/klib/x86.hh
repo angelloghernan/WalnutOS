@@ -1,5 +1,5 @@
 #pragma once
-#include "int.hh"
+#include "klib/int.hh"
 
 // Credit to OSdev wiki for these snippets:
 // https://wiki.osdev.org/Inline_Assembly/Examples

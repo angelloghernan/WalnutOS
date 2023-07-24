@@ -1,6 +1,5 @@
 #pragma once
-
-#include "../klib/pagetables.hh"
+#include "klib/pagetables.hh"
 
 void setup_pagedir();
 extern wlib::pagetables::PageDirectory kernel_pagedir;

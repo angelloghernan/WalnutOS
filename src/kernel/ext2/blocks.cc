@@ -1,9 +1,9 @@
-#include "blocks.hh"
-#include "ext2.hh"
-#include "inodes.hh"
-#include "group_descriptor.hh"
-#include "../../klib/ahci/ahci.hh"
-#include "../kernel.hh"
+#include "kernel/ext2/blocks.hh"
+#include "kernel/ext2/ext2.hh"
+#include "kernel/ext2/inodes.hh"
+#include "kernel/ext2/group_descriptor.hh"
+#include "klib/ahci/ahci.hh"
+#include "kernel/kernel.hh"
 
 using namespace wlib;
 using namespace kernel::ext2;

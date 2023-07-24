@@ -1,6 +1,6 @@
 #pragma once
-#include "../../klib/int.hh"
-#include "../../klib/strings.hh"
+#include "klib/int.hh"
+#include "klib/strings.hh"
 
 namespace kernel::ext2 {
     struct directory_entry {

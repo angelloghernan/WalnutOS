@@ -1,6 +1,6 @@
 #pragma once
-#include "int.hh"
-#include "ports.hh"
+#include "klib/int.hh"
+#include "klib/ports.hh"
 
 namespace wlib {
     class Pic {

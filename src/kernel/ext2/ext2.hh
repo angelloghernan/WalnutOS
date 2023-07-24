@@ -1,7 +1,7 @@
 #pragma once
-#include "../../klib/result.hh"
-#include "blocks.hh"
-#include "inodes.hh"
+#include "klib/result.hh"
+#include "kernel/ext2/blocks.hh"
+#include "kernel/ext2/inodes.hh"
 
 namespace kernel::ext2 {
     // The location of the descriptor table when this OS formats

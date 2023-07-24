@@ -1,11 +1,11 @@
 #pragma once
-#include "../int.hh"
-#include "../option.hh"
-#include "../array.hh"
-#include "../slice.hh"
-#include "../result.hh"
-#include "../pci/pci-ide.hh"
-#include "../pci/pci.hh"
+#include "klib/int.hh"
+#include "klib/option.hh"
+#include "klib/array.hh"
+#include "klib/slice.hh"
+#include "klib/result.hh"
+#include "klib/pci/pci-ide.hh"
+#include "klib/pci/pci.hh"
 
 namespace wlib {
     namespace ahci {

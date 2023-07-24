@@ -1,8 +1,8 @@
 #pragma once
-#include "../../klib/int.hh"
-#include "../../klib/array.hh"
-#include "../../klib/dynarray.hh"
-#include "../../klib/util_move.hh"
+#include "klib/int.hh"
+#include "klib/array.hh"
+#include "klib/dynarray.hh"
+#include "klib/util_move.hh"
 
 namespace kernel::ext2 {
     class GroupDescriptor {

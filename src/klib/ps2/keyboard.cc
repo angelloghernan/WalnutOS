@@ -1,8 +1,8 @@
-#include "keyboard.hh"
-#include "../result.hh"
-#include "../option.hh"
-#include "../array.hh"
-#include "ps2.hh"
+#include "klib/result.hh"
+#include "klib/option.hh"
+#include "klib/array.hh"
+#include "klib/ps2/keyboard.hh"
+#include "klib/ps2/ps2.hh"
 
 using namespace wlib;
 using namespace ps2;

@@ -1,9 +1,9 @@
 #pragma once
-#include "int.hh"
-#include "array.hh"
-#include "result.hh"
-#include "option.hh"
-#include "console.hh"
+#include "klib/int.hh"
+#include "klib/array.hh"
+#include "klib/result.hh"
+#include "klib/option.hh"
+#include "klib/console.hh"
 
 namespace wlib {
     /// A generic circular buffer with a given size. The maximum size of the circular buffer

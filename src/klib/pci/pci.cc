@@ -1,7 +1,7 @@
-#include "pci.hh"
-#include "../int.hh"
-#include "../option.hh"
-#include "../console.hh"
+#include "klib/int.hh"
+#include "klib/option.hh"
+#include "klib/console.hh"
+#include "klib/pci/pci.hh"
 
 using namespace wlib;
 using namespace pci;

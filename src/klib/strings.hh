@@ -1,8 +1,8 @@
 #pragma once
-#include "int.hh"
-#include "option.hh"
-#include "iterator.hh"
-#include "slice.hh"
+#include "klib/int.hh"
+#include "klib/option.hh"
+#include "klib/iterator.hh"
+#include "klib/slice.hh"
 
 namespace wlib {
     // str: A primitive type wrapping around string literals, allowing for easier iteration and slicing.

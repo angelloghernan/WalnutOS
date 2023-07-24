@@ -1,8 +1,8 @@
-#include "pci-ide.hh"
-#include "../ports.hh"
-#include "../idt.hh"
-#include "../assert.hh"
-#include "../pagetables.hh"
+#include "klib/ports.hh"
+#include "klib/idt.hh"
+#include "klib/assert.hh"
+#include "klib/pagetables.hh"
+#include "klib/pci/pci-ide.hh"
 
 using namespace wlib;
 using namespace pci;
@@ -31,7 +31,7 @@ IDEController::IDEController(u32 bar_4) {
 void IDEController::detect_drives() {
     u8 count = 0;
     for (u8 i = 0; i < 2; ++i) {
-        auto found_drive = false;
+        // auto found_drive = false;
         for (u8 j = 0; j < 2; ++j) {
             devices[count].reserved = false;
 
@@ -168,8 +168,6 @@ void IDEController::detect_drives() {
 }
 
 void IDEController::read_drive_dma(ChannelType channel_type) {
-    auto const u8_channel = static_cast<u8>(channel_type);
-
     write(channel_type, Register::Command, static_cast<u8>(Command::ReadDMAExt));
 }
 

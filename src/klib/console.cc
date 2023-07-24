@@ -1,6 +1,6 @@
-#include "console.hh"
-#include "../klib/assert.hh"
-#include "../klib/array.hh"
+#include "klib/console.hh"
+#include "klib/assert.hh"
+#include "klib/array.hh"
 
 wlib::console::Console terminal;
 

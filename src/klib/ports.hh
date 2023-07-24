@@ -1,5 +1,5 @@
 #pragma once
-#include "int.hh"
+#include "klib/int.hh"
 
 namespace wlib::ports {
     void outb(u16 port, u8 val);

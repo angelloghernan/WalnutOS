@@ -1,7 +1,7 @@
 #pragma once
-#include "int.hh"
-#include "option.hh"
-#include "iterator.hh"
+#include "klib/int.hh"
+#include "klib/option.hh"
+#include "klib/iterator.hh"
 // A generic, compile-time sized array.
 // Do not access _arr -- this is left public so we can use brace initialization.
 namespace wlib {

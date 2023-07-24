@@ -1,8 +1,8 @@
 #pragma once
-#include "../../klib/result.hh"
-#include "../../klib/int.hh"
-#include "../../klib/array.hh"
-#include "../../klib/ahci/ahci.hh"
+#include "klib/result.hh"
+#include "klib/int.hh"
+#include "klib/array.hh"
+#include "klib/ahci/ahci.hh"
 
 
 namespace kernel::ext2 {

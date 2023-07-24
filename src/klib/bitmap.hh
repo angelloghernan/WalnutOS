@@ -1,5 +1,5 @@
 #pragma once
-#include "array.hh"
+#include "klib/array.hh"
 
 namespace wlib {
     template<usize S>

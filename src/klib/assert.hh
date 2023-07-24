@@ -1,5 +1,5 @@
 #pragma once
-#include "../klib/console.hh"
+#include "klib/console.hh"
 
 inline void _assert(bool const condition, wlib::str const file, i32 const line,
                     wlib::str const function, wlib::str const message) {

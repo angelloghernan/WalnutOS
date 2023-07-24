@@ -1,9 +1,11 @@
-#include "../klib/strings.hh"
-#include "../klib/console.hh"
-#include "../klib/array.hh"
-#include "../kernel/alloc.hh"
-#include "../klib/pagetables.hh"
-#include "../klib/assert.hh"
+#include "klib/strings.hh"
+#include "klib/console.hh"
+#include "klib/array.hh"
+#include "kernel/alloc.hh"
+#include "klib/pagetables.hh"
+#include "klib/assert.hh"
+
+using namespace wlib;
 
 alloc::BuddyAllocator simple_allocator;
 

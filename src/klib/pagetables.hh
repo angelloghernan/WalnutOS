@@ -1,9 +1,9 @@
 #pragma once
-#include "int.hh"
-#include "array.hh"
-#include "console.hh"
-#include "nullable.hh"
-#include "result.hh"
+#include "klib/int.hh"
+#include "klib/array.hh"
+#include "klib/console.hh"
+#include "klib/nullable.hh"
+#include "klib/result.hh"
 
 
 namespace wlib {

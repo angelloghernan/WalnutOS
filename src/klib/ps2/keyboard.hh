@@ -1,10 +1,10 @@
 #pragma once
-#include "../int.hh"
-#include "../result.hh"
-#include "../array.hh"
-#include "../circular_buffer.hh"
-#include "../console.hh"
-#include "ps2.hh"
+#include "klib/int.hh"
+#include "klib/result.hh"
+#include "klib/array.hh"
+#include "klib/circular_buffer.hh"
+#include "klib/console.hh"
+#include "klib/ps2/ps2.hh"
 
 namespace wlib::ps2 {
     enum class ScanCodeSet : u8;

@@ -1,4 +1,4 @@
 CompileFlags:
-  Add: [-std=c++20, --include-directory=.]
+  Add: [-std=c++20, --include-directory=., -Wall]
 Diagnostics:
   Suppress: -Wc++20-extensions, -Wc++17-extensions

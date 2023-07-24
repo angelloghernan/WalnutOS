@@ -1,8 +1,8 @@
 #pragma once
-#include "../int.hh"
-#include "../result.hh"
-#include "../slice.hh"
-#include "../pair.hh"
+#include "klib/int.hh"
+#include "klib/result.hh"
+#include "klib/slice.hh"
+#include "klib/pair.hh"
 
 namespace wlib {
     namespace pci {

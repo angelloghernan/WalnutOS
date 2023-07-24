@@ -1,9 +1,9 @@
 #pragma once
-#include "../ports.hh"
-#include "../int.hh"
-#include "../nullable.hh"
-#include "../option.hh"
-#include "../pair.hh"
+#include "klib/ports.hh"
+#include "klib/int.hh"
+#include "klib/nullable.hh"
+#include "klib/option.hh"
+#include "klib/pair.hh"
 
 namespace wlib {
     namespace pci {
