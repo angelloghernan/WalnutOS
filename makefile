@@ -8,7 +8,7 @@ OBJ_FOLDER = obj
 SRC_FOLDER = src
 DEBUG_FOLDER = debug
 DEFAULT_ENTRY_FILE = src/kernel/kernel.cc
-CPP_SOURCES := $(wildcard ${SRC_FOLDER}/klib/*.cc ${SRC_FOLDER}/klib/*/*.cc ${SRC_FOLDER}/kernel/*.cc ${SRC_FOLDER}/kernel/*/*.cc)
+CPP_SOURCES := $(wildcard ${SRC_FOLDER}/klib/*.cc ${SRC_FOLDER}/klib/*/*.cc ${SRC_FOLDER}/kernel/*.cc ${SRC_FOLDER}/kernel/*/*.cc ${SRC_FOLDER}/userspace/*/*.cc)
 OS_IMAGE = os-image.bin
 KERNEL_IMAGE = kernel.bin
 
@@ -30,7 +30,7 @@ QEMU_FLAGS = -device piix4-ide,bus=pci.0,id=piix4-ide \
 
 BOOT_FOLDER = grub
 
-HEADERS = $(wildcard ${SRC_FOLDER}/kernel/*.hh ${SRC_FOLDER}/kernel/*/*.hh ${SRC_FOLDER}/klib/*.hh ${SRC_FOLDER}/klib/*/*.hh)
+HEADERS = $(wildcard ${SRC_FOLDER}/kernel/*.hh ${SRC_FOLDER}/kernel/*/*.hh ${SRC_FOLDER}/klib/*.hh ${SRC_FOLDER}/klib/*/*.hh ${SRC_FOLDER}/userspace/*/*.hh)
 OBJ = ${CPP_SOURCES:%.cc=${OBJ_FOLDER}/%.o} src/klib/idt.o
 DEBUG_OBJ = ${CPP_SOURCES:%.cc=${DEBUG_FOLDER}/%.o} src/klib/idt.o
 HEADER_SOURCES = ${CPP_SOURCES:%.cc=%.d}

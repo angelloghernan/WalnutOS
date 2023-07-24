@@ -316,3 +316,5 @@ namespace wlib::ps2 {
         ExStopUp            = 0xA4,
     };
 }; // namespace wlib::ps2
+
+extern wlib::ps2::Ps2Keyboard keyboard;

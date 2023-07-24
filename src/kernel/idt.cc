@@ -13,7 +13,6 @@
 using namespace wlib;
 using namespace ps2;
 
-Ps2Keyboard keyboard;
 usize timer = 0;
 
 void end_of_interrupt(u8 vector_code) {

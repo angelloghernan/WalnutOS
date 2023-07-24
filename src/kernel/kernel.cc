@@ -16,6 +16,7 @@
 #include "kernel/alloc.hh"
 #include "kernel/ext2/blocks.hh"
 #include "kernel/ext2/ext2.hh"
+#include "userspace/shell/shell.hh"
 
 using namespace wlib;
 
@@ -34,7 +35,7 @@ Option<ahci::AHCIState&> sata_disk0;
 Idt idt;
 Idtr idtr;
 extern void* isr_stub_table[];
-extern Ps2Keyboard keyboard;
+Ps2Keyboard keyboard;
 
 extern "C" void kernel_main() {
     using enum ps2::KeyboardCommand;
@@ -80,75 +81,7 @@ extern "C" void kernel_main() {
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);
 
-    bool left_shift_pressed = false;
-    bool right_shift_pressed = false;
-    bool extended = false;
-
-
-    while (true) {
-        using enum ps2::KeyboardResponse;
-        for (auto maybe_key_code = keyboard.pop_response(); 
-             maybe_key_code.some();
-             maybe_key_code = keyboard.pop_response()) {
-            auto key_code = maybe_key_code.unwrap();
-            auto key = [&]{
-                if (!left_shift_pressed && !right_shift_pressed) {
-                    return Ps2Keyboard::response_to_char(key_code);
-                } else {
-                    return Ps2Keyboard::response_to_shifted_char(key_code);
-                }
-            }();
-
-            if (key != '\0') {
-                terminal.print(key);
-                continue;
-            } 
-
-            if (!extended) {
-                switch (key_code) {
-                    case BackspaceDown:
-                        terminal.print_back_char(' ');
-                        break;
-                    case LeftShiftDown:
-                        left_shift_pressed = true;
-                        break;
-                    case RightShiftDown:
-                        right_shift_pressed = true;
-                        break;
-                    case LeftShiftUp:
-                        left_shift_pressed = false;
-                        break;
-                    case RightShiftUp:
-                        right_shift_pressed = false;
-                        break;
-                    case NextIsExtended:
-                        extended = true;
-                        break;
-                    default:
-                        break;
-                }
-            } else {
-                switch (key_code) {
-                    case ExCursorUpDown:
-                        terminal.row_up();
-                        break;
-                    case ExCursorDownDown:
-                        terminal.row_down();
-                        break;
-                    case ExCursorLeftDown:
-                        terminal.col_back();
-                        break;
-                    case ExCursorRightDown:
-                        terminal.col_forward();
-                        break;
-                    default:
-                        break;
-                }
-                extended = false;
-            }
-        }
-        __asm__ volatile ("hlt");
-    }
+    shell_main();
 }
 
 /// Enable paging by setting up the kernel pagedir and switching to it.
