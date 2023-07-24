@@ -13,7 +13,7 @@ namespace kernel::ext2 {
     auto static constexpr WNOS_BLOCK_SIZE = 1024;
 
     // Number of blocks per block group when this OS formats the hard drive for ext2.
-    auto static constexpr WNOS_BLOCK_GROUP_BLOCKS = 50;
+    auto static constexpr WNOS_BLOCK_GROUP_BLOCKS = 1953;
 
     // Number of inodes per block group when this OS formats the hard drive for ext2.
     auto static constexpr WNOS_INODES_PER_BLOCK_GROUP = 16;

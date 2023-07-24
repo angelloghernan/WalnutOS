@@ -16,6 +16,7 @@ namespace kernel::ext2 {
         Array<GroupDescriptor, entries_per_block> buffer;
 
         auto const num_block_groups = superblock->num_block_groups();
+        terminal.print_line("There are ", num_block_groups, " block groups");
 
         auto const last_table_block = (num_block_groups / entries_per_block) + 
                                       (num_block_groups % entries_per_block > 0) + BLOCK_OFFSET;
@@ -90,7 +91,7 @@ namespace kernel::ext2 {
         }
 
         {
-            // Set the first 11 blocks to be filled (reserved)
+            // Set the first 11 inodes to be filled (reserved)
             Bitmap bitmap;
             bitmap.cache.fill(0_u8);
             bitmap.set_blocks(0, 0b11111111);
@@ -119,13 +120,20 @@ namespace kernel::ext2 {
             root.write_16(Field16::TypeAndPermissions,
                           u16(INode::TypeMask::Directory));
             root.write_32(Field32::CreationTime, 0);
-            root.write_16(Field16::TypeAndPermissions,
-                          u16(INode::TypeMask::Directory));
             root.write_16(Field16::HardLinkCount, 1);
             root.write_32(Field32::DiskSectorCount, 2);
             root.write_32(Field32::DirectBlockPtr0, root_dir_entry_block);
 
             terminal.print_line("Root dirent block: ", root_dir_entry_block);
+
+            auto& test_file = buffer[2];
+
+            test_file.write_16(Field16::TypeAndPermissions,
+                               u16(INode::TypeMask::RegularFile));
+            test_file.write_32(Field32::CreationTime, 0);
+            test_file.write_16(Field16::HardLinkCount, 1);
+            test_file.write_32(Field32::DiskSectorCount, 1);
+            test_file.write_32(Field32::DirectBlockPtr0, root_dir_entry_block + 1);
 
             auto const result = sata_disk0.unwrap().write(Slice(buffer).to_raw_bytes(),
                                                           (next_block + 2) * WNOS_BLOCK_SIZE);
@@ -140,10 +148,10 @@ namespace kernel::ext2 {
                   WNOS_BLOCK_SIZE / sizeof(directory_entry)> buffer;
 
             util::memset((void*)(&buffer), 0_u32, buffer.size() / sizeof(u32));
-            
-            str constexpr file_name = "test.txt";
+
+            str constexpr file_name = "test.wnexe";
             auto& dirent = buffer[0];
-            dirent.inode = ROOT_INODE_NUM;
+            dirent.inode = ROOT_INODE_NUM + 1;
             dirent.total_size = sizeof(directory_entry) + file_name.len();
             dirent.name_length = file_name.len();
             dirent.write_name(file_name);

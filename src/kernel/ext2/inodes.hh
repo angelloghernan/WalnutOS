@@ -103,6 +103,7 @@ namespace kernel::ext2 {
         inline void write_16(Field16 field, u16 data) {
             *(u16*)(&_data[u8(field)]) = data;
         }
+
       private:
         wlib::Array<u8, 128> _data;
     };

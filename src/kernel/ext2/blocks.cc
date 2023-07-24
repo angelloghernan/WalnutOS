@@ -44,7 +44,7 @@ auto Superblock::format_superblock() -> Result<Null, ahci::IOError> {
     *(u32*)(&_cache[u8(Field32::SuperblockNumber)]) = 0;
     *(u32*)(&_cache[u8(Field32::Log2BlockSizeMinus10)]) = 0; // (Using a block size of 1024)
     *(u32*)(&_cache[u8(Field32::Log2FragmentSizeMinus10)]) = 0; // Fragments apparently never implemented?
-    *(u32*)(&_cache[u8(Field32::NumBlockGroupBlocks)]) = WNOS_BLOCK_GROUP_BLOCKS; // Using 10kb for now (because why not)
+    *(u32*)(&_cache[u8(Field32::NumBlockGroupBlocks)]) = WNOS_BLOCK_GROUP_BLOCKS;
     *(u32*)(&_cache[u8(Field32::NumBlockGroupFragments)]) = 1; // ??? Unsure
     *(u32*)(&_cache[u8(Field32::NumBlockGroupInodes)]) = WNOS_INODES_PER_BLOCK_GROUP;  
     *(u32*)(&_cache[u8(Field32::LastMountTime)]) = 0; // TODO: get time somehow

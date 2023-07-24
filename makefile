@@ -37,7 +37,7 @@ HEADER_SOURCES = ${CPP_SOURCES:%.cc=%.d}
 
 CC = i686-elf-g++ 
 CXXFLAGS += -g -std=c++20 -fmodules-ts -ffreestanding -nostdlib -lgcc -lsupc++ -flto -ffat-lto-objects \
-					   -fno-threadsafe-statics -fno-stack-protector -fno-exceptions -fno-use-cxa-atexit -Wall
+					   -fno-threadsafe-statics -fno-stack-protector -fno-exceptions -fno-use-cxa-atexit -Wall -I./src
 DEBUG_FLAGS = -DDEBUG -O1
 RELEASE_FLAGS = -O3
 GDB = gdb
