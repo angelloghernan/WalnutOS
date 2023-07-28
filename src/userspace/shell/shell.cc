@@ -2,6 +2,7 @@
 #include "klib/assert.hh"
 #include "klib/ps2/keyboard.hh"
 #include "klib/ahci/ahci.hh"
+#include "kernel/ext2/ext2_util.hh"
 
 // Note: This is not going to run in userspace just yet. This program will first
 // run in kernel space and will be used to aid in creating some programs on the file system
@@ -9,6 +10,22 @@
 // invoking kernel functions.
 
 using namespace wlib;
+typedef Array<char, 512> InputBuffer;
+
+void parse_input(InputBuffer& buffer, u16 end) {
+    // For now, we are going to treat this entire thing as one buffer
+    auto const as_slice = Slice<char>(buffer, 0, end);
+    if (str("Hello") == as_slice) {
+        terminal.print_line("Hello");
+    } else if (str("dir") == as_slice) {
+        
+    } else if (str("mkdir") == as_slice) {
+        // bleh
+    } else if (str("mkfile") == as_slice) {
+        // bleh
+    }
+}
+
 
 void shell_main() {
     assert(sata_disk0.some(), "SATA disk must be made first");
@@ -17,6 +34,9 @@ void shell_main() {
     bool left_shift_pressed = false;
     bool right_shift_pressed = false;
     bool extended = false;
+
+    InputBuffer input_buffer;
+    u16 buf_ptr = 0;
 
     while (true) {
         using enum wlib::ps2::KeyboardResponse;
@@ -33,9 +53,21 @@ void shell_main() {
             }();
 
             if (key != '\0') {
-                terminal.print(key);
+                if (buf_ptr < input_buffer.len()) {
+                    input_buffer[buf_ptr] = key;
+                    ++buf_ptr;
+                    terminal.print(key);
+                }
                 continue;
-            } 
+            }
+
+            if (key_code == EnterDown) {
+                terminal.print_line();
+                parse_input(input_buffer, buf_ptr);
+                terminal.print('>');
+                buf_ptr = 0;
+                continue;
+            }
 
             if (!extended) {
                 switch (key_code) {

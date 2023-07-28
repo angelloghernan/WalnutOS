@@ -102,11 +102,11 @@ namespace kernel::ext2 {
     class Bitmap {
       public:
         [[nodiscard]] inline auto block_is_free(u16 block_idx) -> bool {
-            return cache[block_idx / 8] & u8(block_idx & 0xFF);
+            return cache[block_idx / 8] & (1 << u8(block_idx % 8));
         }
 
         inline void set_block(u16 block_idx, bool free) {
-            cache[block_idx / 8] |= (1 << u8(block_idx & 0xFF));
+            cache[block_idx / 8] |= (1 << u8(block_idx % 0xFF));
         }
 
         inline void set_blocks(u16 block_byte, u8 mask) {

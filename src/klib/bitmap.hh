@@ -42,7 +42,7 @@ namespace wlib {
 
             constexpr reference(u8& ref, u8 idx) : m_ref(&ref), m_idx(idx) {};
             friend class Bitmap;
-            friend class iterator;
+            friend struct iterator;
         };
 
         struct iterator {
@@ -105,11 +105,11 @@ namespace wlib {
             return reference { m_map[size() - 1], u8((S - 1) % 8) };
         }
 
-        [[nodiscard]] constexpr reference operator[](usize const idx) { 
+        [[nodiscard]] auto constexpr operator[](usize const idx) -> reference { 
             return reference { m_map[idx / 8], u8(idx % 8) }; 
         };
 
-        [[nodiscard]] constexpr bool operator[](usize const idx) const { 
+        [[nodiscard]] auto constexpr operator[](usize const idx) const -> bool {
             return m_map[(idx / 8)] & (idx % 8);
         };
 

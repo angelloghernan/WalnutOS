@@ -20,6 +20,34 @@ namespace wlib {
 
         auto constexpr operator[](usize const idx) const -> char const& { return m_string[idx]; }
 
+        auto constexpr operator==(str const& other) const -> bool {
+            if (other.m_size != m_size) {
+                return false;
+            }
+            
+            for (usize i = 0; i < m_size; ++i) {
+                if (other[i] != m_string[i]) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        auto constexpr operator==(Slice<char> const& other) const -> bool {
+            if (other.len() != m_size) {
+                return false;
+            }
+            
+            for (usize i = 0; i < m_size; ++i) {
+                if (other[i] != m_string[i]) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         auto constexpr get(usize const idx) const -> Option<char> {
             if (idx < m_size) [[likely]] {
                 return m_string[idx];
