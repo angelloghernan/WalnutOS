@@ -42,7 +42,7 @@ namespace wnfs {
             *(u32*)(&bitmap_bytes[2]) = MAGIC;
         }
 
-        auto static constexpr MAGIC = 0xF00DBAE;
+        u32 constexpr static MAGIC = 0xF00DBABE;
 
         wlib::Array<u8, 512> bitmap_bytes;
       private:

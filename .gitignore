@@ -8,3 +8,4 @@ old_boot.asm
 obj/
 gcm.cache
 debug/
+img/disk.img

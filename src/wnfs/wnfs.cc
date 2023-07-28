@@ -2,6 +2,7 @@
 #include "wnfs/tag_node.hh"
 #include "wnfs/tag_bitmap.hh"
 #include "klib/result.hh"
+#include "klib/strings.hh"
 #include "klib/ahci/ahci.hh"
 
 using namespace wlib;
@@ -61,14 +62,15 @@ auto wnfs::format_disk(ahci::AHCIState* const disk) -> Result<Null, ahci::IOErro
 }
 
 auto constexpr inode_sector(u32 inode_num) -> u32 {
-    return inode_num / wnfs::INODES_PER_SECTOR;
+    return inode_num / wnfs::INODES_PER_SECTOR + wnfs::INODES_START / wnfs::SECTOR_SIZE;
 }
 
 auto constexpr inode_sector_offset(u32 inode_num) -> u32 {
     return (inode_num % wnfs::INODES_PER_SECTOR) * sizeof(wnfs::INode);   
 }
 
-auto wnfs::create_file(ahci::AHCIState* const disk) -> Result<INodeID, FileError> {
+auto wnfs::create_file(ahci::AHCIState* const disk, 
+                       str const name) -> Result<INodeID, FileError> {
     Array<u8, SECTOR_SIZE> buffer;
 
     Slice bitmap_slice(buffer);
@@ -107,6 +109,7 @@ auto wnfs::create_file(ahci::AHCIState* const disk) -> Result<INodeID, FileError
                 buf2[inode_offset].indirect_block = 0;
                 buf2[inode_offset].double_indirect_block = 0;
                 buf2[inode_offset].triple_indirect_block = 0;
+                buf2[inode_offset].set_name(name);
 
                 if (disk->write(inode_slice, sector_num * SECTOR_SIZE).is_err()) {
                     return Result<INodeID, FileError>::Err(FileError::DiskError);

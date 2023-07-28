@@ -221,8 +221,6 @@ AHCIState::AHCIState(u8 const bus,
     this->await_basic(0);
 
     _num_sectors = id_buf[100] | (id_buf[101] << 16);
-    terminal.print_line("id buf 100: ", id_buf[100]);
-
 
     // | (u64(id_buf[102]) << 32) | (u64(id_buf[103]) << 48);
 

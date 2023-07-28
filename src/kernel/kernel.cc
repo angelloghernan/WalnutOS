@@ -1,3 +1,4 @@
+#include "wnfs/wnfs.hh"
 #include "klib/strings.hh"
 #include "klib/console.hh"
 #include "klib/array.hh"
@@ -5,17 +6,17 @@
 #include "klib/apic.hh"
 #include "klib/idt.hh"
 #include "klib/assert.hh"
-#include "kernel/kernel.hh"
 #include "klib/result.hh"
-#include "klib/ps2/ps2.hh"
-#include "klib/ps2/keyboard.hh"
 #include "klib/circular_buffer.hh"
 #include "klib/pci/pci.hh"
 #include "klib/pci/pci-ide.hh"
 #include "klib/ahci/ahci.hh"
+#include "klib/ps2/ps2.hh"
+#include "klib/ps2/keyboard.hh"
 #include "kernel/alloc.hh"
-#include "kernel/ext2/blocks.hh"
+#include "kernel/kernel.hh"
 #include "kernel/ext2/ext2.hh"
+#include "kernel/ext2/blocks.hh"
 #include "userspace/shell/shell.hh"
 
 using namespace wlib;
@@ -64,6 +65,8 @@ extern "C" void kernel_main() {
 
     sata_disk0.unwrap().enable_interrupts();
 
+    /*
+
     Superblock superblock;
 
     auto result = superblock.cache_read();
@@ -77,6 +80,10 @@ extern "C" void kernel_main() {
     result = kernel::ext2::format_disk(&superblock);
 
     assert(result.is_ok(), "Error formating disk with superblock");
+    */
+
+    assert(wnfs::format_disk(&sata_disk0.unwrap()).is_ok(), "Error formatting sata disk 0");
+    assert(wnfs::create_file(&sata_disk0.unwrap(), "cool_file").is_ok(), "Error creating file");
  
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);
