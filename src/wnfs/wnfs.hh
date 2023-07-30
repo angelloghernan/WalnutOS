@@ -17,8 +17,15 @@ namespace wnfs {
 
     enum class INodeID : u32 {};
 
-    auto create_file(wlib::ahci::AHCIState* disk, 
-                     wlib::str const name) -> wlib::Result<INodeID, FileError>;
+    [[nodiscard]] auto create_file(wlib::ahci::AHCIState* disk, 
+                                   wlib::str const name) -> wlib::Result<INodeID, FileError>;
+
+
+    // Load the sector the file with the inode id `id` into `buf`.
+    // Returns the id's offset into the buffer if successful, else returns an error code.
+    [[nodiscard]] auto get_file_sector(wlib::ahci::AHCIState* disk, 
+                                       wlib::Slice<u8>& buf, 
+                                       INodeID id) -> wlib::Result<u16, wlib::ahci::IOError>;
 
     // Layout is as follows:
     // Tag bitmap (N sectors)

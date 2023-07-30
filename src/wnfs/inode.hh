@@ -28,7 +28,7 @@ namespace wnfs {
 
             name_len = u8(filename.len() & 0xFF);
 
-            for (auto i = 0; i < filename.len(); ++i) {
+            for (u8 i = 0; i < name_len; ++i) {
                 name[i] = filename[i];
             }
 

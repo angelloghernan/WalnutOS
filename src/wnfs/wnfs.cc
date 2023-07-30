@@ -1,4 +1,5 @@
 #include "wnfs/wnfs.hh"
+#include "wnfs/cache.hh"
 #include "wnfs/tag_node.hh"
 #include "wnfs/tag_bitmap.hh"
 #include "klib/result.hh"
@@ -6,8 +7,10 @@
 #include "klib/ahci/ahci.hh"
 
 using namespace wlib;
+using ahci::AHCIState;
+using ahci::IOError;
 
-auto wnfs::format_disk(ahci::AHCIState* const disk) -> Result<Null, ahci::IOError> {
+auto wnfs::format_disk(AHCIState* const disk) -> Result<Null, IOError> {
     // We first write the tag bitmap. There will be no tags allocated yet.
     wnfs::TagBitmapBlock bitmap;
     bitmap.bitmap_bytes.fill(0_u8);
@@ -69,6 +72,23 @@ auto constexpr inode_sector_offset(u32 inode_num) -> u32 {
     return (inode_num % wnfs::INODES_PER_SECTOR) * sizeof(wnfs::INode);   
 }
 
+auto wnfs::get_file_sector(ahci::AHCIState* const disk, 
+                           Slice<u8>& buf, INodeID id) -> Result<u16, ahci::IOError> {
+    if (buf.len() < SECTOR_SIZE) {
+        return Result<u16, ahci::IOError>::Err(ahci::IOError::BufferTooSmall);
+    }
+
+    auto const sector = inode_sector(u32(id));
+    
+    auto const result = disk->read(buf, sector * SECTOR_SIZE);
+
+    if (result.is_err()) {
+        return Result<u16, ahci::IOError>::Err(result.as_err());
+    }
+
+    return Result<u16, ahci::IOError>::Ok(inode_sector_offset(u32(id)));
+}
+
 auto wnfs::create_file(ahci::AHCIState* const disk, 
                        str const name) -> Result<INodeID, FileError> {
     Array<u8, SECTOR_SIZE> buffer;
@@ -79,7 +99,7 @@ auto wnfs::create_file(ahci::AHCIState* const disk,
         return Result<INodeID, FileError>::Err(FileError::DiskError);
     }
 
-    for (auto i = 0; i < buffer.len(); ++i) {
+    for (usize i = 0; i < buffer.len(); ++i) {
         if (buffer[i] == 0xFF) {
             continue;
         }
