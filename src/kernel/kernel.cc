@@ -1,4 +1,5 @@
 #include "wnfs/wnfs.hh"
+#include "wnfs/cache.hh"
 #include "klib/strings.hh"
 #include "klib/console.hh"
 #include "klib/array.hh"
@@ -37,6 +38,7 @@ Idt idt;
 Idtr idtr;
 extern void* isr_stub_table[];
 Ps2Keyboard keyboard;
+wnfs::BufCache bufcache;
 
 extern "C" void kernel_main() {
     using enum ps2::KeyboardCommand;
@@ -65,6 +67,7 @@ extern "C" void kernel_main() {
 
     sata_disk0.unwrap().enable_interrupts();
 
+
     /*
 
     Superblock superblock;
@@ -82,9 +85,11 @@ extern "C" void kernel_main() {
     assert(result.is_ok(), "Error formating disk with superblock");
     */
 
+    terminal.print_line("formatting");
     assert(wnfs::format_disk(&sata_disk0.unwrap()).is_ok(), "Error formatting sata disk 0");
+    terminal.print_line("Done formatting");
     assert(wnfs::create_file(&sata_disk0.unwrap(), "cool_file").is_ok(), "Error creating file");
- 
+
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);
 

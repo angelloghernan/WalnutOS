@@ -1,6 +1,7 @@
 #pragma once
-#include "klib/option.hh"
+#include "klib/new.hh"
 #include "klib/array.hh"
+#include "klib/option.hh"
 #include "klib/bitmap.hh"
 #include "klib/concepts.hh"
 #include "klib/nullable.hh"
@@ -84,11 +85,4 @@ namespace wlib::alloc {
         return simple_allocator.kalloc(sizeof(T)).unwrap_as<T*>();
     }
 }; // namespace alloc
-
-// Placement new/delete operators (placement delete shouldn't be used, call the destructor)
-inline void* operator new(usize, void* ptr) noexcept { return ptr; }
-inline void* operator new[](usize, void* ptr) noexcept { return ptr; }
-
-inline void operator delete(void*, void*) noexcept {}
-inline void operator delete[](void*, void*) noexcept {}
 
