@@ -23,8 +23,10 @@ namespace wlib {
         };
 
         enum class IOError : i8 {
-            TryAgain = -11,
-            DeviceError = -10,
+            TryAgain = -1,
+            DeviceError = -2,
+            BufferTooSmall = -3,
+            CacheFull = -4,
         };
 
         // Made with help from Chickadee OS source (https://github.com/CS161/chickadee/)
@@ -189,6 +191,8 @@ namespace wlib {
             auto read_or_write(pci::IDEController::Command command,
                                Slice<u8>& buf, usize offset) -> Result<Null, IOError>;
 
+            auto read_or_write_cache(pci::IDEController::Command const command,
+                                     usize const offset) -> Result<Null, IOError>;
             
           public:
             AHCIState(u8 bus, u8 slot, u8 func_number, u32 sata_port, volatile registers& dr);
@@ -214,6 +218,15 @@ namespace wlib {
             [[nodiscard]] auto static find(pci::PCIState::bus_slot_addr = {}, 
                                            u32 sata_port = 0) -> Option<AHCIState&>;
 
+            [[nodiscard]] auto read_cache(usize offset) -> Result<Null, IOError> {
+                return read_or_write_cache(pci::IDEController::Command::ReadFPDMAQueued,
+                                           offset);
+            }
+
+            [[nodiscard]] auto write_cache(usize offset) -> Result<Null, IOError> {
+                return read_or_write_cache(pci::IDEController::Command::ReadFPDMAQueued,
+                                           offset);
+            }
 
             [[nodiscard]] inline auto read(Slice<u8>& buf, usize offset) -> Result<Null, IOError> {
                 return read_or_write(pci::IDEController::Command::ReadFPDMAQueued, 

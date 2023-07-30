@@ -1,6 +1,9 @@
 #pragma once
+#include "klib/new.hh"
 #include "klib/int.hh"
 #include "klib/util_move.hh"
+#include "klib/type_traits.hh"
+#include "klib/concepts.hh"
 
 namespace wlib {
     struct Null { private: u8 nan[0]; };
@@ -16,11 +19,12 @@ namespace wlib {
             return util::move(result);
         }
 
-        auto constexpr static Err(E&& err) -> Result<T, E> {
-            Result result;
-            result.m_is_success = false;
-            result.m_data.err = util::move(err);
-            return util::move(result);
+        auto constexpr static Err(E&& err) -> Result<T, E> requires concepts::is_different_type<T, E> {
+            return Result(false, util::move(err));
+        }
+
+        auto constexpr static Err(T&& err) -> Result<T, E> requires concepts::is_same_type<T, E> {
+            return Result(false, util::move(err));
         }
 
         auto constexpr static Ok(T const& data) -> Result<T, E> {
@@ -31,10 +35,17 @@ namespace wlib {
         }
 
         auto constexpr static Ok(T&& data) -> Result<T, E> {
+            return Result(true, util::move(data));
+        }
+        
+        template<typename ...Args>
+        auto static constexpr OkInPlace(Args... args) -> Result<T, E>{
             Result result;
+            auto* ptr = static_cast<void*>(&result.m_data.data);
+
+            new (ptr) T(type_traits::forward<Args>(args)...);
             result.m_is_success = true;
-            result.m_data.data = util::move(data);
-            return util::move(result);
+            return result;
         }
 
         auto constexpr static Ok() -> Result<T, E> {
@@ -43,6 +54,16 @@ namespace wlib {
 
         auto constexpr static Err() -> Result<T, E> {
             return Result(false);
+        }
+
+        template<typename ...Args>
+        auto static constexpr ErrInPlace(Args... args) -> Result<T, E>{
+            Result result;
+            auto* ptr = static_cast<void*>(&result.m_data.err);
+
+            new (ptr) E(type_traits::forward(args)...);
+            result.m_is_success = true;
+            return result;
         }
 
         auto constexpr as_err() -> E& {
@@ -122,12 +143,21 @@ namespace wlib {
       private:
         constexpr Result() {}
         constexpr Result(bool success) : m_is_success(success) {}
+        constexpr Result(bool success, T&& obj) : m_data(util::move(obj)), m_is_success(success) {}
 
-        bool m_is_success;
+        constexpr Result(bool success, E&& obj) requires concepts::is_different_type<T, E>
+            : m_data(util::move(obj)), m_is_success(success) {}
+
         union data_internal {
             T data;
             E err;
-            constexpr data_internal() {}
+            constexpr ~data_internal() {};
+            constexpr data_internal() {};
+            constexpr data_internal(T&& d) : data(util::move(d)) {};
+
+            constexpr data_internal(E&& e) requires concepts::is_different_type<T, E>
+                : err(util::move(e)) {};
         } m_data;
+        bool m_is_success;
     };
 }; // namespace wlib

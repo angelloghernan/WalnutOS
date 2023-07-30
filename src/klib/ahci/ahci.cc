@@ -364,7 +364,7 @@ auto AHCIState::read_or_write(pci::IDEController::Command const command,
 
     {
         InterruptGuard guard;
-        
+
         r = u32(IOError::TryAgain);
         _slot_status[0] = &r;
 

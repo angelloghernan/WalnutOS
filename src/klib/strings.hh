@@ -3,6 +3,7 @@
 #include "klib/option.hh"
 #include "klib/iterator.hh"
 #include "klib/slice.hh"
+#include "klib/type_traits.hh"
 
 namespace wlib {
     // str: A primitive type wrapping around string literals, allowing for easier iteration and slicing.
