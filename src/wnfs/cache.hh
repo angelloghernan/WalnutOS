@@ -1,7 +1,8 @@
 #pragma once
 #include "klib/array.hh"
-#include "klib/ahci/ahci.hh"
+#include "klib/nullable.hh"
 #include "klib/console.hh"
+#include "klib/ahci/ahci.hh"
 
 namespace wnfs {
     class BufCache {
@@ -18,28 +19,50 @@ namespace wnfs {
 
             ~BufCacheRef() {
                 _buf_cache.release_buffer(_buf_num);
+                _buf_cache._buf_sectors[_buf_num] = u32(-1);
             }
             
-            constexpr BufCacheRef(BufCache* cache, u8 buf_num) 
-                      : _buf_cache(*cache), _buf_num(buf_num) {}
+            constexpr BufCacheRef(BufCache* cache, u32 sector, u8 buf_num) 
+                      : _buf_cache(*cache), _buf_num(buf_num) {
+                _buf_cache.grab_buffer(buf_num);
+            }
 
           private:
             BufCache& _buf_cache;
             u8 _buf_num;
         };
 
-        auto inline read_buf(usize offset) -> wlib::Result<BufCacheRef, wlib::Null> {
+        auto inline constexpr buf_with_sector(u32 sector) -> wlib::Nullable<u8, u8(-1)> {
+            for (auto buf_num : _buf_sectors) {
+                if (buf_num == sector) {
+                    return wlib::Nullable<u8, u8(-1)>(buf_num);
+                }
+            }
+
+            return u8(-1);
+        }
+
+        auto inline read_buf_sector(usize sector) -> wlib::Result<BufCacheRef, wlib::Null> {
+            auto const maybe_buf_num = buf_with_sector(sector);
+            if (maybe_buf_num.some()) {
+                return wlib::Result<BufCacheRef, wlib::Null>::OkInPlace(this, 
+                                                                        sector, 
+                                                                        maybe_buf_num.unwrap());
+            }
+
             for (auto i = 0; i < NUM_BUFS; ++i) {
                 if (!(_buffer_free_mask & (1 << i))) {
                     wlib::Slice slice(_buffer, i * BUF_SIZE, BUF_SIZE);
 
-                    auto result = sata_disk0.unwrap().read(slice, offset);
+                    auto result = sata_disk0.unwrap().read(slice, sector * BUF_SIZE);
 
                     if (result.is_err()) {
                         return wlib::Result<BufCacheRef, wlib::Null>::ErrInPlace();
                     }
 
-                    return wlib::Result<BufCacheRef, wlib::Null>::OkInPlace(this, i);
+                    return wlib::Result<BufCacheRef, wlib::Null>::OkInPlace(this, 
+                                                                            sector, 
+                                                                            i);
                 } 
             }
 
@@ -51,8 +74,9 @@ namespace wnfs {
         auto constexpr static BUF_BUF_SIZE = 4096;
         auto constexpr static NUM_BUFS = BUF_BUF_SIZE / BUF_SIZE;
 
+        wlib::Array<u32, NUM_BUFS> _buf_sectors = wlib::Array<u32, NUM_BUFS>::filled(u32(-1));
         wlib::Array<u8, BUF_BUF_SIZE> _buffer;
-        u8 _buffer_free_mask = 0xFF;
+        u8 _buffer_free_mask = 0xFF; // IMPORTANT: This must be replaced when we are multi-threaded with refcounts
 
         auto inline constexpr get_val(usize idx, u16 buf_num) -> u8& {
             return _buffer[buf_num * BUF_SIZE + idx];
@@ -60,6 +84,10 @@ namespace wnfs {
 
         void inline constexpr release_buffer(u8 buf_num) {
             _buffer_free_mask ^= (1 << buf_num);
+        }
+
+        void inline constexpr grab_buffer(u8 buf_num) {
+            _buffer_free_mask |= (1 << buf_num);
         }
     };
 };

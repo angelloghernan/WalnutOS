@@ -1,8 +1,11 @@
-#include "kernel/vfs/vfs.hh"
 #include "wnfs/wnfs.hh"
+#include "wnfs/cache.hh"
+#include "kernel/vfs/vfs.hh"
 
 using namespace kernel::vfs;
 using namespace wlib;
+
+wnfs::BufCache buf_cache;
 
 auto FileHandle::create(ahci::AHCIState* const drive, 
                         u32 const file_id) -> Result<FileHandle, FileError> {
@@ -16,12 +19,11 @@ auto FileHandle::create(ahci::AHCIState* const drive,
     auto result = wnfs::get_file_sector(drive, slice, wnfs::INodeID(file_id));
 
     if (result.is_err()) {
-        return Result<FileHandle, FileError>::Err(FileError::FSError);
+        return Result<FileHandle, FileError>::ErrInPlace(FileError::FSError);
     }
 
-    return Result<FileHandle, FileError>::Ok(FileHandle(drive, file_id));
+    return Result<FileHandle, FileError>::OkInPlace(drive, file_id, result.as_ok());
 }
 
 auto FileHandle::read(Slice<u8>& buffer) -> Result<Null, ReadError> {
-    
 }

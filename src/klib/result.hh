@@ -61,7 +61,7 @@ namespace wlib {
             Result result;
             auto* ptr = static_cast<void*>(&result.m_data.err);
 
-            new (ptr) E(type_traits::forward(args)...);
+            new (ptr) E(type_traits::forward<Args>(args)...);
             result.m_is_success = true;
             return result;
         }
