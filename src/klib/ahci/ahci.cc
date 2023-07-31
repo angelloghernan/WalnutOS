@@ -63,7 +63,7 @@ auto AHCIState::find(pci::PCIState::bus_slot_addr addr,
 
     auto& pci = pci::PCIState::get();
 
-    auto addr_opt = Option<bus_slot_addr>(addr);
+    auto addr_opt = Option<bus_slot_addr>::Some(addr);
 
     for (; addr_opt.some(); pci.next_addr(addr_opt)) {
         auto& addr = addr_opt.unwrap();
@@ -103,12 +103,12 @@ auto AHCIState::find(pci::PCIState::bus_slot_addr addr,
                 auto* ahci_ptr = reinterpret_cast<AHCIState*>(maybe_ahci_ptr.unwrap());
                 ::new (ahci_ptr) AHCIState(addr.bus, addr.slot, addr.func, 
                                            slot, *drive_regs);
-                return Option<AHCIState&>(*ahci_ptr);
+                return Option<AHCIState&>::Some(*ahci_ptr);
             }
         }
     }
     
-    return Option<AHCIState&>();
+    return Option<AHCIState&>::None();
 }
 
 // Create a new object to keep track of AHCI-relevant state

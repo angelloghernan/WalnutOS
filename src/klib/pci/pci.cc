@@ -115,11 +115,7 @@ void PCIState::enable_interrupts(u8 const bus, u8 const slot,
     command.bytes = config_read_word(bus, slot, func_number, 
                                     Register::Command);
 
-    terminal.print_line("Bytes: ", (void*)command.bytes);
-
     command.clear_bit(command_register::bit::InterruptDisable);
-
-    terminal.print_line("Bytes: ", (void*)command.bytes);
 
     config_write_word(bus, slot, func_number,
                       Register::Command, command.bytes);
@@ -128,7 +124,7 @@ void PCIState::enable_interrupts(u8 const bus, u8 const slot,
 auto PCIState::get_status(u8 const bus, u8 const slot) -> Option<status_register> {
     auto const bytes = config_read_word(bus, slot, 0, Register::Status);
     if (bytes == 0xFFFF) {
-        return {};
+        return Option<status_register>::None();
     }
-    return status_register {bytes};
+    return Option<status_register>::Some();
 }

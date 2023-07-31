@@ -53,9 +53,9 @@ namespace wlib {
 
         [[nodiscard]] auto constexpr get(usize idx) const -> Option<T> {
             if (idx < S) {
-                return {m_arr[idx]}; 
+                return Option<T>::Some(m_arr[idx]);
             } else {
-                return {};
+                return Option<T>::None();
             }
         }
         T m_arr[S];

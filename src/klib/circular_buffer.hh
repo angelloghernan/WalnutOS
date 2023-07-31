@@ -19,21 +19,21 @@ namespace wlib {
         /// Push an element into this buffer. Returns whether it was successful.
         auto constexpr push(T const& element) -> Result<Null, Null> {
             if (full()) {
-                return Result<Null, Null>::Err({});
+                return Result<Null, Null>::Err();
             }
 
             m_buffer[m_write_end] = element;
             m_write_end = (m_write_end + 1) % S;
-            return Result<Null, Null>::Ok({});
+            return Result<Null, Null>::Ok();
         }
         /// Pop an element from this buffer. Returns None if empty.
         auto constexpr pop() -> Option<T> {
             if (empty()) {
-                return {};
+                return Option<T>::None();
             }
             auto element = m_buffer[m_read_end];
             m_read_end = (m_read_end + 1) % S;
-            return {element};
+            return Option<T>::Some(element);
         }
         /// Push an element into this buffer without checking if it will be successful.
         /// May result in undefined behavior if buffer is full when called.
@@ -51,9 +51,9 @@ namespace wlib {
         /// Return the next element in line to be popped, if it exists.
         auto constexpr front() const -> Option<T> { 
             if (empty()) {
-                return {};
+                return Option<T>::None();
             }
-            return m_buffer[m_read_end]; 
+            return Option<T>::Some(m_buffer[m_read_end]); 
         }
         /// Return the next element in line to be popped without checking if empty.
         /// May result in undefined behavior if empty.

@@ -1,32 +1,21 @@
 #pragma once
 #include "klib/int.hh"
+#include "klib/new.hh"
 #include "klib/concepts.hh"
-#include "klib/type_traits.hh"
 #include "klib/util_move.hh"
+#include "klib/type_traits.hh"
 
 namespace wlib {
-    template<typename O>
-    concept Optionable = requires(O optionable){
-        { optionable.is_sentinel() } -> concepts::is_type<bool>;
-        { O::sentinel() } -> concepts::is_type<O>;
-    };
-
     template <typename T>
     class Option {
-        struct empty { u8 empty[0]; };
       public:
-        constexpr Option(T const& value) : _val(value), _present(true) {}
-
-        constexpr Option(T&& value) : _val(util::move(value)), _present(true) {}
-
-        constexpr Option() : _present(false) {}
-    
         auto static constexpr None() -> Option {
-            return Option();
+            return Option(none_type {});
         }
-
-        auto static constexpr Some(T const& value) -> Option {
-            return Option(value);
+        
+        template<typename ...Args>
+        auto static constexpr Some(Args... args) -> Option {
+            return Option(type_traits::forward<Args>(args)...);
         }
 
         auto constexpr none() const -> bool { return !_present; }
@@ -72,6 +61,17 @@ namespace wlib {
 
 
       private:
+        struct empty { u8 empty[0]; };
+        struct none_type { u8 empty[0]; };
+        constexpr Option(none_type) : _present(false) {}
+
+        template<typename ...Args>
+        constexpr Option(Args... args) : _present(true) {
+            auto* ptr = static_cast<void*>(&_val);
+
+            new (ptr) T(type_traits::forward<Args>(args)...);
+        }
+
         union {
             T _val;
             empty emp;  
@@ -82,45 +82,16 @@ namespace wlib {
     template <typename T>
     Option(T) -> Option<T>;
 
-
-    // unused
-    template <Optionable O>
-    class Option<O> {
-      public:
-        constexpr Option(O const& value) : _val(value) {}
-        constexpr Option(O&& value) : _val(value) {}
-        constexpr Option(O& value) : _val(value) {}
-
-        constexpr Option() : _val(O::sentinel()) {}
-
-        auto constexpr none() const -> bool { return _val.is_sentinel(); }
-        auto constexpr some() const -> bool { return !_val.is_sentinel(); }
-        auto constexpr matches() const -> bool { return _val.is_sentinel() ? true : false; }
-
-        auto constexpr unwrap() -> O& { return _val; }
-        auto constexpr unwrap() const -> O const& { return _val; }
-
-        void constexpr assign(O const& value) {
-            _val = &value;
-        }
-
-        void constexpr make_none() { _val = O::sentinel(); }
-
-        auto constexpr operator!() const -> bool { return none(); }
-        void constexpr operator=(O& value) { _val = &value; }
-        void constexpr operator=(O const& value) { _val = &value; }
-        bool constexpr operator==(Option<O> const& value) { return _val == value._val; }
-      private:
-        O _val;
-    };
-
     template <typename T>
     class Option<T&> {
       public:
-        constexpr Option(T const& value) : _val(&value) {}
-        constexpr Option(T& value) : _val(&value) {}
+        auto static constexpr Some(T& value) -> Option {
+            return Option(type_traits::forward<T&>(value));
+        }
 
-        constexpr Option() : _val(nullptr) {}
+        auto static constexpr None() -> Option {
+            return Option();
+        }
 
         auto constexpr none() const -> bool { return !_val; }
         auto constexpr some() const -> bool { return _val; }
@@ -176,6 +147,9 @@ namespace wlib {
 
       private:
         T* _val;
+
+        constexpr Option(T& value) : _val(&value) {}
+        constexpr Option() : _val(nullptr) {}
     };
 
     template <typename T>

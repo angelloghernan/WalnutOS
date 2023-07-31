@@ -68,4 +68,12 @@ namespace wnfs {
     auto static constexpr INODES_PER_SECTOR = SECTOR_SIZE / sizeof(INode);
 
     auto static constexpr BLOCKS_START = INODES_START + INODE_SECTORS * SECTOR_SIZE;
+
+    [[nodiscard]] auto constexpr inode_sector(u32 inode_num) -> u32 {
+        return inode_num / INODES_PER_SECTOR + INODES_START / SECTOR_SIZE;
+    }
+
+    [[nodiscard]] auto constexpr inode_sector_offset(u32 inode_num) -> u32 {
+        return (inode_num % INODES_PER_SECTOR) * sizeof(wnfs::INode);   
+    }
 };

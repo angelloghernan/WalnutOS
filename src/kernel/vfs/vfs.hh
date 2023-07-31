@@ -6,6 +6,7 @@
 namespace kernel::vfs {
     enum class ReadError : u8 {
         CacheFull,
+        EndOfFile,
     };
     enum class WriteError : u8 {};
     enum class FileError : u8 {
@@ -17,7 +18,7 @@ namespace kernel::vfs {
         auto static create(wlib::ahci::AHCIState* drive, 
                            u32 file_id) -> wlib::Result<FileHandle, FileError>;
 
-        auto read(wlib::Slice<u8>& buffer) -> wlib::Result<wlib::Null, ReadError>;
+        auto read(wlib::Slice<u8>& buffer) -> wlib::Result<u16, ReadError> ;
 
         auto write(wlib::Slice<u8> const& buffer)-> wlib::Result<wlib::Null, WriteError>;
 

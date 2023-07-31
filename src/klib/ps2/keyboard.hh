@@ -43,7 +43,7 @@ namespace wlib::ps2 {
             return m_response_buffer.pop();
         }
         auto constexpr pop_command_unchecked() -> Option<KeyboardCommand> {
-            return m_cmd_queue.pop_unchecked();
+            return Option<KeyboardCommand>::Some(m_cmd_queue.pop_unchecked());
         }
         auto constexpr cmd_queue_is_empty() const -> bool {
             return m_cmd_queue.empty();

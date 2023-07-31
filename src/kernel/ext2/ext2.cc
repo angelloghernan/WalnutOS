@@ -184,8 +184,7 @@ namespace kernel::ext2 {
             return Option<GroupDescriptorTable>::None();
         }
         
-        // ugly return statement to force move/copy elision
-        return Option(util::move(GroupDescriptorTable(util::move(cache.unwrap()))));
+        return Option<GroupDescriptorTable>::Some(util::move(cache.unwrap()));
     }
 
 }; // namespace kernel::ext2

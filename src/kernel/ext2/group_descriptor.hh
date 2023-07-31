@@ -28,5 +28,8 @@ namespace kernel::ext2 {
             : _cache(wlib::util::move(cache)) {}
 
         wlib::DynArray<GroupDescriptor> _cache;
+
+
+        friend class wlib::Option<GroupDescriptorTable>;
     };
 }; // namespace kernel::ext2

@@ -120,10 +120,10 @@ namespace wlib {
             [[nodiscard]] auto get_pt() const -> Option<PageTable&> {
                 auto const pt_addr = reinterpret_cast<PageTable*>(pt_address());
                 if (!pt_addr) {
-                    return Option<PageTable&>();
+                    return Option<PageTable&>::None();
                 } else {
                     auto& pt_ref = *pt_addr;
-                    return Option<PageTable&>(pt_ref);
+                    return Option<PageTable&>::Some(pt_ref);
                 }
             }
 

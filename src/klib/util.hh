@@ -12,7 +12,7 @@ namespace wlib::util {
     template<typename T>
     inline auto max(Slice<T> const& slice) -> Option<T> {
         if (slice.empty()) {
-            return Option<T> {};
+            return Option<T>::None();
         }
 
         auto maximum = slice[0];
@@ -21,7 +21,7 @@ namespace wlib::util {
             maximum = slice[i] > maximum ? slice[i] : maximum;
         }
 
-        return maximum;
+        return Option<T>::Some(maximum);
     }
 
     template<typename T>
@@ -32,7 +32,7 @@ namespace wlib::util {
     template<typename T>
     inline auto min(Slice<T> const& slice) -> Option<T> {
         if (slice.empty()) {
-            return Option<T> {};
+            return Option<T>::None();
         }
 
         auto minimum = slice[0];
@@ -41,7 +41,7 @@ namespace wlib::util {
             minimum = slice[i] < minimum ? slice[i] : minimum;
         }
 
-        return minimum;
+        return Option<T>::Some(minimum);
     }
 
     template<typename T>

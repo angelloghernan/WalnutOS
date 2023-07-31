@@ -40,12 +40,7 @@ namespace wlib {
         
         template<typename ...Args>
         auto static constexpr OkInPlace(Args... args) -> Result<T, E>{
-            Result result;
-            auto* ptr = static_cast<void*>(&result.m_data.data);
-
-            new (ptr) T(type_traits::forward<Args>(args)...);
-            result.m_is_success = true;
-            return result;
+            return Result(ok_type{}, type_traits::forward<Args>(args)...);
         }
 
         auto constexpr static Ok() -> Result<T, E> {
@@ -58,12 +53,7 @@ namespace wlib {
 
         template<typename ...Args>
         auto static constexpr ErrInPlace(Args... args) -> Result<T, E>{
-            Result result;
-            auto* ptr = static_cast<void*>(&result.m_data.err);
-
-            new (ptr) E(type_traits::forward<Args>(args)...);
-            result.m_is_success = true;
-            return result;
+            return Result(error_type{}, type_traits::forward<Args>(args)...);
         }
 
         auto constexpr as_err() -> E& {
@@ -141,6 +131,23 @@ namespace wlib {
         #endif
 
       private:
+        struct error_type { u8 none[0]; };
+        struct ok_type { u8 none[0]; };
+    
+        template<typename ...Args>
+        constexpr Result(error_type, Args... args) : m_is_success(false) {
+            auto* ptr = static_cast<void*>(&m_data.data);
+
+            new (ptr) E(type_traits::forward<Args>(args)...);
+        }
+
+        template<typename ...Args>
+        constexpr Result(ok_type, Args... args) : m_is_success(true) {
+            auto* ptr = static_cast<void*>(&m_data.data);
+
+            new (ptr) T(type_traits::forward<Args>(args)...);
+        }
+
         constexpr Result() {}
         constexpr Result(bool success) : m_is_success(success) {}
         constexpr Result(bool success, T&& obj) : m_data(util::move(obj)), m_is_success(success) {}

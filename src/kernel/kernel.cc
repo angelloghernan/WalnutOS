@@ -32,7 +32,7 @@ PageDirectory kernel_pagedir;
 static PageTable starter_pt;
 static PageTable io_pt;
 
-Option<ahci::AHCIState&> sata_disk0;
+Option<ahci::AHCIState&> sata_disk0 = Option<ahci::AHCIState&>::None();
 
 Idt idt;
 Idtr idtr;

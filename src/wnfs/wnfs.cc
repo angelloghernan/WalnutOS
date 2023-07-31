@@ -64,14 +64,6 @@ auto wnfs::format_disk(AHCIState* const disk) -> Result<Null, IOError> {
     return Result<Null, ahci::IOError>::Ok({});
 }
 
-auto constexpr inode_sector(u32 inode_num) -> u32 {
-    return inode_num / wnfs::INODES_PER_SECTOR + wnfs::INODES_START / wnfs::SECTOR_SIZE;
-}
-
-auto constexpr inode_sector_offset(u32 inode_num) -> u32 {
-    return (inode_num % wnfs::INODES_PER_SECTOR) * sizeof(wnfs::INode);   
-}
-
 auto wnfs::get_file_sector(ahci::AHCIState* const disk, 
                            Slice<u8>& buf, INodeID id) -> Result<u16, ahci::IOError> {
     if (buf.len() < SECTOR_SIZE) {

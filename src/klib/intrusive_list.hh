@@ -9,7 +9,7 @@ namespace wlib {
     template<typename T>
     class IntrusiveList {
     public:
-        constexpr IntrusiveList() : head(Option<T&>()), tail(Option<T&>()) {}
+        constexpr IntrusiveList() : head(Option<T&>::None()), tail(Option<T&>::None()) {}
 
         // Push a single element at the head of the list.
         // Will always succeed without any undefined behavior so long as the element is valid.
@@ -18,7 +18,7 @@ namespace wlib {
             head = element;
 
             head.unwrap().links.next = old_head;
-            head.unwrap().links.prev = Option<T&>();
+            head.unwrap().links.prev = Option<T&>::None();
             
             if (!tail) [[unlikely]] {
                 tail = element;
@@ -31,7 +31,7 @@ namespace wlib {
             auto old_tail = tail;
             tail = element;
 
-            tail.unwrap().links.next = Option<T&>();
+            tail.unwrap().links.next = Option<T&>::None();
             tail.unwrap().links.prev = old_tail;
 
             if (!head) [[unlikely]] {
@@ -43,13 +43,13 @@ namespace wlib {
         // Return None if there are no elements.
         auto constexpr pop_front() -> Option<T> {
             if (!head) [[unlikely]] {
-                return {};
+                return Option<T>::None();
             }
 
             auto const& old_head = head.unwrap();
             head = old_head.links.next;
             if (tail == old_head) [[unlikely]] {
-                tail = Option<T&>();
+                tail = Option<T&>::None();
             }
             return old_head;
         }
@@ -58,13 +58,13 @@ namespace wlib {
         // Return None if there are no elements.
         auto constexpr pop_back() -> Option<T> {
             if (!tail) [[unlikely]] {
-                return {};
+                return Option<T>::None();
             }
 
             auto const& old_tail = tail.unwrap();
             tail = old_tail.links.prev;
             if (head == old_tail) [[unlikely]] {
-                head = Option<T&>();
+                head = Option<T&>::None();
             }
             return old_tail;
         }
@@ -79,7 +79,7 @@ namespace wlib {
     // member and name it "links". Occupies 8 bytes on x86 (two pointers).
     template<typename T>
     struct list_links {
-        Option<T&> next = {};
-        Option<T&> prev = {};
+        Option<T&> next = Option<T&>::None();
+        Option<T&> prev = Option<T&>::None();
     };
 };

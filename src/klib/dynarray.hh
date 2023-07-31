@@ -27,10 +27,10 @@ namespace wlib {
         [[nodiscard]] auto static initalize(usize size) -> Option<DynArray> {
             auto const ptr = simple_allocator.kalloc(size);
             if (ptr.none()) {
-                return Option<DynArray>();
+                return Option<DynArray>::None();
             }
             
-            return DynArray((T*)(ptr.unwrap()), size);
+            return Option<DynArray>::Some((T*)(ptr.unwrap()), size);
         }
 
         void fill(T const& element) {
@@ -45,9 +45,9 @@ namespace wlib {
 
         auto get(usize idx) -> Option<T> {
             if (idx < _size) {
-                return Option<T>(_array[idx]);
+                return Option<T>::Some(_array[idx]);
             } else {
-                return Option<T>();
+                return Option<T>::None();
             }
         } 
 
@@ -90,5 +90,7 @@ namespace wlib {
         DynArray(T* ptr, usize size) : _array(ptr), _size(size) {};
         T* _array;
         usize _size;
+
+        friend class Option<DynArray>;
     };
 }; // namespace wlib

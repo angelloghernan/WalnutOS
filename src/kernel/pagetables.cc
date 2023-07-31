@@ -23,12 +23,12 @@ namespace wlib::pagetables {
             auto new_pt = simple_allocator.kalloc(PAGESIZE);
 
             if (new_pt.none()) {
-                return Result<Null, Null>::Err({});
+                return Result<Null, Null>::Err();
             }
 
             if (pagedir.add_pt(new_pt.unwrap_as<uptr>(), perm).is_err()) {
                 simple_allocator.kfree(new_pt.unwrap());
-                return Result<Null, Null>::Err({});
+                return Result<Null, Null>::Err();
             }
             
             // Need to zero out pages, or else weird bugs
@@ -81,7 +81,7 @@ namespace wlib::pagetables {
             return Result<Null, Null>::Err({});
         } 
         _internal = ptable_addr | PTE_P | PTE_W;
-        return Result<Null, Null>::Ok({});
+        return Result<Null, Null>::Ok();
     }
 
 };

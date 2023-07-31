@@ -99,10 +99,13 @@ auto Ps2Keyboard::read_response() -> Option<KeyboardResponse> {
     auto response = Ps2Controller::blocking_read();
 
     if (response.is_err()) {
-        return {};
+        return Option<KeyboardResponse>::None();
     }
 
-    return static_cast<KeyboardResponse>(response.as_ok());
+    auto const response_casted 
+        = static_cast<KeyboardResponse>(response.as_ok());
+
+    return Option<KeyboardResponse>::Some(response_casted);
 }
 
 auto Ps2Keyboard::response_to_char(KeyboardResponse response) -> char {
