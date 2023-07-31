@@ -1,6 +1,7 @@
 #pragma once
 #include "klib/slice.hh"
 #include "klib/result.hh"
+#include "klib/strings.hh"
 #include "klib/ahci/ahci.hh"
 
 namespace kernel::vfs {
@@ -11,12 +12,16 @@ namespace kernel::vfs {
     enum class WriteError : u8 {};
     enum class FileError : u8 {
         FSError,
+        BitmapFull,
     };
 
     class FileHandle {
       public:
         auto static create(wlib::ahci::AHCIState* drive, 
-                           u32 file_id) -> wlib::Result<FileHandle, FileError>;
+                           wlib::str const name) -> wlib::Result<FileHandle, FileError>;
+
+        auto static open(wlib::ahci::AHCIState* drive, 
+                         u32 file_id) -> wlib::Result<FileHandle, FileError>;
 
         auto read(wlib::Slice<u8>& buffer) -> wlib::Result<u16, ReadError> ;
 

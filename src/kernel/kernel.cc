@@ -106,7 +106,7 @@ void setup_pagedir() {
     assert(result.is_ok(), "Failure on initial maps!");
 
     // Identity map everything else
-    for (auto address = 0x1000; address < 0x400000; address += PAGESIZE) {
+    for (uptr address = 0x1000; address < 0x400000; address += PAGESIZE) {
         auto result = kernel_pagedir[0].try_map(address, address, PTE_PW);
         assert(result.is_ok(), "Failure on initial maps!");
     }
@@ -118,9 +118,9 @@ void setup_pagedir() {
 void Idt::init() {
     idtr.set_base(reinterpret_cast<uptr>(&_idt[0]));
     idtr.set_limit(sizeof(IdtEntry) * 63);
-    for (auto i = 0; i < 64; ++i) {
+    for (usize i = 0; i < 64; ++i) {
         auto const ptr = reinterpret_cast<uptr>(isr_stub_table[i]) - kernel::KERNEL_START;
-        auto const code_segment = (ptr / kernel::SEGMENT_SIZE) + kernel::KERNEL_CS_SEG_START;
+        auto const code_segment = u16((ptr / kernel::SEGMENT_SIZE) + kernel::KERNEL_CS_SEG_START);
         _idt[i].set(isr_stub_table[i], 0x8E, code_segment);
     }
 

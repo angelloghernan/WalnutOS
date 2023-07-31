@@ -8,14 +8,58 @@ using namespace wlib;
 
 wnfs::BufCache buf_cache;
 
-auto FileHandle::create(ahci::AHCIState* const drive, 
-                        u32 const file_id) -> Result<FileHandle, FileError> {
+// TODO: Make this support all file systems we're gonna support...
+// for now, just doing this for wnfs
 
-    // TODO: Make this support all file systems we're gonna support...
-    // for now, just doing this for wnfs
+auto FileHandle::create(wlib::ahci::AHCIState *drive, 
+                        str const name) -> Result<FileHandle, FileError> {
+    auto constexpr bitmap_sector = wnfs::INODE_BITMAP_START / wnfs::SECTOR_SIZE;
+
+    auto result = buf_cache.read_buf_sector(bitmap_sector);
+
+    if (result.is_err()) {
+        return Result<FileHandle, FileError>::ErrInPlace(FileError::FSError);
+    }
+
+    auto& entry = result.as_ok();
+
+    // TODO: support the entire inode bitmap, not just the first 512 * 8 inodes
+    u32 file_id = u32(-1);
+    for (auto i = 0; i < wnfs::SECTOR_SIZE; ++i) {
+        auto byte = entry.read(i);
+        if (byte == 0xFF) {
+            continue;
+        }
+
+        for (auto j = 0; j < 8; ++j) {
+            if (!(byte & (1 << j))) {
+                entry.write(i, byte | (1 << j));
+                file_id = i * 8 + j;
+                goto end;
+            }
+        }
+    }
+
+  end:
+    if (file_id == u32(-1)) {
+        return Result<FileHandle, FileError>::ErrInPlace(FileError::BitmapFull);
+    }
+
+    // Now we mark the actual inode
+
+    return Result<FileHandle, FileError>::OkInPlace(drive, 
+                                                    file_id, 
+                                                    wnfs::inode_sector(u32(file_id)));
+}
+
+auto FileHandle::open(ahci::AHCIState* const drive, 
+                      u32 const file_id) -> Result<FileHandle, FileError> {
+
     auto const sector = wnfs::inode_sector(u32(file_id));
 
     auto const result = buf_cache.read_buf_sector(sector);
+
+    // TODO: Should probably check if this inode is allocated in the inode bitmap?
 
     if (result.is_err()) {
         return Result<FileHandle, FileError>::ErrInPlace(FileError::FSError);

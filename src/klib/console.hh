@@ -63,7 +63,7 @@ namespace wlib::console {
         }
 
         template<typename... Types>
-        void print_color(Color const fg, Color const bg) {}
+        void print_color(Color const, Color const) {}
 
         template<typename T, typename... Types>
         void print_color(Color const fg, Color const bg, T&& var1, Types&&... var2) {
@@ -83,7 +83,7 @@ namespace wlib::console {
             ports::outb(Console::CURSOR_CONTROL, 0x20);
             ports::outb(Console::SET_REGISTER, Console::CURSOR_START);
             // Upper two bits are reserved
-            auto existing = ports::inb(Console::CURSOR_CONTROL) & 0xC;
+            auto existing = u8(ports::inb(Console::CURSOR_CONTROL) & 0xC);
             // Enable cursor (bit 5 set to 0) and set start position to 0
             ports::outb(Console::CURSOR_CONTROL, existing);
 
@@ -173,16 +173,16 @@ namespace wlib::console {
         static u16 const CURSOR_LOCATION_HIGH = 0xE;
         static u16 const CURSOR_LOCATION_LOW = 0xF;
 
-        void move(i8 amt);
+        void move(i32 amt);
         auto constexpr static num_digits(usize num, u8 base) -> u8;
 
         auto constexpr static create_char(char const ch, Color const fg, Color const bg) -> u16 {
             auto const upper = static_cast<u8>(bg);
             auto const lower = static_cast<u8>(fg);
 
-            u16 const color = (upper << 4) | (lower);
+            u16 const color = u16(upper << 4) | u16(lower);
 
-            return (color << 8) | ch; 
+            return u16(color << 8) | u16(ch); 
         }
 
         void new_line() {

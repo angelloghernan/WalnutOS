@@ -56,9 +56,10 @@ namespace wnfs {
                                   -> wlib::Result<BufCacheRef, wlib::Null> {
             auto const maybe_buf_num = buf_with_sector(sector);
             if (maybe_buf_num.some()) {
-                return wlib::Result<BufCacheRef, wlib::Null>::OkInPlace(this, 
-                                                                        sector, 
-                                                                        maybe_buf_num.unwrap());
+                return wlib::Result<BufCacheRef, 
+                                    wlib::Null>::OkInPlace(this, 
+                                                           sector, 
+                                                           maybe_buf_num.unwrap());
             }
 
             for (auto i = 0; i < NUM_BUFS; ++i) {
@@ -101,7 +102,14 @@ namespace wnfs {
 
         void inline constexpr release_buffer(u8 buf_num) {
             _buffer_free_mask ^= (1 << buf_num);
-            // TODO: write if dirty
+
+            if (_buffer_dirty_mask & (1 << buf_num)) {
+                wlib::Slice slice(&get_val(0, buf_num), BUF_SIZE);
+                // Ignoring for now... maybe change? 
+                // But then we can't use destructors which sucks
+                (void)(sata_disk0->write(slice, _buf_sectors[buf_num]));
+                _buffer_dirty_mask ^= (1 << buf_num);
+            }
             // TODO: use an actual eviction policy (LRU seems fine)
         }
 

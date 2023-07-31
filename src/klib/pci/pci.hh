@@ -119,7 +119,7 @@ namespace wlib {
         struct memory_space_bar {
           public:
             auto get_address() -> u32 {
-                return bytes & (~0xF);
+                return bytes & (~0xF_u32);
             }
 
             auto prefetchable() -> bool {
@@ -137,7 +137,7 @@ namespace wlib {
         struct io_space_bar {
           public:
             auto get_address() -> u32 {
-                return bytes & (~0b11);
+                return bytes & (~0b11_u32);
             }
 
             u32 bytes;

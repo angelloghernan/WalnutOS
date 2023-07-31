@@ -15,7 +15,7 @@ using namespace ps2;
 
 usize timer = 0;
 
-void end_of_interrupt(u8 vector_code) {
+void end_of_interrupt(usize vector_code) {
     if (vector_code - 0x20 >= 8) {
         ports::outb(0xA0, 0x20);
     }

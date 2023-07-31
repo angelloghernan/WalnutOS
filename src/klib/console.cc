@@ -35,7 +35,7 @@ namespace wlib::console {
         }
     }
 
-    void Console::move(i8 amt) {
+    void Console::move(i32 amt) {
         i32 new_col = m_col + amt;
         if (new_col < 0) {
             m_col = 0;
@@ -43,13 +43,13 @@ namespace wlib::console {
                 m_row -= 1;
             }
         } else if (new_col >= Console::MAX_COLS) {
-            m_col = new_col - Console::MAX_COLS;
+            m_col = u8(new_col - Console::MAX_COLS);
             m_row += 1;
             if (m_row == Console::MAX_ROWS) {
                 scroll();
             }
         } else {
-            m_col = new_col;
+            m_col = u8(new_col);
         }
     }
 
