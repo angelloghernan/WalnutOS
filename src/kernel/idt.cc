@@ -30,6 +30,7 @@ extern "C" void exception_handler(regstate& regs) {
         terminal.print_line("Exception ", u32(regs.vector_code), 
                             " at EIP = ", (void*)(regs.reg_eip),
                             " CR2 = ", x86::read_cr2());
+        assert(false, "Exception!");
     }
     end_of_interrupt(regs.vector_code);
 }

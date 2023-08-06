@@ -88,7 +88,6 @@ extern "C" void kernel_main() {
     terminal.print_line("formatting");
     assert(wnfs::format_disk(&sata_disk0.unwrap()).is_ok(), "Error formatting sata disk 0");
     terminal.print_line("Done formatting");
-    assert(wnfs::create_file(&sata_disk0.unwrap(), "cool_file").is_ok(), "Error creating file");
 
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);

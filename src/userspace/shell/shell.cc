@@ -30,7 +30,6 @@ static void parse_input(InputBuffer& buffer, u16 end) {
         terminal.print_line("Hello");
     } else if (command == "dir") {
     } else if (command == "mkdir") {
-        
     } else if (command == "mkfile") {
         auto maybe_arg = space_split.next();
         if (maybe_arg.none()) {
@@ -43,6 +42,23 @@ static void parse_input(InputBuffer& buffer, u16 end) {
 
         if (result.is_ok()) {
             terminal.print_line("File handle successfully created");
+            auto result2 = result.as_ok().write(str("Hello, World!").as_slice().to_raw_bytes());
+            if (result2.is_err()) {
+                switch (result2.as_err()) {
+                    case kernel::vfs::WriteError::DiskError:
+                        terminal.print_line("Disk Error");
+                        break;
+                    case kernel::vfs::WriteError::FSError:
+                        terminal.print_line("FS Error");
+                        break;
+                    case kernel::vfs::WriteError::FileTooBig:
+                        terminal.print_line("File too big?");
+                        break;
+                    case kernel::vfs::WriteError::OutOfContiguousSpace:
+                        terminal.print_line("Out of contig");
+                        break;
+                }
+            }
         } else {
             terminal.print_line("File handle encountered an error");
         }

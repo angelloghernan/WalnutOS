@@ -106,6 +106,8 @@ auto FileHandle::write(Slice<u8> const& buffer) -> Result<u16, WriteError> {
 
         if (result.is_err()) {
             return Result<u16, WriteError>::ErrInPlace(WriteError::OutOfContiguousSpace);
+        } else {
+            sector = result.as_ok();
         }
     }
 
@@ -119,7 +121,7 @@ auto FileHandle::write(Slice<u8> const& buffer) -> Result<u16, WriteError> {
 
     auto const write_offset = _position % wnfs::SECTOR_SIZE;
 
-    usize const bytes_left_in_sector = wnfs::SECTOR_SIZE - u32(_position % write_offset);
+    usize const bytes_left_in_sector = wnfs::SECTOR_SIZE - write_offset;
 
     auto const bytes_to_write = u16(util::min(buffer.len(), bytes_left_in_sector));
     

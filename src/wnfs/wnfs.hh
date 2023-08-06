@@ -41,39 +41,42 @@ namespace wnfs {
     // Inode blocks (for now, 8192 inodes taking up 2048 sectors)
     // Empty space (can store extents for tag bitmap, tag nodes, block group bitmap)
     
-    auto static constexpr NUM_INODES = 8192;
+    u32 static constexpr NUM_INODES = 8192;
 
-    auto static constexpr SECTOR_SIZE = 512;
+    u32 static constexpr SECTOR_SIZE = 512;
 
-    auto static constexpr BLOCK_SIZE = 1024;
+    u32 static constexpr BLOCK_SIZE = 1024;
 
-    auto static constexpr TAG_BITMAP_START = 1024;
+    u32 static constexpr TAG_BITMAP_START = 1024;
 
-    auto static constexpr TAG_BITMAP_SECTORS = 8;
+    u32 static constexpr TAG_BITMAP_SECTORS = 8;
 
-    auto static constexpr TAG_BITMAP_END = 1024 + TAG_BITMAP_SECTORS * SECTOR_SIZE;
+    u32 static constexpr TAG_BITMAP_END = 1024 + TAG_BITMAP_SECTORS * SECTOR_SIZE;
 
-    auto static constexpr TAG_NODE_BLOCK_START = TAG_BITMAP_END;
+    u32 static constexpr TAG_NODE_BLOCK_START = TAG_BITMAP_END;
     
-    auto static constexpr NUM_TAG_NODES = 128;
+    u32 static constexpr NUM_TAG_NODES = 128;
 
-    auto static constexpr TAG_NODE_BLOCK_SECTORS = NUM_TAG_NODES * sizeof(TagNode) / SECTOR_SIZE;
+    u32 static constexpr TAG_NODE_BLOCK_SECTORS = NUM_TAG_NODES * sizeof(TagNode) / SECTOR_SIZE;
 
-    auto static constexpr BLOCK_GROUP_START = TAG_NODE_BLOCK_START + TAG_NODE_BLOCK_SECTORS * SECTOR_SIZE;
+    u32 static constexpr BLOCK_GROUP_START = TAG_NODE_BLOCK_START + TAG_NODE_BLOCK_SECTORS * SECTOR_SIZE;
 
-    auto static constexpr BLOCK_GROUP_BITMAP_SECTORS = 8;
+    u32 static constexpr BLOCK_GROUP_BITMAP_SECTORS = 8;
 
-    auto static constexpr INODE_BITMAP_START = BLOCK_GROUP_START + BLOCK_GROUP_BITMAP_SECTORS * SECTOR_SIZE;
+    u32 static constexpr INODE_BITMAP_START = BLOCK_GROUP_START + BLOCK_GROUP_BITMAP_SECTORS * SECTOR_SIZE;
 
-    auto static constexpr INODE_BITMAP_SECTORS = NUM_INODES / 8 / SECTOR_SIZE;
+    u32 static constexpr INODE_BITMAP_SECTORS = NUM_INODES / 8 / SECTOR_SIZE;
 
-    auto static constexpr INODES_START = INODE_BITMAP_START + INODE_BITMAP_SECTORS * SECTOR_SIZE;
+    u32 static constexpr INODES_START = INODE_BITMAP_START + INODE_BITMAP_SECTORS * SECTOR_SIZE;
 
-    auto static constexpr INODE_SECTORS = NUM_INODES * sizeof(INode) / SECTOR_SIZE;
+    u32 static constexpr INODE_SECTORS = NUM_INODES * sizeof(INode) / SECTOR_SIZE;
 
-    auto static constexpr INODES_PER_SECTOR = SECTOR_SIZE / sizeof(INode);
+    u32 static constexpr INODES_PER_SECTOR = SECTOR_SIZE / sizeof(INode);
 
-    auto static constexpr BLOCKS_START = INODES_START + INODE_SECTORS * SECTOR_SIZE;
+    u32 static constexpr BLOCKS_START = INODES_START + INODE_SECTORS * SECTOR_SIZE;
+
+
+    u32 static constexpr BLOCK_START_SECTOR = BLOCKS_START / SECTOR_SIZE;
 
     [[nodiscard]] auto constexpr inode_sector(u32 inode_num) -> u32 {
         return inode_num / INODES_PER_SECTOR + INODES_START / SECTOR_SIZE;

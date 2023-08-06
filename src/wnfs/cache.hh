@@ -63,7 +63,7 @@ namespace wnfs {
             }
 
             for (u32 i = 0; i < NUM_BUFS; ++i) {
-                if (!(_buffer_free_mask & (1 << i))) {
+                if (_buffer_free_mask & (1 << i)) {
                     wlib::Slice slice(_buffer, i * BUF_SIZE, BUF_SIZE);
 
                     auto result = sata_disk0.unwrap().read(slice, sector * BUF_SIZE);

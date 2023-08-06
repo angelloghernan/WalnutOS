@@ -155,9 +155,9 @@ auto wnfs::allocate_sectors(AHCIState* const disk, u32 sectors) -> Result<u32, N
     }
 
     // TODO IMPORTANT: use more than just the first block of the bitmap.
-
-    u32 sector_pos;
-    u8 sector_bit;
+    
+    u32 sector_pos = 0;
+    u8 sector_bit = 0;
     u32 sector_count = 0;
 
     for (u32 i = 0; i < bitmap_buffer.len() && sector_count < sectors; ++i) {
@@ -206,5 +206,5 @@ auto wnfs::allocate_sectors(AHCIState* const disk, u32 sectors) -> Result<u32, N
         return Result<u32, Null>::ErrInPlace();
     }
 
-    return Result<u32, Null>::OkInPlace(sector_pos * 8 + sector_bit);
+    return Result<u32, Null>::OkInPlace(sector_pos * 8 + sector_bit + BLOCK_START_SECTOR);
 }
