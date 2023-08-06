@@ -35,9 +35,47 @@ namespace wlib::x86 {
         asm volatile("pause" : : : "memory");
     }
 
-    inline auto read_cr2() -> uptr {
+    [[nodiscard]] inline auto read_cr2() -> uptr {
         uptr cr2;
         asm volatile("movl %%cr2, %0" : "=r" (cr2));
         return cr2;
+    }
+
+    
+
+    [[nodiscard]] inline auto lzcnt_16(u16 num) -> u16 {
+        u16 result;
+        asm volatile ("lzcntw %1, %0" : "=r" (result) : "r" (num));
+        return result;
+    }
+
+    [[nodiscard]] inline auto lzcnt_32(u32 num) -> u32 {
+        u32 result;
+        asm volatile ("lzcntl %1, %0" : "=r" (result) : "r" (num));
+        return result;
+    }
+
+    [[nodiscard]] inline auto lzcnt_64(u64 num) -> u64 {
+        u64 result;
+        asm volatile ("lzcntq %1, %0" : "=r" (result) : "r" (num));
+        return result;
+    }
+
+    [[nodiscard]] inline auto tzcnt_16(u16 num) -> u16 {
+        u16 result;
+        asm volatile ("tzcntw %1, %0" : "=r" (result) : "r" (num));
+        return result;
+    }
+
+    [[nodiscard]] inline auto tzcnt_32(u32 num) -> u32 {
+        u32 result;
+        asm volatile ("tzcntl %1, %0" : "=r" (result) : "r" (num));
+        return result;
+    }
+
+    [[nodiscard]] inline auto tzcnt_64(u64 num) -> u64 {
+        u64 result;
+        asm volatile ("tzcntq %1, %0" : "=r" (result) : "r" (num));
+        return result;
     }
 }; // namespace wlib
