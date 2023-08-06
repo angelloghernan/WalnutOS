@@ -2,6 +2,7 @@
 #include "klib/assert.hh"
 #include "klib/ps2/keyboard.hh"
 #include "klib/ahci/ahci.hh"
+#include "kernel/vfs/vfs.hh"
 #include "kernel/ext2/ext2_util.hh"
 
 // Note: This is not going to run in userspace just yet. This program will first
@@ -11,18 +12,40 @@
 
 using namespace wlib;
 typedef Array<char, 512> InputBuffer;
+using kernel::vfs::FileHandle;
 
-void parse_input(InputBuffer& buffer, u16 end) {
+static void parse_input(InputBuffer& buffer, u16 end) {
     // For now, we are going to treat this entire thing as one buffer
-    auto const as_slice = Slice<char>(buffer, 0, end);
-    if (str("Hello") == as_slice) {
+    // TODO: Add splitting to strings
+    auto as_str = str(buffer, 0, end);
+    auto space_split = as_str.split(' ');
+
+    if (space_split.done()) {
+        return;
+    }
+
+    auto const command = space_split.next().unwrap();
+
+    if (command == "Hello") {
         terminal.print_line("Hello");
-    } else if (str("dir") == as_slice) {
+    } else if (command == "dir") {
+    } else if (command == "mkdir") {
         
-    } else if (str("mkdir") == as_slice) {
-        // bleh
-    } else if (str("mkfile") == as_slice) {
-        // bleh
+    } else if (command == "mkfile") {
+        auto maybe_arg = space_split.next();
+        if (maybe_arg.none()) {
+            return;
+        }
+
+        auto& arg = maybe_arg.unwrap();
+
+        auto result = FileHandle::create(&sata_disk0.unwrap(), arg);
+
+        if (result.is_ok()) {
+            terminal.print_line("File handle successfully created");
+        } else {
+            terminal.print_line("File handle encountered an error");
+        }
     }
 }
 
@@ -73,6 +96,7 @@ void shell_main() {
                 switch (key_code) {
                     case BackspaceDown:
                         terminal.print_back_char(' ');
+                        --buf_ptr;
                         break;
                     case LeftShiftDown:
                         left_shift_pressed = true;
