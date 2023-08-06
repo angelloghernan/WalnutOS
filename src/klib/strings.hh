@@ -79,7 +79,9 @@ namespace wlib {
         class StrSplit {
           public:
             constexpr StrSplit(str& string, char ch) 
-                      : _string(string.as_const_ptr()), _pos(0), _end(string._size), _delimiter(ch) {}
+                      : _string(string.as_const_ptr()), _pos(0), _end(string._size), _delimiter(ch) {
+                for (; _pos < _end && _string[_pos] == _delimiter; ++_pos) {}
+            }
 
             [[nodiscard]] auto constexpr remainder() const -> str {
                 return str(_string + _pos, _end - _pos);
