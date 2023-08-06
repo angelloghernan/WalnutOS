@@ -25,6 +25,23 @@ namespace kernel::vfs {
 
     class FileHandle {
       public:
+        FileHandle(wlib::ahci::AHCIState* drive, u32 file_id, u32 sector)
+            : _drive(drive), _file_id(file_id), _position(0), _sector(sector) {};
+
+        FileHandle(FileHandle&& handle) 
+            : _drive(handle._drive), _file_id(handle._file_id), 
+              _position(handle._position), _sector(handle._sector) {
+            handle._file_id = u32(-1);
+        } 
+
+        void operator=(FileHandle&& handle) {
+            _drive = handle._drive;
+            _file_id = handle._file_id;
+            _position = handle._position;
+            _sector = handle._sector;
+            handle._file_id = u32(-1);
+        }
+
         auto static create(wlib::ahci::AHCIState* drive, 
                            wlib::str const name) -> wlib::Result<FileHandle, FileError>;
 
@@ -33,15 +50,17 @@ namespace kernel::vfs {
 
         auto read(wlib::Slice<u8>& buffer) -> wlib::Result<u16, ReadError> ;
 
-        auto write(wlib::Slice<u8> const& buffer)-> wlib::Result<u16, WriteError>;
+        auto write(wlib::Slice<u8> const& buffer)-> wlib::Result<u32, WriteError>;
+
+        auto inline constexpr is_initialized() -> bool {
+            return _drive != nullptr;
+        }
 
       private:
-        wlib::ahci::AHCIState& _drive;
+        wlib::ahci::AHCIState* _drive;
         u32 _file_id;
         u32 _position;
         u32 _sector;
-        FileHandle(wlib::ahci::AHCIState* drive, u32 file_id, u32 sector) 
-            : _drive(*drive), _file_id(file_id), _position(0), _sector(sector) {};
         
         auto sector_of_position() -> wlib::Nullable<u32, u32(-1)>; 
 

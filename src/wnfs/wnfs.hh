@@ -2,8 +2,9 @@
 #include "klib/result.hh"
 #include "klib/strings.hh"
 #include "klib/ahci/ahci.hh"
-#include "wnfs/tag_node.hh"
+#include "wnfs/cache.hh"
 #include "wnfs/inode.hh"
+#include "wnfs/tag_node.hh"
 
 namespace wnfs {
 
@@ -32,6 +33,12 @@ namespace wnfs {
     // were allocated on success, or nothing on error.
     [[nodiscard]] auto allocate_sectors(wlib::ahci::AHCIState* disk,
                                         u32 amount) -> wlib::Result<u32, wlib::Null>;
+
+    // Write to the file with id `inode_id`. Returns bytes written on success or an IO Error on error. 
+    [[nodiscard]] auto write_to_file(wlib::ahci::AHCIState* disk,
+                                     wlib::Slice<u8> const& buffer,
+                                     INodeID inode_id,
+                                     u32 position) -> wlib::Result<u32, wlib::ahci::IOError>;
 
     // Layout is as follows:
     // Tag bitmap (N sectors)
@@ -86,3 +93,5 @@ namespace wnfs {
         return (inode_num % INODES_PER_SECTOR) * sizeof(wnfs::INode);   
     }
 };
+
+extern wnfs::BufCache buf_cache;

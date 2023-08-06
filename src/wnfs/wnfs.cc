@@ -3,6 +3,7 @@
 #include "wnfs/tag_node.hh"
 #include "wnfs/tag_bitmap.hh"
 #include "klib/x86.hh"
+#include "klib/util.hh"
 #include "klib/result.hh"
 #include "klib/strings.hh"
 #include "klib/ahci/ahci.hh"
@@ -141,6 +142,76 @@ auto wnfs::create_file(ahci::AHCIState* const disk,
     }
 
     return Result<INodeID, FileError>::Err(FileError::OutOfINodes);
+}
+
+auto wnfs::write_to_file(AHCIState* const disk,
+                         Slice<u8> const& buffer,
+                         INodeID inode_id, 
+                         u32 const position) -> Result<u32, IOError> {
+    auto inode_location = inode_sector(u32(inode_id));
+    terminal.print_line("inode location: ", inode_location);
+    auto maybe_inode = buf_cache.read_buf_sector(inode_location);
+
+    if (maybe_inode.is_err()) {
+        return Result<u32, IOError>::ErrInPlace(IOError::DeviceError);
+    }
+
+    auto& inode_sector = maybe_inode.as_ok();
+
+    auto* ptr = inode_sector.as_ptr();
+    
+    auto const offset = wnfs::inode_sector_offset(u32(inode_id));
+
+    auto* inode = reinterpret_cast<wnfs::INode*>(&ptr[offset]);
+
+    auto const write_block = position / wnfs::SECTOR_SIZE;
+
+    if (write_block > inode->direct_blocks.len()) {
+        // TODO: Write past the 9 blocks allowed, change this error
+        return Result<u32, IOError>::ErrInPlace(IOError::DeviceError);
+    }
+        
+    auto sector = inode->direct_blocks[write_block];
+
+    if (sector == 0) {
+        // Try to allocate space for this sector
+        auto result = wnfs::allocate_sectors(disk, 2_u32);
+
+        if (result.is_err()) {
+            return Result<u32, IOError>::ErrInPlace(IOError::BufferTooSmall);
+        } else {
+            sector = result.as_ok();
+            inode->direct_blocks[write_block] = sector;
+            auto flush_res = buf_cache.flush(inode_sector.buf_num());
+            if (flush_res.is_err()) {
+                return Result<u32, IOError>::ErrInPlace(flush_res.as_err());
+            }
+        }
+    }
+
+    Array<u8, wnfs::SECTOR_SIZE> block_buffer;
+
+    Slice block_slice(block_buffer);
+
+    if (disk->read(block_slice, sector * wnfs::SECTOR_SIZE).is_err()) {
+        return Result<u32, IOError>::ErrInPlace(IOError::DeviceError);
+    }
+
+    auto const write_offset = position % wnfs::SECTOR_SIZE;
+
+    usize const bytes_left_in_sector = wnfs::SECTOR_SIZE - write_offset;
+
+    auto const bytes_to_write = u16(util::min(buffer.len(), bytes_left_in_sector));
+    
+    for (usize i = 0; i < bytes_to_write; ++i) {
+        block_buffer[i + write_offset] = buffer[i];
+    }
+
+    if (disk->write(block_slice, sector * wnfs::SECTOR_SIZE).is_err()) {
+        return Result<u32, IOError>::ErrInPlace(IOError::DeviceError);
+    }
+
+    return Result<u32, IOError>::OkInPlace(bytes_to_write);
 }
 
 

@@ -13,6 +13,7 @@
 using namespace wlib;
 typedef Array<char, 512> InputBuffer;
 using kernel::vfs::FileHandle;
+FileHandle file(nullptr, 0, 0);
 
 static void parse_input(InputBuffer& buffer, u16 end) {
     // For now, we are going to treat this entire thing as one buffer
@@ -29,6 +30,24 @@ static void parse_input(InputBuffer& buffer, u16 end) {
     if (command == "Hello") {
         terminal.print_line("Hello");
     } else if (command == "dir") {
+    } else if (command == "read") {
+        if (!file.is_initialized()) {
+            return;
+        }
+        
+        Array<u8, 10> buf;
+        Slice slice(buf);
+
+        auto result = file.read(slice);
+        if (result.is_err()) {
+            terminal.print_line("Error reading from file");
+        } else {
+            for (auto ch : buf) {
+                terminal.print(char(ch));
+            }
+            terminal.print_line();
+        }
+        
     } else if (command == "mkdir") {
     } else if (command == "mkfile") {
         auto maybe_arg = space_split.next();
@@ -41,7 +60,7 @@ static void parse_input(InputBuffer& buffer, u16 end) {
         auto result = FileHandle::create(&sata_disk0.unwrap(), arg);
 
         if (result.is_ok()) {
-            terminal.print_line("File handle successfully created");
+            terminal.print_line("File handle successfully created with name ", arg);
             auto result2 = result.as_ok().write(str("Hello, World!").as_slice().to_raw_bytes());
             if (result2.is_err()) {
                 switch (result2.as_err()) {
@@ -59,6 +78,7 @@ static void parse_input(InputBuffer& buffer, u16 end) {
                         break;
                 }
             }
+            file = util::move(result.as_ok());
         } else {
             terminal.print_line("File handle encountered an error");
         }

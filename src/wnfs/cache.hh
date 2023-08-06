@@ -9,6 +9,7 @@ namespace wnfs {
       public:
         class BufCacheRef {
           public:
+            [[nodiscard]] auto inline constexpr buf_num() const -> u8 { return _buf_num; }
 
             [[nodiscard]] auto inline constexpr read(u16 idx) const -> u8 const& {
                 return _buf_cache.get_val_const(idx, _buf_num);
@@ -81,6 +82,12 @@ namespace wnfs {
             return wlib::Result<BufCacheRef, wlib::Null>::ErrInPlace();
         }
 
+        auto inline flush(u8 buf_num) -> wlib::Result<wlib::Null, wlib::ahci::IOError> {
+            _buffer_dirty_mask |= ~(1 << buf_num);
+            wlib::Slice slice(&get_val(0, buf_num), BUF_SIZE);
+            return sata_disk0->write(slice, _buf_sectors[buf_num] * BUF_SIZE);
+        }
+
       private:
         auto constexpr static BUF_SIZE = 512;
         auto constexpr static BUF_BUF_SIZE = 4096;
@@ -104,11 +111,8 @@ namespace wnfs {
             _buffer_free_mask ^= (1 << buf_num);
 
             if (_buffer_dirty_mask & (1 << buf_num)) {
-                wlib::Slice slice(&get_val(0, buf_num), BUF_SIZE);
-                // Ignoring errors for now... maybe change? 
-                // But then we can't use destructors which sucks
-                (void)(sata_disk0->write(slice, _buf_sectors[buf_num]));
-                _buffer_dirty_mask ^= (1 << buf_num);
+                // Ignoring errors for now, which sucks but we can't use this with a destructor otherwise
+                flush(buf_num);
             }
             // TODO: use an actual eviction policy (LRU seems fine)
         }

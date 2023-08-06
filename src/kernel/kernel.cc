@@ -85,7 +85,7 @@ extern "C" void kernel_main() {
     assert(result.is_ok(), "Error formating disk with superblock");
     */
 
-    terminal.print_line("formatting");
+    terminal.print_line("Formatting disk...");
     assert(wnfs::format_disk(&sata_disk0.unwrap()).is_ok(), "Error formatting sata disk 0");
     terminal.print_line("Done formatting");
 
