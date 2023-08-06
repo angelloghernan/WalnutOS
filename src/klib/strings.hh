@@ -91,6 +91,10 @@ namespace wlib {
                 }
 
                 for (; _pos < _end && _string[_pos] == _delimiter; ++_pos) {}
+
+                if (_pos == _end) {
+                    return Option<str>::None();
+                }
                 
                 usize start = _pos;
                 usize end = _end;
