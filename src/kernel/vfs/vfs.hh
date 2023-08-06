@@ -2,6 +2,7 @@
 #include "klib/slice.hh"
 #include "klib/result.hh"
 #include "klib/strings.hh"
+#include "klib/nullable.hh"
 #include "klib/ahci/ahci.hh"
 
 namespace kernel::vfs {
@@ -9,7 +10,14 @@ namespace kernel::vfs {
         CacheFull,
         EndOfFile,
     };
-    enum class WriteError : u8 {};
+
+    enum class WriteError : u8 {
+        FSError,
+        FileTooBig,
+        OutOfContiguousSpace,
+        DiskError,
+    };
+
     enum class FileError : u8 {
         FSError,
         BitmapFull,
@@ -25,7 +33,7 @@ namespace kernel::vfs {
 
         auto read(wlib::Slice<u8>& buffer) -> wlib::Result<u16, ReadError> ;
 
-        auto write(wlib::Slice<u8> const& buffer)-> wlib::Result<wlib::Null, WriteError>;
+        auto write(wlib::Slice<u8> const& buffer)-> wlib::Result<u16, WriteError>;
 
       private:
         wlib::ahci::AHCIState& _drive;
@@ -34,6 +42,9 @@ namespace kernel::vfs {
         u32 _sector;
         FileHandle(wlib::ahci::AHCIState* drive, u32 file_id, u32 sector) 
             : _drive(*drive), _file_id(file_id), _position(0), _sector(sector) {};
+        
+        auto sector_of_position() -> wlib::Nullable<u32, u32(-1)>; 
+
         friend class wlib::Result<FileHandle, FileError>;
     };
 
