@@ -33,7 +33,7 @@ BOOT_FOLDER = grub
 HEADERS = $(wildcard ${SRC_FOLDER}/kernel/*.hh ${SRC_FOLDER}/kernel/*/*.hh ${SRC_FOLDER}/klib/*.hh ${SRC_FOLDER}/klib/*/*.hh ${SRC_FOLDER}/userspace/*/*.hh ${SRC_FOLDER}/wnfs/*.hh)
 OBJ = ${CPP_SOURCES:%.cc=${OBJ_FOLDER}/%.o} src/klib/idt.o
 DEBUG_OBJ = ${CPP_SOURCES:%.cc=${DEBUG_FOLDER}/%.o} src/klib/idt.o
-HEADER_SOURCES = ${HEADERS:%.cc=%.d}
+HEADER_SOURCES = ${CPP_SOURCES:%.cc=${OBJ_FOLDER}/%.d}
 
 CC = i686-elf-g++ 
 CXXFLAGS += -g -std=c++20 -fmodules-ts -ffreestanding -nostdlib -lgcc -lsupc++ -flto -ffat-lto-objects \
