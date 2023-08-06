@@ -28,11 +28,11 @@ namespace wnfs {
 
             ~BufCacheRef() {
                 _buf_cache.release_buffer(_buf_num);
-                _buf_cache._buf_sectors[_buf_num] = u32(-1);
             }
             
             constexpr BufCacheRef(BufCache* cache, u32 sector, u8 buf_num) 
                       : _buf_cache(*cache), _buf_num(buf_num) {
+                _buf_cache._buf_sectors[_buf_num] = sector;
                 _buf_cache.grab_buffer(buf_num);
             }
 
@@ -43,16 +43,16 @@ namespace wnfs {
 
         [[nodiscard]] auto inline constexpr buf_with_sector(u32 sector) 
                                             -> wlib::Nullable<u8, u8(-1)> {
-            for (auto buf_num : _buf_sectors) {
-                if (buf_num == sector) {
-                    return wlib::Nullable<u8, u8(-1)>(buf_num);
+            for (u8 i = 0; i < _buf_sectors.len(); ++i) {
+                if (_buf_sectors[i] == sector) {
+                    return wlib::Nullable<u8, u8(-1)>(i);
                 }
             }
 
-            return u8(-1);
+            return wlib::Nullable<u8, u8(-1)>::None();
         }
 
-        [[nodiscard]] auto inline read_buf_sector(usize sector) 
+        [[nodiscard]] auto inline read_buf_sector(u32 sector) 
                                   -> wlib::Result<BufCacheRef, wlib::Null> {
             auto const maybe_buf_num = buf_with_sector(sector);
             if (maybe_buf_num.some()) {
@@ -62,7 +62,7 @@ namespace wnfs {
                                                            maybe_buf_num.unwrap());
             }
 
-            for (auto i = 0; i < NUM_BUFS; ++i) {
+            for (u32 i = 0; i < NUM_BUFS; ++i) {
                 if (!(_buffer_free_mask & (1 << i))) {
                     wlib::Slice slice(_buffer, i * BUF_SIZE, BUF_SIZE);
 
@@ -74,7 +74,7 @@ namespace wnfs {
 
                     return wlib::Result<BufCacheRef, wlib::Null>::OkInPlace(this, 
                                                                             sector, 
-                                                                            i);
+                                                                            u8(i));
                 } 
             }
 
@@ -84,7 +84,7 @@ namespace wnfs {
       private:
         auto constexpr static BUF_SIZE = 512;
         auto constexpr static BUF_BUF_SIZE = 4096;
-        auto constexpr static NUM_BUFS = BUF_BUF_SIZE / BUF_SIZE;
+        u8 constexpr static NUM_BUFS = BUF_BUF_SIZE / BUF_SIZE;
 
         wlib::Array<u32, NUM_BUFS> _buf_sectors = wlib::Array<u32, NUM_BUFS>::filled(u32(-1));
         wlib::Array<u8, BUF_BUF_SIZE> _buffer;
@@ -105,7 +105,7 @@ namespace wnfs {
 
             if (_buffer_dirty_mask & (1 << buf_num)) {
                 wlib::Slice slice(&get_val(0, buf_num), BUF_SIZE);
-                // Ignoring for now... maybe change? 
+                // Ignoring errors for now... maybe change? 
                 // But then we can't use destructors which sucks
                 (void)(sata_disk0->write(slice, _buf_sectors[buf_num]));
                 _buffer_dirty_mask ^= (1 << buf_num);

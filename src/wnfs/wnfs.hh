@@ -13,6 +13,7 @@ namespace wnfs {
         DiskError,
         OutOfINodes,
         OutOfSpace,
+        FSError,
     };
 
     enum class INodeID : u32 {};
@@ -25,7 +26,12 @@ namespace wnfs {
     // Returns the id's offset into the buffer if successful, else returns an error code.
     [[nodiscard]] auto get_file_sector(wlib::ahci::AHCIState* disk, 
                                        wlib::Slice<u8>& buf, 
-                                       INodeID id) -> wlib::Result<u16, wlib::ahci::IOError>;
+                                       INodeID id) -> wlib::Result<u32, wlib::ahci::IOError>;
+
+    // Allocate `amount` number of contiguous sectors. Returns the first sector where the sectors 
+    // were allocated on success, or nothing on error.
+    [[nodiscard]] auto allocate_sectors(wlib::ahci::AHCIState* disk,
+                                        u32 amount) -> wlib::Result<u32, wlib::Null>;
 
     // Layout is as follows:
     // Tag bitmap (N sectors)

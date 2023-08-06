@@ -2,6 +2,7 @@
 #include "wnfs/cache.hh"
 #include "wnfs/tag_node.hh"
 #include "wnfs/tag_bitmap.hh"
+#include "klib/x86.hh"
 #include "klib/result.hh"
 #include "klib/strings.hh"
 #include "klib/ahci/ahci.hh"
@@ -27,7 +28,7 @@ auto wnfs::format_disk(AHCIState* const disk) -> Result<Null, IOError> {
     // We write the rest of the bitmap.
     bitmap.bitmap_bytes.fill(0_u8);
 
-    for (auto i = 1; i < TAG_BITMAP_SECTORS; ++i) {
+    for (usize i = 1; i < TAG_BITMAP_SECTORS; ++i) {
         auto result = disk->write(Slice(bitmap.bitmap_bytes),
                                   TAG_BITMAP_START + i * SECTOR_SIZE);
 
@@ -41,7 +42,7 @@ auto wnfs::format_disk(AHCIState* const disk) -> Result<Null, IOError> {
     
     auto buffer = Array<u8, SECTOR_SIZE>::filled(0_u8);
 
-    for (auto i = 0; i < BLOCK_GROUP_BITMAP_SECTORS; ++i) {
+    for (usize i = 0; i < BLOCK_GROUP_BITMAP_SECTORS; ++i) {
         auto result = disk->write(Slice(buffer), 
                                   BLOCK_GROUP_START + i * SECTOR_SIZE);
 
@@ -50,7 +51,7 @@ auto wnfs::format_disk(AHCIState* const disk) -> Result<Null, IOError> {
         }
     }
 
-    for (auto i = 0; i < INODE_BITMAP_SECTORS; ++i) {
+    for (usize i = 0; i < INODE_BITMAP_SECTORS; ++i) {
         auto result = disk->write(Slice(buffer), 
                                   INODE_BITMAP_START + i * SECTOR_SIZE);
 
@@ -65,9 +66,9 @@ auto wnfs::format_disk(AHCIState* const disk) -> Result<Null, IOError> {
 }
 
 auto wnfs::get_file_sector(ahci::AHCIState* const disk, 
-                           Slice<u8>& buf, INodeID id) -> Result<u16, ahci::IOError> {
+                           Slice<u8>& buf, INodeID id) -> Result<u32, ahci::IOError> {
     if (buf.len() < SECTOR_SIZE) {
-        return Result<u16, ahci::IOError>::Err(ahci::IOError::BufferTooSmall);
+        return Result<u32, ahci::IOError>::Err(ahci::IOError::BufferTooSmall);
     }
 
     auto const sector = inode_sector(u32(id));
@@ -75,10 +76,10 @@ auto wnfs::get_file_sector(ahci::AHCIState* const disk,
     auto const result = disk->read(buf, sector * SECTOR_SIZE);
 
     if (result.is_err()) {
-        return Result<u16, ahci::IOError>::Err(result.as_err());
+        return Result<u32, ahci::IOError>::Err(result.as_err());
     }
 
-    return Result<u16, ahci::IOError>::Ok(inode_sector_offset(u32(id)));
+    return Result<u32, ahci::IOError>::Ok(inode_sector_offset(u32(id)));
 }
 
 auto wnfs::create_file(ahci::AHCIState* const disk, 
@@ -106,7 +107,7 @@ auto wnfs::create_file(ahci::AHCIState* const disk,
                 auto const inode_offset = inode_num % INODES_PER_SECTOR;
 
                 Array<INode, INODES_PER_SECTOR> buf2;
-                
+
                 Slice inode_slice(reinterpret_cast<u8*>(buf2.data()), buf2.size());
 
                 if (disk->read(inode_slice, sector_num * SECTOR_SIZE).is_err()) {
@@ -143,3 +144,67 @@ auto wnfs::create_file(ahci::AHCIState* const disk,
 }
 
 
+auto wnfs::allocate_sectors(AHCIState* const disk, u32 sectors) -> Result<u32, Null> {
+    Array<u8, 512> bitmap_buffer;
+    Slice bitmap_slice(bitmap_buffer);
+
+    auto const maybe_bitmap = disk->read(bitmap_slice, BLOCK_GROUP_START);
+
+    if (maybe_bitmap.is_err()) {
+        return Result<u32, wlib::Null>::ErrInPlace();
+    }
+
+    // TODO IMPORTANT: use more than just the first block of the bitmap.
+
+    u32 sector_pos;
+    u8 sector_bit;
+    u32 sector_count = 0;
+
+    for (u32 i = 0; i < bitmap_buffer.len() && sector_count < sectors; ++i) {
+        if (bitmap_buffer[i] == 0xFF) {
+            sector_count = 0;
+            continue;
+        }
+        
+        if (sector_count > 0) {
+            // Count the number of trailing zeroes, or the number of free sectors
+            u16 tzcnt = x86::tzcnt_16(bitmap_buffer[i]);
+            if (tzcnt == 0) {
+                // Couldn't find any more consecutive free sectors
+                sector_count = 0;
+                continue;
+            } else {
+                sector_count += tzcnt;
+            }
+        } else {
+            // Count number of leading zeroes (since this is where we start our search)
+            u16 lzcnt = x86::lzcnt_16(bitmap_buffer[i]) - 8; // Subtract 8 since it expands to 16 bits
+            if (lzcnt == 0) {
+                // Couldn't find any free sectors
+                continue;
+            } else {
+                sector_count += lzcnt;
+                sector_pos = i;
+                sector_bit = u8(8 - lzcnt);
+            }
+        }
+    }
+
+    if (sector_count < sectors) {
+        return Result<u32, Null>::ErrInPlace();
+    }
+
+    u32 count = 0;
+
+    for (auto i = sector_pos; i <= sector_pos + (sectors / 8); ++i) {
+        for (auto j = 0; j < 8 && count < sectors; ++j, ++count) {
+            bitmap_buffer[i] |= (1 << j);
+        }
+    }
+
+    if (disk->write(bitmap_slice, BLOCK_GROUP_START).is_err()) {
+        return Result<u32, Null>::ErrInPlace();
+    }
+
+    return Result<u32, Null>::OkInPlace(sector_pos * 8 + sector_bit);
+}
