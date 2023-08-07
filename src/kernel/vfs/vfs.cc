@@ -25,23 +25,30 @@ auto FileHandle::create(wlib::ahci::AHCIState *drive,
     // Now we mark the actual inode
     return Result<FileHandle, FileError>::OkInPlace(drive,
                                                     file_id,
-                                                    wnfs::inode_sector(file_id));
+                                                    wnfs::inode_sector(file_id), 
+                                                    0_u32);
 }
 
 auto FileHandle::open(ahci::AHCIState* const drive, 
                       u32 const file_id) -> Result<FileHandle, FileError> {
 
-    auto const sector = wnfs::inode_sector(u32(file_id));
+    auto const sector = wnfs::inode_sector(file_id);
 
-    auto const result = buf_cache.read_buf_sector(sector);
+    auto const maybe_inode_sector = buf_cache.read_buf_sector(sector);
 
-    // TODO: Should probably check if this inode is allocated in the inode bitmap?
-
-    if (result.is_err()) {
+    if (maybe_inode_sector.is_err()) {
         return Result<FileHandle, FileError>::ErrInPlace(FileError::FSError);
     }
 
-    return Result<FileHandle, FileError>::OkInPlace(drive, file_id, sector);
+    auto const* ptr = maybe_inode_sector.as_ok().as_const_ptr();
+
+    auto const inode_offset = wnfs::inode_sector_offset(file_id);
+
+    auto* inode = reinterpret_cast<wnfs::INode const*>(&ptr[inode_offset]);
+
+    auto const size = inode->size_lower_32;
+
+    return Result<FileHandle, FileError>::OkInPlace(drive, file_id, sector, size);
 }
 
 auto FileHandle::sector_of_position() -> Nullable<u32, u32(-1)> {
@@ -79,10 +86,12 @@ auto FileHandle::sector_of_position() -> Nullable<u32, u32(-1)> {
 auto FileHandle::write(Slice<u8> const& buffer) -> Result<u32, WriteError> {
     auto result = wnfs::write_to_file(_drive, buffer, wnfs::INodeID(_file_id), _position);
 
-    if (result.is_err()) {
-        return Result<u32, WriteError>::ErrInPlace(WriteError::FSError);
+    if (result.is_ok()) {
+        auto const bytes_written = result.as_ok();
+        _position += bytes_written;
+        return Result<u32, WriteError>::OkInPlace(bytes_written);
     } else {
-        return Result<u32, WriteError>::OkInPlace(result.as_ok());
+        return Result<u32, WriteError>::ErrInPlace(WriteError::FSError);
     }
 }
 

@@ -25,12 +25,12 @@ namespace kernel::vfs {
 
     class FileHandle {
       public:
-        FileHandle(wlib::ahci::AHCIState* drive, u32 file_id, u32 sector)
-            : _drive(drive), _file_id(file_id), _position(0), _sector(sector) {};
+        FileHandle(wlib::ahci::AHCIState* drive, u32 file_id, u32 sector, u32 size)
+            : _drive(drive), _file_id(file_id), _position(0), _size(size), _sector(sector) {};
 
         FileHandle(FileHandle&& handle) 
             : _drive(handle._drive), _file_id(handle._file_id), 
-              _position(handle._position), _sector(handle._sector) {
+              _position(handle._position), _size(handle._size), _sector(handle._sector) {
             handle._file_id = u32(-1);
         } 
 
@@ -39,6 +39,7 @@ namespace kernel::vfs {
             _file_id = handle._file_id;
             _position = handle._position;
             _sector = handle._sector;
+            _size = handle._size;
             handle._file_id = u32(-1);
         }
 
@@ -60,6 +61,7 @@ namespace kernel::vfs {
         wlib::ahci::AHCIState* _drive;
         u32 _file_id;
         u32 _position;
+        u32 _size;
         u32 _sector;
         
         auto sector_of_position() -> wlib::Nullable<u32, u32(-1)>; 

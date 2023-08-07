@@ -6,6 +6,7 @@
 #include "klib/result.hh"
 #include "klib/pci/pci-ide.hh"
 #include "klib/pci/pci.hh"
+#include "klib/console.hh"
 
 namespace wlib {
     namespace ahci {

@@ -83,7 +83,8 @@ namespace wnfs {
         }
 
         auto inline flush(u8 buf_num) -> wlib::Result<wlib::Null, wlib::ahci::IOError> {
-            _buffer_dirty_mask |= ~(1 << buf_num);
+            terminal.print_line("Flush ", _buf_sectors[buf_num]);
+            _buffer_dirty_mask &= ~(1 << buf_num);
             wlib::Slice slice(&get_val(0, buf_num), BUF_SIZE);
             return sata_disk0->write(slice, _buf_sectors[buf_num] * BUF_SIZE);
         }
@@ -118,7 +119,7 @@ namespace wnfs {
         }
 
         void inline constexpr grab_buffer(u8 buf_num) {
-            _buffer_free_mask |= (1 << buf_num);
+            _buffer_free_mask &= ~(1 << buf_num);
         }
     };
 };

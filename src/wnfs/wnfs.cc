@@ -149,7 +149,6 @@ auto wnfs::write_to_file(AHCIState* const disk,
                          INodeID inode_id, 
                          u32 const position) -> Result<u32, IOError> {
     auto inode_location = inode_sector(u32(inode_id));
-    terminal.print_line("inode location: ", inode_location);
     auto maybe_inode = buf_cache.read_buf_sector(inode_location);
 
     if (maybe_inode.is_err()) {
@@ -157,58 +156,77 @@ auto wnfs::write_to_file(AHCIState* const disk,
     }
 
     auto& inode_sector = maybe_inode.as_ok();
-
     auto* ptr = inode_sector.as_ptr();
-    
     auto const offset = wnfs::inode_sector_offset(u32(inode_id));
-
     auto* inode = reinterpret_cast<wnfs::INode*>(&ptr[offset]);
 
-    auto const write_block = position / wnfs::SECTOR_SIZE;
+    for (u8 i = 0; i < inode->name_len; ++i) {
+        terminal.print(char(inode->name[i]));
+    }
 
+    terminal.print_line();
+
+    auto const write_block = position / wnfs::SECTOR_SIZE;
     if (write_block > inode->direct_blocks.len()) {
-        // TODO: Write past the 9 blocks allowed, change this error
+        // TODO: Write past the 9 blocks allowed and change this error
         return Result<u32, IOError>::ErrInPlace(IOError::DeviceError);
     }
-        
+
     auto sector = inode->direct_blocks[write_block];
 
+    auto should_flush_inode = false;
+
     if (sector == 0) {
-        // Try to allocate space for this sector
-        auto result = wnfs::allocate_sectors(disk, 2_u32);
+        // If we don't have this block allocated, try to allocate space for this sector
+        auto constexpr block_sectors = wnfs::BLOCK_SIZE / wnfs::SECTOR_SIZE;
+        auto result = wnfs::allocate_sectors(disk, block_sectors);
 
         if (result.is_err()) {
+            // TODO: Add more applicable errors
             return Result<u32, IOError>::ErrInPlace(IOError::BufferTooSmall);
         } else {
             sector = result.as_ok();
             inode->direct_blocks[write_block] = sector;
-            auto flush_res = buf_cache.flush(inode_sector.buf_num());
-            if (flush_res.is_err()) {
-                return Result<u32, IOError>::ErrInPlace(flush_res.as_err());
-            }
+            should_flush_inode = true;
         }
     }
 
-    Array<u8, wnfs::SECTOR_SIZE> block_buffer;
+    // Since blocks can be multiple sectors, add however many sectors we are in the block
+    sector += (position % wnfs::BLOCK_SIZE) / wnfs::SECTOR_SIZE;
 
-    Slice block_slice(block_buffer);
+    auto maybe_block = buf_cache.read_buf_sector(sector);
 
-    if (disk->read(block_slice, sector * wnfs::SECTOR_SIZE).is_err()) {
+    if (maybe_block.is_err()) {
         return Result<u32, IOError>::ErrInPlace(IOError::DeviceError);
     }
+    
+    auto& block = maybe_block.as_ok();
 
-    auto const write_offset = position % wnfs::SECTOR_SIZE;
+    u16 const write_offset = position % wnfs::SECTOR_SIZE;
 
     usize const bytes_left_in_sector = wnfs::SECTOR_SIZE - write_offset;
 
+    // TODO: Make it possible to write multiple sectors at once
     auto const bytes_to_write = u16(util::min(buffer.len(), bytes_left_in_sector));
     
-    for (usize i = 0; i < bytes_to_write; ++i) {
-        block_buffer[i + write_offset] = buffer[i];
+    for (u16 i = 0; i < bytes_to_write; ++i) {
+        block.write(i + write_offset, buffer[i]);
     }
 
-    if (disk->write(block_slice, sector * wnfs::SECTOR_SIZE).is_err()) {
+    if (buf_cache.flush(block.buf_num()).is_err()) {
         return Result<u32, IOError>::ErrInPlace(IOError::DeviceError);
+    }
+
+    if (inode->size_lower_32 < position + bytes_to_write) {
+        inode->size_lower_32 = position + bytes_to_write;
+        should_flush_inode = true;
+    }
+
+    if (should_flush_inode) {
+        auto flush_res = buf_cache.flush(inode_sector.buf_num());
+        if (flush_res.is_err()) {
+            return Result<u32, IOError>::ErrInPlace(flush_res.as_err());
+        }
     }
 
     return Result<u32, IOError>::OkInPlace(bytes_to_write);

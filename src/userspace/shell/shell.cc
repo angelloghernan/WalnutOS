@@ -13,11 +13,10 @@
 using namespace wlib;
 typedef Array<char, 512> InputBuffer;
 using kernel::vfs::FileHandle;
-FileHandle file(nullptr, 0, 0);
+FileHandle file(nullptr, 0, 0, 0);
 
 static void parse_input(InputBuffer& buffer, u16 end) {
     // For now, we are going to treat this entire thing as one buffer
-    // TODO: Add splitting to strings
     auto as_str = str(buffer, 0, end);
     auto space_split = as_str.split(' ');
 
@@ -30,12 +29,23 @@ static void parse_input(InputBuffer& buffer, u16 end) {
     if (command == "Hello") {
         terminal.print_line("Hello");
     } else if (command == "dir") {
+    } else if (command == "write") {
+        if (!file.is_initialized()) {
+            return;
+        }
+
+        auto result = file.write(space_split.remainder().as_slice().to_raw_bytes());
+        if (result.is_ok()) {
+            terminal.print_line("Wrote ", space_split.remainder(), " to file");
+        } else {
+            terminal.print_line("Failed writing to file");
+        }
     } else if (command == "read") {
         if (!file.is_initialized()) {
             return;
         }
-        
-        Array<u8, 10> buf;
+
+        Array<u8, 12> buf;
         Slice slice(buf);
 
         auto result = file.read(slice);
@@ -61,7 +71,7 @@ static void parse_input(InputBuffer& buffer, u16 end) {
 
         if (result.is_ok()) {
             terminal.print_line("File handle successfully created with name ", arg);
-            auto result2 = result.as_ok().write(str("Hello, World!").as_slice().to_raw_bytes());
+            auto result2 = result.as_ok().write(str("Goodbye, World!").as_slice().to_raw_bytes());
             if (result2.is_err()) {
                 switch (result2.as_err()) {
                     case kernel::vfs::WriteError::DiskError:
@@ -131,8 +141,10 @@ void shell_main() {
             if (!extended) {
                 switch (key_code) {
                     case BackspaceDown:
-                        terminal.print_back_char(' ');
-                        --buf_ptr;
+                        if (buf_ptr > 0) {
+                            terminal.print_back_char(' ');
+                            --buf_ptr;
+                        }
                         break;
                     case LeftShiftDown:
                         left_shift_pressed = true;
