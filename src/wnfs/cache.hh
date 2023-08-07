@@ -15,11 +15,11 @@ namespace wnfs {
                 return _buf_cache.get_val_const(idx, _buf_num);
             }
 
-            void inline constexpr write(u16 idx, u8 data) {
+            void inline write(u16 idx, u8 data) {
                 _buf_cache.get_val(idx, _buf_num) = data;
             }
 
-            [[nodiscard]] auto inline constexpr as_ptr() -> u8* {
+            [[nodiscard]] auto inline as_ptr() -> u8* {
                 return &_buf_cache.get_val(0, _buf_num);
             }
             
@@ -83,9 +83,8 @@ namespace wnfs {
         }
 
         auto inline flush(u8 buf_num) -> wlib::Result<wlib::Null, wlib::ahci::IOError> {
-            terminal.print_line("Flush ", _buf_sectors[buf_num]);
-            _buffer_dirty_mask &= ~(1 << buf_num);
             wlib::Slice slice(&get_val(0, buf_num), BUF_SIZE);
+            _buffer_dirty_mask &= ~(1 << buf_num);
             return sata_disk0->write(slice, _buf_sectors[buf_num] * BUF_SIZE);
         }
 
@@ -103,7 +102,7 @@ namespace wnfs {
             return _buffer[buf_num * BUF_SIZE + idx];
         }
 
-        auto inline constexpr get_val(usize idx, u16 buf_num) -> u8& {
+        auto inline get_val(usize idx, u16 buf_num) -> u8& {
             _buffer_dirty_mask |= (1 << buf_num);
             return _buffer[buf_num * BUF_SIZE + idx];
         }
@@ -112,6 +111,7 @@ namespace wnfs {
             _buffer_free_mask ^= (1 << buf_num);
 
             if (_buffer_dirty_mask & (1 << buf_num)) {
+                terminal.print_line("Flush?");
                 // Ignoring errors for now, which sucks but we can't use this with a destructor otherwise
                 flush(buf_num);
             }
