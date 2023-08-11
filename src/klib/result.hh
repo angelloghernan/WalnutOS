@@ -110,6 +110,7 @@ namespace wlib {
             }
         }
 
+        // clangd doesn't like "requires" statements for some reason
         #if defined(__clang__)
             constexpr ~Result() {
                 if (m_is_success) {

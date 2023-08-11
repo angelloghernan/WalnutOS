@@ -7,7 +7,9 @@
 
 namespace kernel::vfs {
     enum class ReadError : u8 {
-        CacheFull,
+        DiskError,
+        BadINode,
+        BadPosition,
         EndOfFile,
     };
 
@@ -21,6 +23,10 @@ namespace kernel::vfs {
     enum class FileError : u8 {
         FSError,
         BitmapFull,
+    };
+
+    enum class SeekError: u8 {
+        PastEndOfFile,
     };
 
     class FileHandle {
@@ -49,9 +55,11 @@ namespace kernel::vfs {
         auto static open(wlib::ahci::AHCIState* drive, 
                          u32 file_id) -> wlib::Result<FileHandle, FileError>;
 
-        auto read(wlib::Slice<u8>& buffer) -> wlib::Result<u16, ReadError> ;
+        auto read(wlib::Slice<u8>& buffer) -> wlib::Result<u32, ReadError>;
 
         auto write(wlib::Slice<u8> const& buffer)-> wlib::Result<u32, WriteError>;
+
+        auto seek(u32 position) -> wlib::Result<wlib::Null, SeekError>;
 
         auto inline constexpr is_initialized() -> bool {
             return _drive != nullptr;
@@ -64,7 +72,7 @@ namespace kernel::vfs {
         u32 _size;
         u32 _sector;
         
-        auto sector_of_position() -> wlib::Nullable<u32, u32(-1)>; 
+        auto sector_of_position() -> wlib::Nullable<u32, u32(-1)>;
 
         friend class wlib::Result<FileHandle, FileError>;
     };

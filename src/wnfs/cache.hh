@@ -7,6 +7,9 @@
 namespace wnfs {
     class BufCache {
       public:
+        auto constexpr static BUF_SIZE = 512;
+        auto constexpr static BUF_BUF_SIZE = 4096;
+
         class BufCacheRef {
           public:
             [[nodiscard]] auto inline constexpr buf_num() const -> u8 { return _buf_num; }
@@ -36,6 +39,8 @@ namespace wnfs {
                 _buf_cache._buf_sectors[_buf_num] = sector;
                 _buf_cache.grab_buffer(buf_num);
             }
+
+            auto inline constexpr size() -> usize { return BUF_SIZE; }
 
           private:
             BufCache& _buf_cache;
@@ -88,9 +93,8 @@ namespace wnfs {
             return sata_disk0->write(slice, _buf_sectors[buf_num] * BUF_SIZE);
         }
 
+
       private:
-        auto constexpr static BUF_SIZE = 512;
-        auto constexpr static BUF_BUF_SIZE = 4096;
         u8 constexpr static NUM_BUFS = BUF_BUF_SIZE / BUF_SIZE;
 
         wlib::Array<u32, NUM_BUFS> _buf_sectors = wlib::Array<u32, NUM_BUFS>::filled(u32(-1));

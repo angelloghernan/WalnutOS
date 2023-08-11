@@ -1,5 +1,6 @@
 #include "wnfs/wnfs.hh"
 #include "wnfs/cache.hh"
+#include "wnfs/inode.hh"
 #include "wnfs/tag_node.hh"
 #include "wnfs/tag_bitmap.hh"
 #include "klib/x86.hh"
@@ -7,8 +8,10 @@
 #include "klib/result.hh"
 #include "klib/strings.hh"
 #include "klib/ahci/ahci.hh"
+#include "kernel/vfs/vfs.hh"
 
 using namespace wlib;
+using kernel::vfs::ReadError;
 using ahci::AHCIState;
 using ahci::IOError;
 
@@ -83,57 +86,62 @@ auto wnfs::get_file_sector(ahci::AHCIState* const disk,
     return Result<u32, ahci::IOError>::Ok(inode_sector_offset(u32(id)));
 }
 
-auto wnfs::create_file(ahci::AHCIState* const disk, 
+auto wnfs::create_file(ahci::AHCIState* const, 
                        str const name) -> Result<INodeID, FileError> {
-    Array<u8, SECTOR_SIZE> buffer;
 
-    Slice bitmap_slice(buffer);
+    // TODO: check the entire bitmap, not just the first sector (512 * 8 inodes)
+    auto maybe_bitmap = buf_cache.read_buf_sector(INODE_BITMAP_START_SECTOR);
 
-    if (disk->read(bitmap_slice, INODE_BITMAP_START).is_err()) {
-        return Result<INodeID, FileError>::Err(FileError::DiskError);
+    if (maybe_bitmap.is_err()) {
+        return Result<INodeID, FileError>::ErrInPlace(FileError::DiskError);
     }
 
-    for (usize i = 0; i < buffer.len(); ++i) {
-        if (buffer[i] == 0xFF) {
+    auto& bitmap = maybe_bitmap.as_ok();
+
+    for (u16 i = 0; i < bitmap.size(); ++i) {
+        auto const bitmap_byte = bitmap.read(i);
+        if (bitmap_byte == 0xFF) {
             continue;
         }
 
-        for (auto j = 0; j < 8; ++j) {
-            if (!(buffer[i] & (1 << j))) {
+        for (u8 j = 0; j < 8; ++j) {
+            if (!(bitmap_byte & (1 << j))) {
 
-                auto const inode_num = i * 8 + j;
+                u32 const inode_num = i * 8 + j;
 
                 auto const sector_num = inode_sector(inode_num);
 
+                auto maybe_inode_buf = buf_cache.read_buf_sector(sector_num);
+
+                if (maybe_inode_buf.is_err()) {
+                    return Result<INodeID, FileError>::ErrInPlace(FileError::DiskError);
+                }
+
+                auto& inode_buf = maybe_inode_buf.as_ok();
+
                 auto const inode_offset = inode_num % INODES_PER_SECTOR;
 
-                Array<INode, INODES_PER_SECTOR> buf2;
+                INode* nodes = reinterpret_cast<INode*>(inode_buf.as_ptr());
 
-                Slice inode_slice(reinterpret_cast<u8*>(buf2.data()), buf2.size());
-
-                if (disk->read(inode_slice, sector_num * SECTOR_SIZE).is_err()) {
-                    return Result<INodeID, FileError>::Err(FileError::DiskError);
+                nodes[inode_offset].creation_time = 0; // TODO
+                nodes[inode_offset].size_lower_32 = 0;
+                nodes[inode_offset].last_modified_time = 0xDEADBEEF; // TODO
+                nodes[inode_offset].reserved = 0;
+                nodes[inode_offset].direct_blocks.fill(0_u8);
+                nodes[inode_offset].indirect_block = 0;
+                nodes[inode_offset].double_indirect_block = 0;
+                nodes[inode_offset].triple_indirect_block = 0;
+                nodes[inode_offset].set_name(name);
+                
+                if (buf_cache.flush(inode_buf.buf_num()).is_err()) {
+                    return Result<INodeID, FileError>::ErrInPlace(FileError::DiskError);
                 }
 
-                buf2[inode_offset].creation_time = 0; // TODO
-                buf2[inode_offset].size_lower_32 = 0;
-                buf2[inode_offset].last_modified_time = 0; // TODO
-                buf2[inode_offset].reserved = 0;
-                buf2[inode_offset].direct_blocks.fill(0_u8);
-                buf2[inode_offset].indirect_block = 0;
-                buf2[inode_offset].double_indirect_block = 0;
-                buf2[inode_offset].triple_indirect_block = 0;
-                buf2[inode_offset].set_name(name);
+                // Only now should we try writing to the bitmap (atomic operation)
+                bitmap.write(i, bitmap_byte | u8(1_u8 << j));
 
-                if (disk->write(inode_slice, sector_num * SECTOR_SIZE).is_err()) {
-                    return Result<INodeID, FileError>::Err(FileError::DiskError);
-                }
-
-                // Only now should we try reserving the inode in the buffer
-                buffer[i] |= (1 << j);
-
-                if (disk->write(bitmap_slice, INODE_BITMAP_START).is_err()) {
-                    return Result<INodeID, FileError>::Err(FileError::DiskError);
+                if (buf_cache.flush(bitmap.buf_num()).is_err()) {
+                    return Result<INodeID, FileError>::ErrInPlace(FileError::DiskError);
                 }
 
                 return Result<INodeID, FileError>::Ok(INodeID(inode_num));
@@ -142,6 +150,72 @@ auto wnfs::create_file(ahci::AHCIState* const disk,
     }
 
     return Result<INodeID, FileError>::Err(FileError::OutOfINodes);
+}
+
+auto wnfs::read_from_file(AHCIState* const,
+                         Slice<u8>& buffer,
+                         INodeID inode_id, 
+                         u32 const position) -> Result<u32, ReadError> {
+    // TODO: change the buffer cache to be associated with the disk passed in
+    auto inode_location = inode_sector(u32(inode_id));
+    auto const maybe_inode = buf_cache.read_buf_sector(inode_location);
+
+    if (maybe_inode.is_err()) {
+        return Result<u32, ReadError>::ErrInPlace(ReadError::DiskError);
+    }
+
+    auto const& inode_sector = maybe_inode.as_ok();
+
+    auto const* ptr = inode_sector.as_const_ptr();
+    auto const offset = wnfs::inode_sector_offset(u32(inode_id));
+
+    auto const* inode = reinterpret_cast<wnfs::INode const*>(&ptr[offset]);
+
+    if (position >= inode->size_lower_32) {
+        return Result<u32, ReadError>::ErrInPlace(ReadError::EndOfFile);
+    }
+
+    auto const read_block = position / wnfs::SECTOR_SIZE;
+
+    if (read_block > inode->direct_blocks.len()) {
+        // TODO: Allow reading past the 9 blocks allowed and change this error
+        return Result<u32, ReadError>::ErrInPlace(ReadError::BadPosition);
+    }
+
+    auto sector = inode->direct_blocks[read_block];
+
+    if (sector == 0) {
+        return Result<u32, ReadError>::ErrInPlace(ReadError::BadPosition);
+    }
+
+    // Since blocks can be multiple sectors, add however many sectors we are in the block
+    sector += (position % wnfs::BLOCK_SIZE) / wnfs::SECTOR_SIZE;
+    terminal.print_line("Sector: ", sector);
+
+    auto maybe_block = buf_cache.read_buf_sector(sector);
+    
+    if (maybe_block.is_err()) {
+        return Result<u32, ReadError>::ErrInPlace(ReadError::DiskError);
+    }
+
+    auto& block = maybe_block.as_ok();
+
+    // TODO: allow reading past end of one sector
+    u16 const read_offset = position % wnfs::SECTOR_SIZE;
+
+    usize const bytes_left_in_sector = wnfs::SECTOR_SIZE - read_offset;
+    
+    u32 const bytes_to_read = u32(util::min(bytes_left_in_sector, buffer.len()));
+
+    for (u16 i = 0; i < bytes_to_read; ++i) {
+        block.write(i + read_offset, buffer[i]);
+    }
+
+    if (buf_cache.flush(block.buf_num()).is_err()) {
+        return Result<u32, ReadError>::ErrInPlace(ReadError::DiskError);
+    }
+
+    return Result<u32, ReadError>::OkInPlace(bytes_to_read);
 }
 
 auto wnfs::write_to_file(AHCIState* const disk,
@@ -156,15 +230,9 @@ auto wnfs::write_to_file(AHCIState* const disk,
     }
 
     auto& inode_sector = maybe_inode.as_ok();
-    auto* ptr = inode_sector.as_ptr();
+    u8* ptr = inode_sector.as_ptr();
     auto const offset = wnfs::inode_sector_offset(u32(inode_id));
     auto* inode = reinterpret_cast<wnfs::INode*>(&ptr[offset]);
-
-    for (u8 i = 0; i < inode->name_len; ++i) {
-        terminal.print(char(inode->name[i]));
-    }
-
-    terminal.print_line();
 
     auto const write_block = position / wnfs::SECTOR_SIZE;
     if (write_block > inode->direct_blocks.len()) {
@@ -193,6 +261,7 @@ auto wnfs::write_to_file(AHCIState* const disk,
 
     // Since blocks can be multiple sectors, add however many sectors we are in the block
     sector += (position % wnfs::BLOCK_SIZE) / wnfs::SECTOR_SIZE;
+    terminal.print_line("Sector: ", sector);
 
     auto maybe_block = buf_cache.read_buf_sector(sector);
 

@@ -84,7 +84,7 @@ namespace wlib {
             }
 
             [[nodiscard]] auto constexpr remainder() const -> str {
-                return str(_string + _pos, _end - _pos);
+                return str(_string + _pos, _end - _pos + 1);
             }
 
             auto constexpr next() -> Option<str> {

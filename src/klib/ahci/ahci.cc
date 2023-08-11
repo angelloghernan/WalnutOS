@@ -24,7 +24,7 @@ void AHCIState::handle_interrupt() {
 
     auto acks = _slots_outstanding_mask & ~(_port_registers.ncq_active);
 
-    for (auto slot = 0; acks != 0; ++slot, acks >>= 1) {
+    for (u32 slot = 0; acks != 0; ++slot, acks >>= 1) {
         if (acks & 1) {
             acknowledge(slot, 0);
         }
@@ -38,7 +38,7 @@ void AHCIState::handle_interrupt() {
 }
 
 void AHCIState::handle_error_interrupt() {
-    for (int slot = 0; slot < 32; ++slot) {
+    for (u32 slot = 0; slot < 32; ++slot) {
         if (_slots_outstanding_mask & (1U << slot)) {
             acknowledge(slot, u32(IOError::DeviceError));
         }
@@ -304,7 +304,6 @@ void AHCIState::issue_ncq(u32 const slot,
     _slots_outstanding_mask |= 1U << slot;   // remember slot
     --_num_slots_available;
 }
-
 void AHCIState::issue_meta(u32 const slot, 
                            pci::IDEController::Command const command,
                            u32 const features, 
@@ -361,7 +360,6 @@ auto AHCIState::read_or_write(pci::IDEController::Command const command,
     // a free slot using _slots_outstanding_mask
 
     volatile u32 r;
-
     {
         InterruptGuard guard;
 
@@ -370,7 +368,7 @@ auto AHCIState::read_or_write(pci::IDEController::Command const command,
 
         this->clear_slot(0);
         this->push_buffer(0, (void*)(buf.to_raw_ptr()), buf.len());
-        this->issue_ncq(0, command, offset / SECTOR_SIZE);
+        this->issue_ncq(0, command, offset / SECTOR_SIZE, true);
     }
 
     // TODO: This should block instead of polling after we add wait queues

@@ -95,31 +95,17 @@ auto FileHandle::write(Slice<u8> const& buffer) -> Result<u32, WriteError> {
     }
 }
 
-auto FileHandle::read(Slice<u8>& buffer) -> Result<u16, ReadError> {
-    auto sector = this->sector_of_position();
+auto FileHandle::read(Slice<u8>& buffer) -> Result<u32, ReadError> {
+    auto result = wnfs::read_from_file(_drive, buffer, wnfs::INodeID(_file_id), _position);
 
-    if (sector.none() || sector.unwrap() == 0) {
-        return Result<u16, ReadError>::ErrInPlace(ReadError::EndOfFile);
+    if (result.is_ok()) {
+        auto const bytes_read = result.as_ok();
+        _position += bytes_read;
     }
 
-    auto const maybe_read = buf_cache.read_buf_sector(sector.unwrap());
+    return result;
+}
 
-    if (maybe_read.is_err()) {
-        return Result<u16, ReadError>::ErrInPlace(ReadError::CacheFull);
-    }
-    u16 count = 0;
-
-
-    auto const end = util::min(usize(wnfs::BLOCK_SIZE), buffer.len());
-
-    auto const read_offset = _position % wnfs::BLOCK_SIZE;
-
-    for (u16 i = 0; i < end - read_offset; ++i) {
-        buffer[i] = maybe_read.as_ok().read(i);
-    }
-
-    count += end - read_offset;
-
-    // TODO: Support reading more than a maximum of 512 bytes
-    return Result<u16, ReadError>::OkInPlace(count);
+auto FileHandle::seek(u32 position) -> Result<Null, SeekError> {
+    
 }

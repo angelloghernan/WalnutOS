@@ -16,7 +16,7 @@ namespace wnfs {
         u32 double_indirect_block;
         u32 triple_indirect_block;
         u8 name_len;
-        wlib::Array<u8, 63> name;
+        wlib::Array<char, 63> name;
 
         // Set the name of the file. 
         // Returns err if the name is too long or invalid.
@@ -26,7 +26,7 @@ namespace wnfs {
                 return wlib::Result<wlib::Null, wlib::Null>::Err({});
             }
 
-            name_len = u8(filename.len() & 0xFF);
+            name_len = u8(filename.len());
 
             for (u8 i = 0; i < name_len; ++i) {
                 name[i] = filename[i];

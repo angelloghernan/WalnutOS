@@ -11,8 +11,11 @@
 // invoking kernel functions.
 
 using namespace wlib;
-typedef Array<char, 512> InputBuffer;
 using kernel::vfs::FileHandle;
+using kernel::vfs::ReadError;
+
+typedef Array<char, 512> InputBuffer;
+
 FileHandle file(nullptr, 0, 0, 0);
 
 static void parse_input(InputBuffer& buffer, u16 end) {
@@ -50,7 +53,18 @@ static void parse_input(InputBuffer& buffer, u16 end) {
 
         auto result = file.read(slice);
         if (result.is_err()) {
-            terminal.print_line("Error reading from file");
+            terminal.print("Error while reading file: ");
+            switch (result.as_err()) {
+                case ReadError::EndOfFile:
+                    terminal.print_line("end of file");
+                    break;
+                case ReadError::BadPosition:
+                    terminal.print_line("bad file position");
+                    break;
+                default:
+                    terminal.print_line("fatal");
+                    break;
+            }
         } else {
             for (auto ch : buf) {
                 terminal.print(char(ch));
@@ -59,6 +73,7 @@ static void parse_input(InputBuffer& buffer, u16 end) {
         }
         
     } else if (command == "mkdir") {
+        // We don't have "directories" perse, so unsure what to do here?
     } else if (command == "mkfile") {
         auto maybe_arg = space_split.next();
         if (maybe_arg.none()) {
@@ -71,23 +86,6 @@ static void parse_input(InputBuffer& buffer, u16 end) {
 
         if (result.is_ok()) {
             terminal.print_line("File handle successfully created with name ", arg);
-            auto result2 = result.as_ok().write(str("Goodbye, World!").as_slice().to_raw_bytes());
-            if (result2.is_err()) {
-                switch (result2.as_err()) {
-                    case kernel::vfs::WriteError::DiskError:
-                        terminal.print_line("Disk Error");
-                        break;
-                    case kernel::vfs::WriteError::FSError:
-                        terminal.print_line("FS Error");
-                        break;
-                    case kernel::vfs::WriteError::FileTooBig:
-                        terminal.print_line("File too big?");
-                        break;
-                    case kernel::vfs::WriteError::OutOfContiguousSpace:
-                        terminal.print_line("Out of contig");
-                        break;
-                }
-            }
             file = util::move(result.as_ok());
         } else {
             terminal.print_line("File handle encountered an error");
