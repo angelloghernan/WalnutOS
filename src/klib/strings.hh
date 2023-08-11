@@ -3,6 +3,7 @@
 #include "klib/slice.hh"
 #include "klib/array.hh"
 #include "klib/option.hh"
+#include "klib/result.hh"
 #include "klib/iterator.hh"
 #include "klib/type_traits.hh"
 
@@ -36,6 +37,31 @@ namespace wlib {
         auto constexpr end() const -> iterator<char const> { return iterator<char const>(_string + _size); }
 
         auto constexpr operator[](usize const idx) const -> char const& { return _string[idx]; }
+
+        auto constexpr into_u32() -> Result<u32, Null> {
+            if (_size > 10 || _size == 0) {
+                return Result<u32, Null>::ErrInPlace();
+            }
+
+            i32 place = i32(_size - 1);
+            u32 mult = 1;
+            u32 value = 0;
+            u32 prev = value;
+
+            for (; place >= 0; --place) {
+                if (_string[place] > '9' || _string[place] < '0') {
+                    return Result<u32, Null>::ErrInPlace();
+                }
+                value += u32(u32(_string[place] - '0') * mult);
+                if (value < prev) {
+                    return Result<u32, Null>::ErrInPlace();
+                }
+                prev = value;
+                mult *= 10;
+            }
+
+            return Result<u32, Null>::OkInPlace(value);
+        }
 
         auto constexpr operator==(str const& other) const -> bool {
             if (other._size != _size) {
