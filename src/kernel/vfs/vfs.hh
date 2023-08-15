@@ -6,6 +6,11 @@
 #include "klib/ahci/ahci.hh"
 
 namespace kernel::vfs {
+    struct file_metadata {
+        u32 size;
+        file_metadata(u32 size) : size(size) {}
+    };
+
     enum class ReadError : u8 {
         DiskError,
         BadINode,
@@ -14,10 +19,10 @@ namespace kernel::vfs {
     };
 
     enum class WriteError : u8 {
+        DiskError,
         FSError,
         FileTooBig,
         OutOfContiguousSpace,
-        DiskError,
     };
 
     enum class FileError : u8 {
@@ -27,6 +32,11 @@ namespace kernel::vfs {
 
     enum class SeekError: u8 {
         PastEndOfFile,
+        InternalError, 
+    };
+
+    enum class MetadataError : u8 {
+        DiskError,
     };
 
     class FileHandle {
@@ -49,19 +59,19 @@ namespace kernel::vfs {
             handle._file_id = u32(-1);
         }
 
-        auto static create(wlib::ahci::AHCIState* drive, 
-                           wlib::str const name) -> wlib::Result<FileHandle, FileError>;
+        [[nodiscard]] auto static create(wlib::ahci::AHCIState* drive, 
+                                         wlib::str const name) -> wlib::Result<FileHandle, FileError>;
 
-        auto static open(wlib::ahci::AHCIState* drive, 
-                         u32 file_id) -> wlib::Result<FileHandle, FileError>;
+        [[nodiscard]] auto static open(wlib::ahci::AHCIState* drive, 
+                                       u32 file_id) -> wlib::Result<FileHandle, FileError>;
 
-        auto read(wlib::Slice<u8>& buffer) -> wlib::Result<u32, ReadError>;
+        [[nodiscard]] auto read(wlib::Slice<u8>& buffer) -> wlib::Result<u32, ReadError>;
 
-        auto write(wlib::Slice<u8> const& buffer)-> wlib::Result<u32, WriteError>;
+        [[nodiscard]] auto write(wlib::Slice<u8> const& buffer)-> wlib::Result<u32, WriteError>;
 
-        auto seek(u32 position) -> wlib::Result<wlib::Null, SeekError>;
+        [[nodiscard]] auto seek(u32 position) -> wlib::Result<wlib::Null, SeekError>;
 
-        auto inline constexpr is_initialized() -> bool {
+        [[nodiscard]] auto inline constexpr is_initialized() -> bool {
             return _drive != nullptr;
         }
 

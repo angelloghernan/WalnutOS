@@ -32,6 +32,23 @@ static void parse_input(InputBuffer& buffer, u16 end) {
     if (command == "Hello") {
         terminal.print_line("Hello");
     } else if (command == "dir") {
+    } else if (command == "seek") {
+        if (!file.is_initialized()) {
+            return;
+        }
+
+        auto maybe_num = space_split.remainder().into_u32();
+        if (maybe_num.is_ok()) {
+            auto num = maybe_num.as_ok();
+            auto result = file.seek(num);
+            if (result.is_err()) {
+                terminal.print_line("Error seeking in file");
+            } else {
+                terminal.print_line("Seeked to ", num);
+            }
+        } else {
+            terminal.print_line("Please enter a valid position to seek to.");
+        }
     } else if (command == "write") {
         if (!file.is_initialized()) {
             return;
@@ -66,8 +83,9 @@ static void parse_input(InputBuffer& buffer, u16 end) {
                     break;
             }
         } else {
-            for (auto ch : buf) {
-                terminal.print(char(ch));
+            terminal.print_line("Read ", result.as_ok(), " bytes");
+            for (u16 i = 0; i < result.as_ok(); ++i) {
+                terminal.print(char(buf[i]));
             }
             terminal.print_line();
         }

@@ -51,12 +51,8 @@ namespace wnfs {
                                       INodeID inode_id,
                                       u32 position) -> wlib::Result<u32, kernel::vfs::ReadError>;
 
-    struct file_metadata {
-        
-    };
-
-    // Provide metadata on a given file.
-    [[nodiscard]] auto vfs_metadata(u32 file_id) -> file_metadata;
+    // Provide metadata on a given file, if possible (see struct).
+    [[nodiscard]] auto vfs_metadata(u32 file_id) -> wlib::Result<kernel::vfs::file_metadata, kernel::vfs::MetadataError>;
 
     // Layout is as follows:
     // Tag bitmap (N sectors)

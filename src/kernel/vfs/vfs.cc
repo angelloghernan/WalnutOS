@@ -96,6 +96,7 @@ auto FileHandle::write(Slice<u8> const& buffer) -> Result<u32, WriteError> {
 }
 
 auto FileHandle::read(Slice<u8>& buffer) -> Result<u32, ReadError> {
+    terminal.print_line("VFS: reading from ", _position);
     auto result = wnfs::read_from_file(_drive, buffer, wnfs::INodeID(_file_id), _position);
 
     if (result.is_ok()) {
@@ -107,5 +108,18 @@ auto FileHandle::read(Slice<u8>& buffer) -> Result<u32, ReadError> {
 }
 
 auto FileHandle::seek(u32 position) -> Result<Null, SeekError> {
-    
+    auto maybe_metadata = wnfs::vfs_metadata(_file_id);
+
+    if (maybe_metadata.is_ok()) {
+        auto& file_metadata = maybe_metadata.as_ok();
+        if (position < file_metadata.size) {
+            _position = position;
+            return Result<Null, SeekError>::OkInPlace();
+        } else {
+            _position = file_metadata.size;
+            return Result<Null, SeekError>::ErrInPlace(SeekError::PastEndOfFile);
+        }
+    } else {
+        return Result<Null, SeekError>::ErrInPlace(SeekError::InternalError);
+    }
 }

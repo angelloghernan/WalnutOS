@@ -11,9 +11,11 @@
 #include "kernel/vfs/vfs.hh"
 
 using namespace wlib;
-using kernel::vfs::ReadError;
 using ahci::AHCIState;
 using ahci::IOError;
+using kernel::vfs::ReadError;
+using kernel::vfs::file_metadata;
+using kernel::vfs::MetadataError;
 
 auto wnfs::format_disk(AHCIState* const disk) -> Result<Null, IOError> {
     // We first write the tag bitmap. There will be no tags allocated yet.
@@ -192,27 +194,27 @@ auto wnfs::read_from_file(AHCIState* const,
     sector += (position % wnfs::BLOCK_SIZE) / wnfs::SECTOR_SIZE;
     terminal.print_line("Sector: ", sector);
 
-    auto maybe_block = buf_cache.read_buf_sector(sector);
+    auto const maybe_block = buf_cache.read_buf_sector(sector);
     
     if (maybe_block.is_err()) {
         return Result<u32, ReadError>::ErrInPlace(ReadError::DiskError);
     }
 
-    auto& block = maybe_block.as_ok();
+    auto const& block = maybe_block.as_ok();
 
     // TODO: allow reading past end of one sector
     u16 const read_offset = position % wnfs::SECTOR_SIZE;
 
-    usize const bytes_left_in_sector = wnfs::SECTOR_SIZE - read_offset;
+    usize const end_byte_in_sector = inode->size_lower_32 % wnfs::SECTOR_SIZE;
+
+    usize const bytes_left_in_sector = end_byte_in_sector - read_offset + 1;
     
     u32 const bytes_to_read = u32(util::min(bytes_left_in_sector, buffer.len()));
 
-    for (u16 i = 0; i < bytes_to_read; ++i) {
-        block.write(i + read_offset, buffer[i]);
-    }
+    terminal.print_line("Reading from sector ", sector, " at position ", read_offset);
 
-    if (buf_cache.flush(block.buf_num()).is_err()) {
-        return Result<u32, ReadError>::ErrInPlace(ReadError::DiskError);
+    for (u16 i = 0; i < bytes_to_read; ++i) {
+        buffer[i] = block.read(i + read_offset);
     }
 
     return Result<u32, ReadError>::OkInPlace(bytes_to_read);
@@ -261,7 +263,7 @@ auto wnfs::write_to_file(AHCIState* const disk,
 
     // Since blocks can be multiple sectors, add however many sectors we are in the block
     sector += (position % wnfs::BLOCK_SIZE) / wnfs::SECTOR_SIZE;
-    terminal.print_line("Sector: ", sector);
+    terminal.print_line("Writing to sector: ", sector);
 
     auto maybe_block = buf_cache.read_buf_sector(sector);
 
@@ -277,7 +279,7 @@ auto wnfs::write_to_file(AHCIState* const disk,
 
     // TODO: Make it possible to write multiple sectors at once
     auto const bytes_to_write = u16(util::min(buffer.len(), bytes_left_in_sector));
-    
+
     for (u16 i = 0; i < bytes_to_write; ++i) {
         block.write(i + write_offset, buffer[i]);
     }
@@ -365,4 +367,23 @@ auto wnfs::allocate_sectors(AHCIState* const disk, u32 sectors) -> Result<u32, N
     }
 
     return Result<u32, Null>::OkInPlace(sector_pos * 8 + sector_bit + BLOCK_START_SECTOR);
+}
+
+auto wnfs::vfs_metadata(u32 file_id) -> Result<file_metadata, MetadataError> {
+    auto const inode_location = inode_sector(file_id);
+    auto const maybe_inode = buf_cache.read_buf_sector(inode_location);
+
+    if (maybe_inode.is_err()) {
+        return Result<file_metadata, MetadataError>::ErrInPlace(MetadataError::DiskError);
+    }
+
+    auto const& inode_buf = maybe_inode.as_ok();
+
+    u8 const* inodes = inode_buf.as_const_ptr();
+
+    auto const inode_offset = inode_sector_offset(file_id);
+
+    auto const* inode = reinterpret_cast<INode const*>(&inodes[inode_offset]);
+
+    return Result<file_metadata, MetadataError>::OkInPlace(inode->size_lower_32);
 }
