@@ -1,0 +1,5 @@
+#include "wnfs/wnfs.hh"
+#include "wnfs/cache.hh"
+#include "wnfs/inode.hh"
+#include "wnfs/tag_node.hh"
+#include "wnfs/tag_bitmap.hh"

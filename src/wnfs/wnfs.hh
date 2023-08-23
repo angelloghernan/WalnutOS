@@ -54,6 +54,11 @@ namespace wnfs {
     // Provide metadata on a given file, if possible (see struct).
     [[nodiscard]] auto vfs_metadata(u32 file_id) -> wlib::Result<kernel::vfs::file_metadata, kernel::vfs::MetadataError>;
 
+    // Attempt to add a tag to the given file id, `inode_id`. 
+    // Returns nothing on success or an error code on error.
+    [[nodiscard]] auto add_tag(INodeID inode_id,
+                               wlib::str const& tag) -> wlib::Result<wlib::Null, wlib::ahci::IOError>;
+
     // Layout is as follows:
     // Tag bitmap (N sectors)
     // Tag node block (M sectors)

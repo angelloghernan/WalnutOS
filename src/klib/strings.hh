@@ -102,9 +102,10 @@ namespace wlib {
         auto constexpr as_slice() const -> Slice<char const> {
             return Slice<char const>(_string, _size);
         }
-        class StrSplit {
+
+        class Split {
           public:
-            constexpr StrSplit(str& string, char ch) 
+            constexpr Split(str& string, char ch) 
                       : _string(string.as_const_ptr()), _pos(0), _end(string._size), _delimiter(ch) {
                 for (; _pos < _end && _string[_pos] == _delimiter; ++_pos) {}
             }
@@ -149,8 +150,8 @@ namespace wlib {
             char _delimiter;
         };
 
-        [[nodiscard]] auto constexpr split(char ch) -> StrSplit {
-            return StrSplit(*this, ch);
+        [[nodiscard]] auto constexpr split(char ch) -> Split {
+            return Split(*this, ch);
         }
 
       private:

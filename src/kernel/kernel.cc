@@ -67,9 +67,6 @@ extern "C" void kernel_main() {
 
     sata_disk0.unwrap().enable_interrupts();
 
-
-    /*
-
     Superblock superblock;
 
     auto result = superblock.cache_read();
@@ -78,12 +75,10 @@ extern "C" void kernel_main() {
 
     if (superblock.has_signature()) {
         terminal.print_line("Successfully detected ext2 signature");
+    } else {
+        auto result2 = kernel::ext2::format_disk(&superblock);
+        assert(result2.is_ok(), "Error formating disk with superblock");
     }
-
-    result = kernel::ext2::format_disk(&superblock);
-
-    assert(result.is_ok(), "Error formating disk with superblock");
-    */
 
     terminal.print_line("Formatting disk...");
     assert(wnfs::format_disk(&sata_disk0.unwrap()).is_ok(), "Error formatting sata disk 0");

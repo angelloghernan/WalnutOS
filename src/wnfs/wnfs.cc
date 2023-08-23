@@ -71,6 +71,14 @@ auto wnfs::format_disk(AHCIState* const disk) -> Result<Null, IOError> {
     return Result<Null, ahci::IOError>::Ok({});
 }
 
+auto wnfs::add_tag(INodeID inode_id,
+                   wlib::str const& tag) -> wlib::Result<wlib::Null, wlib::ahci::IOError> {
+    
+    
+
+    return wlib::Result<wlib::Null, wlib::ahci::IOError>::OkInPlace();
+}
+
 auto wnfs::get_file_sector(ahci::AHCIState* const disk, 
                            Slice<u8>& buf, INodeID id) -> Result<u32, ahci::IOError> {
     if (buf.len() < SECTOR_SIZE) {

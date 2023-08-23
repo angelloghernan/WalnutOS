@@ -1,6 +1,7 @@
 #pragma once
 #include "klib/int.hh"
 #include "klib/array.hh"
+#include "klib/concepts.hh"
 
 namespace wlib {
     template<typename T>
@@ -27,6 +28,8 @@ namespace wlib {
 
         auto constexpr len() const -> usize { return _size; }
 
+        auto constexpr size() -> usize { return _size * sizeof(T); }
+
         auto constexpr begin() -> iterator<T> { return iterator<T>(&_values[0]); }
         auto constexpr end() -> iterator<T> { return iterator<T>(&_values[_size]); }
 
@@ -46,6 +49,11 @@ namespace wlib {
 
             return true;
         }
+    
+        template<typename T2>
+        [[nodiscard]] auto constexpr into_slice() -> Slice<T2> requires(concepts::is_same_type<T, u8>) {
+            return Slice<T2>((T2*)(_values), _size / sizeof(T2));
+        }
 
         [[nodiscard]] auto constexpr empty() -> bool { return _size == 0; }
         
@@ -59,9 +67,12 @@ namespace wlib {
         [[nodiscard]] auto constexpr to_raw_ptr() const -> T const* { return _values; }
         [[nodiscard]] auto constexpr to_raw_ref() const -> T const& { return *_values; }
 
-        // unsafe -- if this is a const pointer, we must make sure that the contents are left unmodified
-        [[nodiscard]] auto constexpr to_raw_bytes() const -> Slice<u8> { 
+        [[nodiscard]] auto constexpr to_raw_bytes() -> Slice<u8> { 
             return Slice<u8>((u8*)(_values), _size * sizeof(T));
+        }
+
+        [[nodiscard]] auto constexpr to_raw_bytes() const -> Slice<u8 const> { 
+            return Slice<u8 const>((u8 const*)(_values), _size * sizeof(T));
         }
 
       private:
