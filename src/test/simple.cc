@@ -5,6 +5,7 @@
 #include "../klib/pagetables.hh"
 #include "../klib/assert.hh"
 
+using namespace wlib;
 static alloc::BuddyAllocator allocator;
 
 extern "C" void kernel_main() {

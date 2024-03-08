@@ -3,6 +3,7 @@
 #include "klib/int.hh"
 #include "klib/array.hh"
 #include "klib/ahci/ahci.hh"
+#include "kernel/ext2/inodes.hh"
 
 
 namespace kernel::ext2 {
@@ -67,7 +68,7 @@ namespace kernel::ext2 {
         Superblock() {}
 
         // Read the superblock into cache.
-        [[nodiscard]] auto cache_read() -> wlib::Result<wlib::Null, wlib::ahci::IOError>;
+        [[nodiscard]] auto cache_read(wlib::ahci::AHCIState* disk) -> wlib::Result<wlib::Null, wlib::ahci::IOError>;
 
         // Returns whether the ext2 signature is present in the mounted disk.
         [[nodiscard]] auto has_signature() -> bool {
@@ -93,6 +94,20 @@ namespace kernel::ext2 {
         [[nodiscard]] auto read_32(Field32 off) -> u32;
         // Read a 16-bit field from the superblock.
         [[nodiscard]] auto read_16(Field16 off) -> u16;
+
+        [[nodiscard]] auto block_size() -> u32 {
+            // TODO: Support multiple block sizes
+            // return 1 << (read_32(Field32::Log2BlockSizeMinus10) + 10);
+            return 1024;
+        }
+
+        [[nodiscard]] auto inodes_per_block() -> u32 {
+            return this->block_size() / sizeof(INode);
+        }
+        
+        // Load the superblock into memory (this internal cache)
+        [[nodiscard]] auto load() -> wlib::Result<wlib::Null, wlib::ahci::IOError>;
+
       private:
         auto constexpr static BYTE_OFFSET = 1024_usize;
         auto constexpr static EXT2_CHECKSUM = 0xEF53_u16;
@@ -105,8 +120,8 @@ namespace kernel::ext2 {
             return cache[block_idx / 8] & (1 << u8(block_idx % 8));
         }
 
-        inline void set_block(u16 block_idx, bool free) {
-            cache[block_idx / 8] |= (1 << u8(block_idx % 0xFF));
+        inline void set_block(u16 block_idx, bool free) { // FIXME
+            cache[block_idx / 8] |= (1 << u8(block_idx & 0xFF));
         }
 
         inline void set_blocks(u16 block_byte, u8 mask) {

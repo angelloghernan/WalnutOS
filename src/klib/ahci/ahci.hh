@@ -4,9 +4,12 @@
 #include "klib/array.hh"
 #include "klib/slice.hh"
 #include "klib/result.hh"
+#include "klib/console.hh"
+#include "klib/static_slice.hh"
 #include "klib/pci/pci-ide.hh"
 #include "klib/pci/pci.hh"
-#include "klib/console.hh"
+#include "klib/ahci/cache.hh"
+#include "klib/ahci/error.hh"
 
 namespace wlib {
     namespace ahci {
@@ -21,13 +24,6 @@ namespace wlib {
             BIST               = 0x58, // Built In Self Test
             PIO_SETUP          = 0x5F, // setting up PIO (slower than DMA)
             SET_DEVICE_BITS    = 0xA1, // 
-        };
-
-        enum class IOError : i8 {
-            TryAgain = -1,
-            DeviceError = -2,
-            BufferTooSmall = -3,
-            CacheFull = -4,
         };
 
         // Made with help from Chickadee OS source (https://github.com/CS161/chickadee/)
@@ -170,6 +166,7 @@ namespace wlib {
             u16 _num_slots_available;
             u16 _slots_outstanding_mask;
             Array<volatile u32*, 32> _slot_status; // IMPORTANT: This should become atomic once multicore is set up
+            BufferCache<>& _cache;
 
 
             void clear_slot(u16 slot);
@@ -191,12 +188,9 @@ namespace wlib {
 
             auto read_or_write(pci::IDEController::Command command,
                                Slice<u8>& buf, usize offset) -> Result<Null, IOError>;
-
-            auto read_or_write_cache(pci::IDEController::Command const command,
-                                     usize const offset) -> Result<Null, IOError>;
             
           public:
-            AHCIState(u8 bus, u8 slot, u8 func_number, u32 sata_port, volatile registers& dr);
+            AHCIState(u8 bus, u8 slot, u8 func_number, u32 sata_port, volatile registers& dr, BufferCache<>* cache);
             AHCIState(AHCIState const&) = delete;
 
             inline auto irq() -> u32 { return _irq; }
@@ -219,15 +213,9 @@ namespace wlib {
             [[nodiscard]] auto static find(pci::PCIState::bus_slot_addr = {}, 
                                            u32 sata_port = 0) -> Option<AHCIState&>;
 
-            [[nodiscard]] auto read_cache(usize offset) -> Result<Null, IOError> {
-                return read_or_write_cache(pci::IDEController::Command::ReadFPDMAQueued,
-                                           offset);
-            }
-
-            [[nodiscard]] auto write_cache(usize offset) -> Result<Null, IOError> {
-                return read_or_write_cache(pci::IDEController::Command::ReadFPDMAQueued,
-                                           offset);
-            }
+            // Read a sector from the disk using the buffer cache. Returns a cache buffer, else an error code.
+            // The cache buffer should be released before end of scope using `release`, `flush`, or `flush_dirty`.
+            [[nodiscard]] auto read_sector(usize sector) -> Result<BufferCache<>::Buffer, IOError>;
 
             [[nodiscard]] inline auto read(Slice<u8>& buf, usize offset) -> Result<Null, IOError> {
                 return read_or_write(pci::IDEController::Command::ReadFPDMAQueued, 
@@ -239,6 +227,70 @@ namespace wlib {
                 // when we use the write command
                 return read_or_write(pci::IDEController::Command::WriteFPDMAQueued, 
                                      const_cast<Slice<u8>&>(buf), offset);
+            }
+
+            void constexpr take_buffer(u8 buf_num) {
+                if (_cache.is_dirty(buf_num)) {
+                     // XXX don't ignore this error? or just panic?
+                    (void) this->sync(_cache.get_buffer(buf_num));            
+                }
+
+                _cache._taken_map |= (1 << buf_num);
+            }
+
+
+            [[nodiscard]] auto get_buffer(usize read_offset) -> Option<BufferCache<>::Buffer> {
+                auto const maybe_buffer = _cache.buffer_with_offset(read_offset);
+
+                if (maybe_buffer.some()) {
+                    return maybe_buffer;
+                }
+
+                for (u32 i = 0; i < BufferCache<>::NUM_ENTRIES; ++i) {
+                    if (!_cache.is_taken(u8(i))) {
+                        this->take_buffer(u8(i));
+                        _cache.set_location(u8(i), read_offset);
+                           
+                        return Option<BufferCache<>::Buffer>::Some((u8*)(&_cache._cache[i * BufferCache<>::ENTRY_SIZE]));
+                    }
+                }
+
+                return Option<BufferCache<>::Buffer>::None();
+            }
+
+            // Releases this buffer. Does not flush. 
+            void release(BufferCache<>::Buffer buffer) {
+                _cache.release(buffer);         
+            }
+
+            void mark_dirty(BufferCache<>::Buffer buffer) {
+                _cache.mark_dirty(buffer);
+            }
+
+            // Attempts to flush this buffer if it's been marked dirty before. 
+            // Otherwise, just releases it.
+            [[nodiscard]] auto flush_dirty(BufferCache<>::Buffer buffer) -> Result<Null, IOError> {
+                if (_cache.is_dirty(_cache.buf_to_buf_number(buffer))) {
+                    return this->flush(buffer); 
+                } else {
+                    _cache.release(buffer);
+                    return Result<Null, IOError>::OkInPlace();
+                }
+            }
+            
+            // Attempts to flush this buffer to disk unconditionally, while releasing it.
+            [[nodiscard]] auto flush(BufferCache<>::Buffer buffer) -> Result<Null, IOError> {
+                _cache.release(buffer);
+                return sync(buffer);
+            }
+
+
+            // Attempts to flush this buffer to disk without releasing it. 
+            // Marks the buffer as clean.
+            [[nodiscard]] auto sync(BufferCache<>::Buffer buffer) -> Result<Null, IOError> {
+                _cache.make_clean(_cache.buf_to_buf_number(buffer));
+                auto offset = _cache._buffer_locations[_cache.buf_to_buf_number(buffer)];
+                return this->write(buffer.to_slice(), offset);
             }
         };
     }; // namespace ahci

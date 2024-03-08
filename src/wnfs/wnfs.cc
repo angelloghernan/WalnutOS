@@ -230,7 +230,7 @@ auto wnfs::read_from_file(AHCIState* const,
 
 auto wnfs::write_to_file(AHCIState* const disk,
                          Slice<u8> const& buffer,
-                         INodeID inode_id, 
+                         INodeID inode_id,
                          u32 const position) -> Result<u32, IOError> {
     auto inode_location = inode_sector(u32(inode_id));
     auto maybe_inode = buf_cache.read_buf_sector(inode_location);
@@ -271,7 +271,6 @@ auto wnfs::write_to_file(AHCIState* const disk,
 
     // Since blocks can be multiple sectors, add however many sectors we are in the block
     sector += (position % wnfs::BLOCK_SIZE) / wnfs::SECTOR_SIZE;
-    terminal.print_line("Writing to sector: ", sector);
 
     auto maybe_block = buf_cache.read_buf_sector(sector);
 

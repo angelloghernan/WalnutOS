@@ -12,7 +12,7 @@ void Pic::end_of_interrupt(u8 irq) {
     outb(PIC1_COMMAND, PIC_EOI);
 }
 
-void Pic::remap(u16 master_offset, u16 slave_offset) {
+void Pic::remap(u8 master_offset, u8 slave_offset) {
 	u8 a1, a2;
 
 	a1 = inb(PIC1_DATA);                        // save masks

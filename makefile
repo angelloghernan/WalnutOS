@@ -21,6 +21,13 @@ ifdef TEST-FILE
 	KERNEL_IMAGE := test-kernel-image.bin
 endif
 
+DEBUG_QEMU_FLAGS = -device piix4-ide,bus=pci.0,id=piix4-ide \
+	-drive file=${DEBUG_FOLDER}/${OS_IMAGE},if=none,format=raw,id=bootdisk\
+	-device ide-hd,drive=bootdisk,bus=piix4-ide.0 \
+	-drive file=img/disk.img,if=none,format=raw,id=maindisk\
+    -device ahci,id=ahci \
+	-device ide-hd,drive=maindisk,bus=ahci.0
+
 QEMU_FLAGS = -device piix4-ide,bus=pci.0,id=piix4-ide \
 	-drive file=${OBJ_FOLDER}/${OS_IMAGE},if=none,format=raw,id=bootdisk\
 	-device ide-hd,drive=bootdisk,bus=piix4-ide.0 \
@@ -59,10 +66,10 @@ ${OBJ_FOLDER}/${OS_IMAGE}: ${SRC_FOLDER}/${BOOT_FOLDER}/crt0.o ${KERNEL_IMAGE_DI
 	grub-mkrescue -o ${OBJ_FOLDER}/${OS_IMAGE} isodir
 
 ${KERNEL_IMAGE_DIR}: ${OBJ_LINK_LIST}
-		i686-elf-ld -flto -use-linker-plugin  -o $@ --script=ldconfig.ld $^
+		i686-elf-ld -flto -use-linker-plugin -o $@ --script=ldconfig.ld $^
 
 ${DEBUG_FOLDER}/${KERNEL_IMAGE_DIR}: ${DEBUG_OBJ_LINK_LIST}
-		i686-elf-ld -flto -use-linker-plugin  -o $@ --script=ldconfig.ld $^
+		i686-elf-ld -flto -use-linker-plugin -o $@ --script=ldconfig.ld $^
 
 ${OBJ_FOLDER}/kernel.elf: ${OBJ_LINK_LIST}
 		i686-elf-ld -flto -use-linker-plugin -o $@ --script=ldconfig.ld $^
@@ -73,17 +80,17 @@ ${DEBUG_FOLDER}/kernel.elf: ${DEBUG_OBJ_LINK_LIST}
 dump: ${OBJ_FOLDER}/kernel.elf
 		objdump -d $^ > dump.txt
 
-${DEBUG_FOLDER}/${OS_IMAGE}: ${SRC_FOLDER}/boot/boot.bin ${DEBUG_FOLDER}/${KERNEL_IMAGE}
-		cat $^ > $@
+${DEBUG_FOLDER}/${OS_IMAGE}: ${SRC_FOLDER}/${BOOT_FOLDER}/crt0.o ${DEBUG_FOLDER}/${KERNEL_IMAGE_DIR}
+		grub-mkrescue -o ${DEBUG_FOLDER}/{OS_IMAGE} debug/isodir
 
 object-file-structure:
-	mkdir ${OBJ_FOLDER}; find ${SRC_FOLDER} -type d -exec mkdir -p -- ${OBJ_FOLDER}/{} \;
+		mkdir ${OBJ_FOLDER}; find ${SRC_FOLDER} -type d -exec mkdir -p -- ${OBJ_FOLDER}/{} \;
 
 debug-file-structure:
 	  mkdir ${DEBUG_FOLDER}; find ${SRC_FOLDER} -type d -exec mkdir -p -- ${DEBUG_FOLDER}/{} \;
 
 debug: debug-file-structure ${DEBUG_FOLDER}/${OS_IMAGE} 
-		qemu-system-i386 -hda ${DEBUG_FOLDER}/${OS_IMAGE} ${QEMU_FLAGS}
+		qemu-system-i386 ${QEMU_FLAGS}
 
 run: object-file-structure ${OBJ_FOLDER}/${OS_IMAGE}
 		qemu-system-i386 ${QEMU_FLAGS}

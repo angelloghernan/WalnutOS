@@ -24,7 +24,7 @@ namespace wlib {
             other._array = nullptr;
         }
 
-        [[nodiscard]] auto static initalize(usize size) -> Option<DynArray> {
+        [[nodiscard]] auto static initialize(usize size) -> Option<DynArray> {
             auto const ptr = simple_allocator.kalloc(size);
             if (ptr.none()) {
                 return Option<DynArray>::None();

@@ -1,24 +1,24 @@
-#include "wnfs/wnfs.hh"
-#include "wnfs/cache.hh"
-#include "klib/strings.hh"
-#include "klib/console.hh"
-#include "klib/array.hh"
-#include "klib/pic.hh"
-#include "klib/apic.hh"
-#include "klib/idt.hh"
-#include "klib/assert.hh"
-#include "klib/result.hh"
-#include "klib/circular_buffer.hh"
-#include "klib/pci/pci.hh"
-#include "klib/pci/pci-ide.hh"
-#include "klib/ahci/ahci.hh"
-#include "klib/ps2/ps2.hh"
-#include "klib/ps2/keyboard.hh"
-#include "kernel/alloc.hh"
 #include "kernel/kernel.hh"
-#include "kernel/ext2/ext2.hh"
+#include "kernel/alloc.hh"
 #include "kernel/ext2/blocks.hh"
+#include "kernel/ext2/ext2.hh"
+#include "klib/ahci/ahci.hh"
+#include "klib/apic.hh"
+#include "klib/array.hh"
+#include "klib/assert.hh"
+#include "klib/circular_buffer.hh"
+#include "klib/console.hh"
+#include "klib/idt.hh"
+#include "klib/pci/pci-ide.hh"
+#include "klib/pci/pci.hh"
+#include "klib/pic.hh"
+#include "klib/ps2/keyboard.hh"
+#include "klib/ps2/ps2.hh"
+#include "klib/result.hh"
+#include "klib/strings.hh"
 #include "userspace/shell/shell.hh"
+#include "wnfs/cache.hh"
+#include "wnfs/wnfs.hh"
 
 using namespace wlib;
 
@@ -32,11 +32,11 @@ PageDirectory kernel_pagedir;
 static PageTable starter_pt;
 static PageTable io_pt;
 
-Option<ahci::AHCIState&> sata_disk0 = Option<ahci::AHCIState&>::None();
+Option<ahci::AHCIState &> sata_disk0 = Option<ahci::AHCIState &>::None();
 
 Idt idt;
 Idtr idtr;
-extern void* isr_stub_table[];
+extern void *isr_stub_table[];
 Ps2Keyboard keyboard;
 wnfs::BufCache bufcache;
 
@@ -54,7 +54,7 @@ extern "C" void kernel_main() {
 
     Idt::enable_interrupts();
 
-    // QEMU: 
+    // QEMU:
     // Slot 0 is Natoma (chipset)
     // Slot 1 is ISA controller
     // Slot 2 is QEMU Virtual Video Controller
@@ -69,20 +69,22 @@ extern "C" void kernel_main() {
 
     Superblock superblock;
 
-    auto result = superblock.cache_read();
+    auto result = superblock.cache_read(&sata_disk0.unwrap());
 
     assert(result.is_ok(), "Error reading ext2 superblock");
 
     if (superblock.has_signature()) {
         terminal.print_line("Successfully detected ext2 signature");
     } else {
-        auto result2 = kernel::ext2::format_disk(&superblock);
-        assert(result2.is_ok(), "Error formating disk with superblock");
+        assert(false, "ext2 is not present on disk");
+        // auto result2 = kernel::ext2::format_disk(&superblock);
+        // assert(result2.is_ok(), "Error formating disk with superblock");
     }
 
-    terminal.print_line("Formatting disk...");
-    assert(wnfs::format_disk(&sata_disk0.unwrap()).is_ok(), "Error formatting sata disk 0");
-    terminal.print_line("Done formatting");
+    // terminal.print_line("Formatting disk...");
+    // assert(wnfs::format_disk(&sata_disk0.unwrap()).is_ok(),
+    // "Error formatting sata disk 0");
+    // terminal.print_line("Done formatting");
 
     keyboard.enqueue_command(ResetAndSelfTest);
     keyboard.enqueue_command(Echo);
@@ -113,12 +115,14 @@ void Idt::init() {
     idtr.set_base(reinterpret_cast<uptr>(&_idt[0]));
     idtr.set_limit(sizeof(IdtEntry) * 63);
     for (usize i = 0; i < 64; ++i) {
-        auto const ptr = reinterpret_cast<uptr>(isr_stub_table[i]) - kernel::KERNEL_START;
-        auto const code_segment = u16((ptr / kernel::SEGMENT_SIZE) + kernel::KERNEL_CS_SEG_START);
+        auto const ptr =
+            reinterpret_cast<uptr>(isr_stub_table[i]) - kernel::KERNEL_START;
+        auto const code_segment =
+            u16((ptr / kernel::SEGMENT_SIZE) + kernel::KERNEL_CS_SEG_START);
         _idt[i].set(isr_stub_table[i], 0x8E, code_segment);
     }
 
     // _idt[0x21].set(reinterpret_cast<void*>(keyboard_handler), 0x8E);
 
-    __asm__ volatile ("lidt %0" : : "m"(idtr)); // load the new IDT
+    __asm__ volatile("lidt %0" : : "m"(idtr)); // load the new IDT
 }

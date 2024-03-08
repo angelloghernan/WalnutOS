@@ -2,6 +2,7 @@
 #include "klib/result.hh"
 #include "kernel/ext2/blocks.hh"
 #include "kernel/ext2/inodes.hh"
+#include "klib/ahci/ahci.hh"
 
 namespace kernel::ext2 {
     // The location of the descriptor table when this OS formats
@@ -28,7 +29,32 @@ namespace kernel::ext2 {
 
     auto static constexpr ROOT_INODE_NUM = 2;
 
-    auto format_disk(Superblock* const superblock) 
+    auto format_disk(Superblock* superblock) 
         -> wlib::Result<wlib::Null, wlib::ahci::IOError>;
 
+    class Ext2FS {
+      public:
+        enum class IOError {
+            CacheFull,
+        };
+
+        enum class INodeNum : u8 {};
+    
+        Ext2FS(wlib::ahci::AHCIState* disk);
+
+        auto find_inode(INodeNum parent_dir, wlib::str const name) -> wlib::Result<INodeNum, IOError>;
+
+        auto create_inode(INodeNum parent_dir, wlib::str const name) -> wlib::Result<INodeNum, IOError>;
+
+        auto write_inode(INodeNum inode, wlib::Slice<u8> const& buffer) -> wlib::Result<u32, IOError>;
+
+        auto read_inode(INodeNum inode, wlib::Slice<u8>& buffer) -> wlib::Result<u32, IOError>;
+ 
+      private:
+        wlib::ahci::AHCIState& _disk;
+        Superblock superblock;
+        auto inode_block(INodeNum inode_num) -> u32;
+        auto get_inode(INodeNum inode_num) -> wlib::Result<INode*, IOError>;
+        void release_inode(INode* inode);
+    };
 };

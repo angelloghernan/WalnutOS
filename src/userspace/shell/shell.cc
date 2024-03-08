@@ -89,9 +89,7 @@ static void parse_input(InputBuffer& buffer, u16 end) {
             }
             terminal.print_line();
         }
-        
     } else if (command == "mkdir") {
-        // We don't have "directories" perse, so unsure what to do here?
     } else if (command == "mkfile") {
         auto maybe_arg = space_split.next();
         if (maybe_arg.none()) {
@@ -125,7 +123,7 @@ void shell_main() {
 
     while (true) {
         using enum wlib::ps2::KeyboardResponse;
-        for (auto maybe_key_code = keyboard.pop_response(); 
+        for (auto maybe_key_code = keyboard.pop_response();
              maybe_key_code.some();
              maybe_key_code = keyboard.pop_response()) {
             auto key_code = maybe_key_code.unwrap();

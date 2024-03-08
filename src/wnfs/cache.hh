@@ -115,7 +115,6 @@ namespace wnfs {
             _buffer_free_mask ^= (1 << buf_num);
 
             if (_buffer_dirty_mask & (1 << buf_num)) {
-                terminal.print_line("Flush?");
                 // Ignoring errors for now, which sucks but we can't use this with a destructor otherwise
                 flush(buf_num);
             }
