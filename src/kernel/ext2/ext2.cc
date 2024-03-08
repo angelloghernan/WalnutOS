@@ -21,6 +21,7 @@ Ext2FS::Ext2FS(wlib::ahci::AHCIState *disk) : _disk(*disk) {
 }
 
 auto Ext2FS::get_inode(INodeNum inode_num) -> Result<INode *, IOError> {
+    using Field32 = INode::Field32;
     auto const block = this->inode_block(inode_num);
 
     auto const maybe_buf = cache.buffer_with_offset(block);
@@ -34,10 +35,19 @@ auto Ext2FS::get_inode(INodeNum inode_num) -> Result<INode *, IOError> {
         sizeof(INode) * (u32(inode_num) / superblock.inodes_per_block());
 
     auto inode = util::bit_cast<INode *>(&buf[inode_offset]);
+
+    auto creation_time = inode->read_32(Field32::CreationTime);
+
+    terminal.print_line("INode creation time: ", creation_time);
+
+    return Result<INode *, IOError>::Err(IOError::CacheFull);
 }
 
 auto Ext2FS::find_inode(INodeNum parent_dir, wlib::str const name)
-    -> Result<INodeNum, IOError> {}
+    -> Result<INodeNum, IOError> {
+
+    return Result<INodeNum, IOError>::ErrInPlace(IOError::CacheFull);
+}
 
 auto Ext2FS::inode_block(INodeNum inode_num) -> u32 {}
 }; // namespace kernel::ext2
