@@ -97,7 +97,7 @@ class Superblock {
     [[nodiscard]] auto read_16(Field16 off) -> u16;
 
     [[nodiscard]] auto block_size() -> u32 {
-        return 1 << (read_32(Field32::Log2BlockSizeMinus10) + 10);
+        return 1_u32 << (read_32(Field32::Log2BlockSizeMinus10) + 10_u32);
         // return 1024;
     }
 
